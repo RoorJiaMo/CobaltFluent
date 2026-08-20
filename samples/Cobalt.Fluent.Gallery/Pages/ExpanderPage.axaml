@@ -1,0 +1,53 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             x:Class="Cobalt.Fluent.Gallery.Pages.ExpanderPage">
+
+  <StackPanel HorizontalAlignment="Left" MaxWidth="720">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="Expander" />
+      <Border Classes="tag"><TextBlock Text="3 · 容器" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead"
+               Text="头部 min-height 64，chevron 是一个 32×32 的方框。展开时箭头旋转 180°，用时 167ms（ControlFastAnimationDuration）。内容区有独立底色和上分隔线。" />
+
+    <TextBlock Classes="sub" Text="收起 / 展开" />
+    <StackPanel Spacing="12">
+      <Expander Header="高级参数" HorizontalAlignment="Stretch">
+        <StackPanel Spacing="8">
+          <TextBlock Text="PID 整定" />
+          <TextBlock Classes="note" Text="Kp = 2.4 · Ki = 0.18 · Kd = 0.05" />
+        </StackPanel>
+      </Expander>
+      <Expander Header="高级参数（已展开）" IsExpanded="True" HorizontalAlignment="Stretch">
+        <StackPanel Spacing="8">
+          <TextBlock Text="PID 整定" />
+          <TextBlock Classes="note" Text="Kp = 2.4 · Ki = 0.18 · Kd = 0.05" />
+        </StackPanel>
+      </Expander>
+      <Expander Header="已禁用" IsEnabled="False" HorizontalAlignment="Stretch">
+        <TextBlock Text="内容" />
+      </Expander>
+    </StackPanel>
+
+    <TextBlock Classes="sub" Text="试玩 — 慢放看箭头旋转" />
+    <Border Classes="play" HorizontalAlignment="Stretch">
+      <StackPanel Spacing="12">
+        <Expander Header="点我展开" HorizontalAlignment="Stretch">
+          <TextBlock Text="箭头旋转 180°，用时 167ms。" />
+        </Expander>
+        <TextBlock Classes="note" Text="右上角「动效 0.25×」把 167ms 放慢 4 倍，能看清旋转的缓动曲线。" />
+      </StackPanel>
+    </Border>
+
+    <g:MapBlock Note="箭头旋转用 RotateTransform + Transitions，时长 167ms（ControlFastAnimationDuration）。">
+      <g:MapRow Key="控件" Value="Expander" />
+      <g:MapRow Key="属性" Value="Header · IsExpanded · ExpandDirection（四向都支持）" />
+      <g:MapRow Key="伪类" Value="Expander:expanded" />
+      <g:MapRow Key="资源键" Value="CardBackgroundFillColorDefaultBrush（外框）· SubtleFillColorSecondaryBrush（头部 hover）· SolidBackgroundFillColorTertiaryBrush（内容区）· DividerStrokeColorDefaultBrush（上分隔线）" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

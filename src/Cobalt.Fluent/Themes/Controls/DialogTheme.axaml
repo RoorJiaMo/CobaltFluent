@@ -1,0 +1,225 @@
+<!-- ContentDialog / TeachingTip —— 两种悬浮层。
+     这两个和 Flyout / MenuFlyout / ToolTip 一样属于悬浮层，是全库仅有的能用阴影的地方。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:fc="using:Cobalt.Fluent.Controls">
+
+  <ControlTheme x:Key="{x:Type fc:ContentDialog}" TargetType="fc:ContentDialog">
+    <!-- 对话框是实色，不是亚克力。亚克力留给 Flyout / MenuFlyout / ToolTip。 -->
+    <Setter Property="Background" Value="{DynamicResource SolidBackgroundFillColorBaseBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SurfaceStrokeColorDefaultBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{DynamicResource OverlayCornerRadius}" />
+    <Setter Property="MaxWidth" Value="540" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:ContentDialog">
+        <Border Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                MaxWidth="{TemplateBinding MaxWidth}"
+                ClipToBounds="True"
+                BoxShadow="0 32 64 0 #3D000000, 0 0 8 0 #33000000">
+          <StackPanel>
+
+            <StackPanel Margin="24" Spacing="12">
+              <TextBlock Text="{TemplateBinding Title}"
+                         Theme="{StaticResource SubtitleTextBlockStyle}"
+                         TextWrapping="Wrap"
+                         IsVisible="{TemplateBinding Title,
+                                     Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+              <ContentPresenter Content="{TemplateBinding Content}"
+                                ContentTemplate="{TemplateBinding ContentTemplate}" />
+            </StackPanel>
+
+            <!-- 底部按钮等宽撑满，这是 Win11 的特征 -->
+            <Border Background="{DynamicResource SolidBackgroundFillColorSecondaryBrush}"
+                    BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                    BorderThickness="0,1,0,0"
+                    Padding="24">
+              <UniformGrid Rows="1" ColumnSpacing="8">
+                <Button x:Name="PART_PrimaryButton"
+                        Content="{TemplateBinding PrimaryButtonText}"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center"
+                        IsVisible="{TemplateBinding PrimaryButtonText,
+                                    Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                <Button x:Name="PART_SecondaryButton"
+                        Content="{TemplateBinding SecondaryButtonText}"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center"
+                        IsVisible="{TemplateBinding SecondaryButtonText,
+                                    Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                <Button x:Name="PART_CloseButton"
+                        Content="{TemplateBinding CloseButtonText}"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center"
+                        IsVisible="{TemplateBinding CloseButtonText,
+                                    Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+              </UniformGrid>
+            </Border>
+          </StackPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- 默认按钮走 accent 外观。这里不能用 <Setter Property="Classes.accent">：
+         带条件的 Style 不允许改 Classes（AVLN2200），所以直接铺 accent 的那几支笔。
+         一屏一个强调色，另外两个保持标准外观。 -->
+    <Style Selector="^[DefaultButton=Primary] /template/ Button#PART_PrimaryButton">
+      <Setter Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentControlElevationBorderBrush}" />
+    </Style>
+    <Style Selector="^[DefaultButton=Primary] /template/ Button#PART_PrimaryButton:pointerover">
+      <Setter Property="Background" Value="{DynamicResource AccentFillColorSecondaryBrush}" />
+    </Style>
+    <Style Selector="^[DefaultButton=Primary] /template/ Button#PART_PrimaryButton:pressed">
+      <Setter Property="Background" Value="{DynamicResource AccentFillColorTertiaryBrush}" />
+    </Style>
+
+    <Style Selector="^[DefaultButton=Secondary] /template/ Button#PART_SecondaryButton">
+      <Setter Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentControlElevationBorderBrush}" />
+    </Style>
+
+    <!-- 危险主操作不走 accent —— 删除、清空、强制停机不该长得像「推荐操作」 -->
+    <Style Selector="^[IsPrimaryDestructive=True] /template/ Button#PART_PrimaryButton">
+      <Setter Property="Background" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextOnSafetyFillColorPrimaryBrush}" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+  </ControlTheme>
+
+  <!-- ==================== TeachingTip ==================== -->
+  <!-- 悬浮层，用实色底（不是亚克力）+ flyout 阴影。beak 是一个旋转 45° 的方块，
+       只画两条边，拼在本体外侧看起来就是尖角。 -->
+  <ControlTheme x:Key="{x:Type fc:TeachingTip}" TargetType="fc:TeachingTip">
+    <Setter Property="Background" Value="{DynamicResource SolidBackgroundFillColorQuarternaryBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SurfaceStrokeColorFlyoutBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{DynamicResource OverlayCornerRadius}" />
+    <Setter Property="MaxWidth" Value="336" />
+    <Setter Property="Padding" Value="16" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:TeachingTip">
+        <Panel>
+          <Border x:Name="PART_Body"
+                  Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  CornerRadius="{TemplateBinding CornerRadius}"
+                  Padding="{TemplateBinding Padding}"
+                  MaxWidth="{TemplateBinding MaxWidth}"
+                  Margin="0,6,0,0"
+                  BoxShadow="0 8 16 0 #24000000, 0 0 2 0 #1F000000">
+            <StackPanel Spacing="4">
+              <TextBlock Text="{TemplateBinding Title}"
+                         FontWeight="SemiBold"
+                         TextWrapping="Wrap"
+                         Foreground="{TemplateBinding Foreground}" />
+              <TextBlock Text="{TemplateBinding Subtitle}"
+                         TextWrapping="Wrap"
+                         Margin="0,0,0,12"
+                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                         IsVisible="{TemplateBinding Subtitle,
+                                     Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+              <UniformGrid Rows="1" ColumnSpacing="8">
+                <Button x:Name="PART_ActionButton"
+                        Content="{TemplateBinding ActionButtonContent}"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center"
+                        IsVisible="{TemplateBinding ActionButtonContent,
+                                    Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                <Button x:Name="PART_CloseButton"
+                        Content="{TemplateBinding CloseButtonContent}"
+                        HorizontalAlignment="Stretch"
+                        HorizontalContentAlignment="Center"
+                        IsVisible="{TemplateBinding CloseButtonContent,
+                                    Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+              </UniformGrid>
+            </StackPanel>
+          </Border>
+
+          <!-- beak：旋转 45° 的方块，只留左上两条边 -->
+          <Border x:Name="PART_Beak"
+                  Width="12" Height="12"
+                  Margin="24,0,0,0"
+                  HorizontalAlignment="Left"
+                  VerticalAlignment="Top"
+                  Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="1,1,0,0"
+                  RenderTransformOrigin="50%,50%">
+            <Border.RenderTransform>
+              <RotateTransform Angle="45" />
+            </Border.RenderTransform>
+          </Border>
+        </Panel>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- 模板里写死的是 :bottom（提示在目标下方，beak 朝上）。另外三个方向要把 beak
+         挪到对侧，并换掉留边的那两条 —— beak 是个转了 45° 的方块，朝哪边就留哪两条边：
+         朝上 = 原来的上+左，朝下 = 下+右，朝左 = 左+下，朝右 = 上+右。
+         本体那 6px 外边距同步换边，给 beak 让出位置。 -->
+    <Style Selector="^:top /template/ Border#PART_Body">
+      <Setter Property="Margin" Value="0,0,0,6" />
+    </Style>
+    <Style Selector="^:top /template/ Border#PART_Beak">
+      <Setter Property="VerticalAlignment" Value="Bottom" />
+      <Setter Property="BorderThickness" Value="0,0,1,1" />
+    </Style>
+
+    <Style Selector="^:left /template/ Border#PART_Body">
+      <Setter Property="Margin" Value="0,0,6,0" />
+    </Style>
+    <Style Selector="^:left /template/ Border#PART_Beak">
+      <Setter Property="HorizontalAlignment" Value="Right" />
+      <Setter Property="Margin" Value="0,24,0,0" />
+      <Setter Property="BorderThickness" Value="0,1,1,0" />
+    </Style>
+
+    <Style Selector="^:right /template/ Border#PART_Body">
+      <Setter Property="Margin" Value="6,0,0,0" />
+    </Style>
+    <Style Selector="^:right /template/ Border#PART_Beak">
+      <Setter Property="Margin" Value="0,24,0,0" />
+      <Setter Property="BorderThickness" Value="1,0,0,1" />
+    </Style>
+  </ControlTheme>
+
+  <!-- ==================== DataGridToolbar ==================== -->
+  <ControlTheme x:Key="{x:Type fc:DataGridToolbar}" TargetType="fc:DataGridToolbar">
+    <Setter Property="Padding" Value="12,8" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:DataGridToolbar">
+        <Border Padding="{TemplateBinding Padding}">
+          <DockPanel LastChildFill="False">
+            <ItemsControl DockPanel.Dock="Left" ItemsSource="{TemplateBinding Items}"
+                          VerticalAlignment="Center">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <WrapPanel Orientation="Horizontal" ItemSpacing="8" LineSpacing="8" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+            </ItemsControl>
+
+            <!-- 计数要等宽：筛选时数字一直在变，比例数字会让右端抖动 -->
+            <TextBlock DockPanel.Dock="Right"
+                       Text="{TemplateBinding CountText}"
+                       VerticalAlignment="Center"
+                       FontSize="{DynamicResource CaptionFontSize}"
+                       FontFeatures="{StaticResource TabularNumbers}"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+          </DockPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+</ResourceDictionary>

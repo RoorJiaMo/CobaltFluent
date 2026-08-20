@@ -1,0 +1,119 @@
+<!-- Card / SettingsCard / SettingsGroup —— content layer 内部的分区。
+     页面内元素不加阴影，一律靠描边分层。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:fc="using:Cobalt.Fluent.Controls">
+
+  <ControlTheme x:Key="{x:Type fc:Card}" TargetType="fc:Card">
+    <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <Setter Property="Padding" Value="16" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Stretch" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:Card">
+        <ContentPresenter x:Name="PART_ContentPresenter"
+                          Background="{TemplateBinding Background}"
+                          BorderBrush="{TemplateBinding BorderBrush}"
+                          BorderThickness="{TemplateBinding BorderThickness}"
+                          CornerRadius="{TemplateBinding CornerRadius}"
+                          Padding="{TemplateBinding Padding}"
+                          Content="{TemplateBinding Content}"
+                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+      </ControlTemplate>
+    </Setter>
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="0:0:0.083" />
+      </Transitions>
+    </Setter>
+
+    <!-- 只有声明了可点击才响应状态。静态卡片不该有 hover 反馈。 -->
+    <Style Selector="^:clickable:pointerover">
+      <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorSecondaryBrush}" />
+    </Style>
+    <Style Selector="^:clickable:pressed">
+      <Setter Property="Background" Value="{DynamicResource ControlFillColorTertiaryBrush}" />
+    </Style>
+  </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type fc:SettingsCard}" TargetType="fc:SettingsCard">
+    <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <Setter Property="Padding" Value="16,8" />
+    <Setter Property="MinHeight" Value="{DynamicResource SettingsCardMinHeight}" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:SettingsCard">
+        <Border Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Padding="{TemplateBinding Padding}"
+                MinHeight="{TemplateBinding MinHeight}">
+          <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
+
+            <fc:SymbolIcon Grid.Column="0"
+                           Symbol="{TemplateBinding Icon}"
+                           FontSize="20"
+                           Margin="0,0,16,0"
+                           VerticalAlignment="Center"
+                           Foreground="{TemplateBinding Foreground}"
+                           IsVisible="{TemplateBinding Icon,
+                                       Converter={x:Static fc:SymbolConverters.IsNotNone}}" />
+
+            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+              <TextBlock Text="{TemplateBinding Header}"
+                         TextWrapping="Wrap"
+                         Foreground="{TemplateBinding Foreground}" />
+              <TextBlock Text="{TemplateBinding Description}"
+                         TextWrapping="Wrap"
+                         FontSize="{DynamicResource CaptionFontSize}"
+                         LineHeight="{DynamicResource CaptionLineHeight}"
+                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                         IsVisible="{TemplateBinding Description,
+                                     Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            </StackPanel>
+
+            <!-- 右侧控件槽 -->
+            <ContentPresenter Grid.Column="2"
+                              Margin="16,0,0,0"
+                              VerticalAlignment="Center"
+                              Content="{TemplateBinding Content}"
+                              ContentTemplate="{TemplateBinding ContentTemplate}" />
+          </Grid>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- 成组：2px 缝隙、首尾圆角、中间方角。类由 SettingsGroup 打。 -->
+    <Style Selector="^.settings-middle">
+      <Setter Property="CornerRadius" Value="0" />
+    </Style>
+    <Style Selector="^.settings-first">
+      <Setter Property="CornerRadius" Value="4,4,0,0" />
+    </Style>
+    <Style Selector="^.settings-last">
+      <Setter Property="CornerRadius" Value="0,0,4,4" />
+    </Style>
+    <Style Selector="^.settings-only">
+      <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    </Style>
+  </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type fc:SettingsGroup}" TargetType="fc:SettingsGroup">
+    <Setter Property="Spacing" Value="2" />
+    <!-- 这里不能写 <Style Selector="^ fc|SettingsCard">：ControlTheme 里不允许
+         出现后代选择器，编译能过但运行时抛异常。中间项的方角由 settings-middle
+         这个类负责，类是 SettingsGroup 在代码里打的。 -->
+  </ControlTheme>
+
+</ResourceDictionary>

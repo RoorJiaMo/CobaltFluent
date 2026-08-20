@@ -1,0 +1,320 @@
+<!-- CheckBox / RadioButton。
+     两个控件共用同一套骨架：20×20 的指示器 + space-2 的间距 + 文本，行高 control-height。
+
+     指示器的勾和横杠不走图标字体：
+     嵌入式 Linux 上没有这套字体，所以这里一律改成 Path / Ellipse 画，
+     画成矢量路径，视觉等价且零字体依赖。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- 勾。几何刻意从 (0,0) 起算：Stretch="None" 时 Shape 的布局尺寸取几何的 (Right,Bottom)，
+       起点归零，Center 对齐才能落在方框正中。描边圆头 = Win11 的勾端头。 -->
+  <StreamGeometry x:Key="CheckBoxCheckGlyphGeometry">M 0,4 L 4,8 L 11,0</StreamGeometry>
+
+  <ControlTheme x:Key="{x:Type CheckBox}" TargetType="CheckBox">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <!-- 方框和文字之间 8px -->
+    <Setter Property="Padding" Value="8,0,0,0" />
+    <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <!-- 随内容收缩，不铺满容器 -->
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Cursor" Value="Arrow" />
+    <Setter Property="FocusAdorner" Value="{StaticResource FluentFocusAdorner}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="CheckBox">
+        <Border x:Name="PART_Root"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}">
+          <Grid ColumnDefinitions="20,*">
+            <!-- 方框钉在第一行的垂直中线上：文字换行时框不跟着往下漂 -->
+            <Panel Grid.Column="0" VerticalAlignment="Top" Height="{DynamicResource ControlHeight}">
+              <Border x:Name="PART_Box"
+                      Width="20" Height="20"
+                      Background="{DynamicResource ControlAltFillColorSecondaryBrush}"
+                      BorderBrush="{DynamicResource ControlStrongStrokeColorDefaultBrush}"
+                      BorderThickness="{DynamicResource ControlBorderThickness}"
+                      CornerRadius="{DynamicResource ControlCornerRadius}"
+                      UseLayoutRounding="False">
+                <Border.Transitions>
+                  <Transitions>
+                    <BrushTransition Property="Background" Duration="{StaticResource ControlFasterAnimationDuration}" />
+                    <BrushTransition Property="BorderBrush" Duration="{StaticResource ControlFasterAnimationDuration}" />
+                  </Transitions>
+                </Border.Transitions>
+              </Border>
+
+              <Path x:Name="PART_CheckGlyph"
+                    Data="{StaticResource CheckBoxCheckGlyphGeometry}"
+                    Stroke="{DynamicResource TextOnAccentFillColorPrimaryBrush}"
+                    StrokeThickness="1.6"
+                    StrokeLineCap="Round"
+                    StrokeJoin="Round"
+                    Stretch="None"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Opacity="0">
+                <Path.Transitions>
+                  <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="{StaticResource ControlFasterAnimationDuration}" />
+                  </Transitions>
+                </Path.Transitions>
+              </Path>
+
+              <!-- 三态：一条横杠。圆角只有 8/4/0，所以杠是平头的，不做 1px 圆头 -->
+              <Rectangle x:Name="PART_IndeterminateGlyph"
+                         Width="10" Height="2"
+                         Fill="{DynamicResource TextOnAccentFillColorPrimaryBrush}"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center"
+                         Opacity="0">
+                <Rectangle.Transitions>
+                  <Transitions>
+                    <DoubleTransition Property="Opacity" Duration="{StaticResource ControlFasterAnimationDuration}" />
+                  </Transitions>
+                </Rectangle.Transitions>
+              </Rectangle>
+            </Panel>
+
+            <ContentPresenter x:Name="PART_ContentPresenter"
+                              Grid.Column="1"
+                              Margin="{TemplateBinding Padding}"
+                              Content="{TemplateBinding Content}"
+                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                              Foreground="{TemplateBinding Foreground}"
+                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                              TextWrapping="Wrap"
+                              RecognizesAccessKey="True" />
+          </Grid>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^:pointerover">
+      <Style Selector="^ /template/ Border#PART_Box">
+        <Setter Property="Background" Value="{DynamicResource ControlAltFillColorTertiaryBrush}" />
+      </Style>
+    </Style>
+
+    <Style Selector="^:pressed">
+      <Style Selector="^ /template/ Border#PART_Box">
+        <Setter Property="Background" Value="{DynamicResource ControlAltFillColorQuarternaryBrush}" />
+      </Style>
+    </Style>
+
+    <!-- 未选中的禁用态。放在 :checked / :indeterminate 之前，
+         这样「选中 + 禁用」由后面嵌套的 ^:disabled 接管（后写的赢）。 -->
+    <Style Selector="^:disabled">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+
+      <Style Selector="^ /template/ Border#PART_Box">
+        <Setter Property="Background" Value="{DynamicResource ControlAltFillColorSecondaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlStrongFillColorDisabledBrush}" />
+      </Style>
+      <Style Selector="^ /template/ Path#PART_CheckGlyph">
+        <Setter Property="Stroke" Value="{DynamicResource TextFillColorDisabledBrush}" />
+      </Style>
+      <Style Selector="^ /template/ Rectangle#PART_IndeterminateGlyph">
+        <Setter Property="Fill" Value="{DynamicResource TextFillColorDisabledBrush}" />
+      </Style>
+    </Style>
+
+    <Style Selector="^:checked">
+      <Style Selector="^ /template/ Border#PART_Box">
+        <Setter Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+      </Style>
+      <Style Selector="^ /template/ Path#PART_CheckGlyph">
+        <Setter Property="Opacity" Value="1" />
+      </Style>
+
+      <Style Selector="^:pointerover /template/ Border#PART_Box">
+        <Setter Property="Background" Value="{DynamicResource AccentFillColorSecondaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentFillColorSecondaryBrush}" />
+      </Style>
+      <!-- 选中态的按下相补一档 accent-pressed，
+           否则选中后再点回去完全没有按下反馈。 -->
+      <Style Selector="^:pressed /template/ Border#PART_Box">
+        <Setter Property="Background" Value="{DynamicResource AccentFillColorTertiaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentFillColorTertiaryBrush}" />
+      </Style>
+      <Style Selector="^:disabled /template/ Border#PART_Box">
+        <Setter Property="Background" Value="{DynamicResource AccentFillColorDisabledBrush}" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+      </Style>
+    </Style>
+
+    <!-- 三态：和选中同底同描边，只是勾换成横杠。 -->
+    <Style Selector="^:indeterminate">
+      <Style Selector="^ /template/ Border#PART_Box">
+        <Setter Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+      </Style>
+      <Style Selector="^ /template/ Rectangle#PART_IndeterminateGlyph">
+        <Setter Property="Opacity" Value="1" />
+      </Style>
+
+      <Style Selector="^:pointerover /template/ Border#PART_Box">
+        <Setter Property="Background" Value="{DynamicResource AccentFillColorSecondaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentFillColorSecondaryBrush}" />
+      </Style>
+      <Style Selector="^:pressed /template/ Border#PART_Box">
+        <Setter Property="Background" Value="{DynamicResource AccentFillColorTertiaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentFillColorTertiaryBrush}" />
+      </Style>
+      <!-- 三态 + 禁用不是「淡 accent」：禁用和三态同权重，
+           .disabled 写在后面赢，所以是中性灰底 + 禁用描边（checked 那档才有
+           .checked.disabled 显式覆写成 accent-fill-disabled）。
+           这里必须显式重写一遍：外层 ^:disabled 声明在 ^:indeterminate 之前，
+           不写的话会被上面那条 accent 底覆盖掉。
+           横杠本身是 text-disabled 灰的，配淡 accent 底几乎看不见，也印证了该走中性底。 -->
+      <Style Selector="^:disabled /template/ Border#PART_Box">
+        <Setter Property="Background" Value="{DynamicResource ControlAltFillColorSecondaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlStrongFillColorDisabledBrush}" />
+      </Style>
+    </Style>
+  </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type RadioButton}" TargetType="RadioButton">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <Setter Property="Padding" Value="8,0,0,0" />
+    <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Cursor" Value="Arrow" />
+    <!-- 圆形控件走圆聚焦框 -->
+    <Setter Property="FocusAdorner" Value="{StaticResource FluentFocusAdornerRound}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="RadioButton">
+        <Border x:Name="PART_Root"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}">
+          <Grid ColumnDefinitions="20,*">
+            <Panel Grid.Column="0" VerticalAlignment="Top" Height="{DynamicResource ControlHeight}">
+              <Ellipse x:Name="PART_Box"
+                       Width="20" Height="20"
+                       Fill="{DynamicResource ControlAltFillColorSecondaryBrush}"
+                       Stroke="{DynamicResource ControlStrongStrokeColorDefaultBrush}"
+                       StrokeThickness="1"
+                       UseLayoutRounding="False">
+                <Ellipse.Transitions>
+                  <Transitions>
+                    <BrushTransition Property="Fill" Duration="{StaticResource ControlFasterAnimationDuration}" />
+                    <BrushTransition Property="Stroke" Duration="{StaticResource ControlFasterAnimationDuration}" />
+                  </Transitions>
+                </Ellipse.Transitions>
+              </Ellipse>
+
+              <!-- 内点：未选中 0，选中 8px，悬停撑到 10px、按下收到 6px
+                   —— Win11 单选钮的手感全在这三个数上。
+                   底板固定 10×10（最大档），三档尺寸走 RenderTransform 缩放：
+                   scale(.8)=8px · scale(1)=10px · scale(.6)=6px。
+                   不过渡 Width/Height 是因为那会逐帧重跑布局，破坏「动效只动 transform 和
+                   opacity」这条不变量；内点是纯填充无描边，缩放不会带出描边变粗的副作用。 -->
+              <Ellipse x:Name="PART_CheckGlyph"
+                       Width="10" Height="10"
+                       Fill="{DynamicResource TextOnAccentFillColorPrimaryBrush}"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center"
+                       RenderTransformOrigin="50%,50%"
+                       RenderTransform="scale(0)"
+                       UseLayoutRounding="False">
+                <Ellipse.Transitions>
+                  <Transitions>
+                    <TransformOperationsTransition Property="RenderTransform"
+                                                   Duration="{StaticResource ControlFasterAnimationDuration}" />
+                  </Transitions>
+                </Ellipse.Transitions>
+              </Ellipse>
+            </Panel>
+
+            <ContentPresenter x:Name="PART_ContentPresenter"
+                              Grid.Column="1"
+                              Margin="{TemplateBinding Padding}"
+                              Content="{TemplateBinding Content}"
+                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                              Foreground="{TemplateBinding Foreground}"
+                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                              TextWrapping="Wrap"
+                              RecognizesAccessKey="True" />
+          </Grid>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^:pointerover">
+      <Style Selector="^ /template/ Ellipse#PART_Box">
+        <Setter Property="Fill" Value="{DynamicResource ControlAltFillColorTertiaryBrush}" />
+      </Style>
+    </Style>
+
+    <!-- 单选钮的按下相规格里没给，但复选框有；
+         两者同族，这里补齐，否则单选钮按下去毫无反馈。 -->
+    <Style Selector="^:pressed">
+      <Style Selector="^ /template/ Ellipse#PART_Box">
+        <Setter Property="Fill" Value="{DynamicResource ControlAltFillColorQuarternaryBrush}" />
+      </Style>
+    </Style>
+
+    <Style Selector="^:disabled">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+
+      <Style Selector="^ /template/ Ellipse#PART_Box">
+        <Setter Property="Fill" Value="{DynamicResource ControlAltFillColorSecondaryBrush}" />
+        <Setter Property="Stroke" Value="{DynamicResource ControlStrongFillColorDisabledBrush}" />
+      </Style>
+    </Style>
+
+    <Style Selector="^:checked">
+      <Style Selector="^ /template/ Ellipse#PART_Box">
+        <Setter Property="Fill" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+        <Setter Property="Stroke" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+      </Style>
+      <Style Selector="^ /template/ Ellipse#PART_CheckGlyph">
+        <Setter Property="RenderTransform" Value="scale(0.8)" />
+      </Style>
+
+      <!-- 选中后底色保持 accent，只有内点变 -->
+      <Style Selector="^:pointerover /template/ Ellipse#PART_CheckGlyph">
+        <Setter Property="RenderTransform" Value="scale(1)" />
+      </Style>
+      <Style Selector="^:pressed /template/ Ellipse#PART_CheckGlyph">
+        <Setter Property="RenderTransform" Value="scale(0.6)" />
+      </Style>
+      <Style Selector="^:pressed /template/ Ellipse#PART_Box">
+        <Setter Property="Fill" Value="{DynamicResource AccentFillColorTertiaryBrush}" />
+        <Setter Property="Stroke" Value="{DynamicResource AccentFillColorTertiaryBrush}" />
+      </Style>
+
+      <Style Selector="^:disabled /template/ Ellipse#PART_Box">
+        <Setter Property="Fill" Value="{DynamicResource AccentFillColorDisabledBrush}" />
+        <Setter Property="Stroke" Value="Transparent" />
+      </Style>
+    </Style>
+  </ControlTheme>
+
+</ResourceDictionary>

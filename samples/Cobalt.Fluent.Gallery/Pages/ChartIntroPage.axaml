@@ -1,0 +1,213 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             x:Class="Cobalt.Fluent.Gallery.Pages.ChartIntroPage">
+
+  <StackPanel HorizontalAlignment="Left" MaxWidth="860">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="选型与规格" />
+      <Border Classes="tag"><TextBlock Text="9 · 图表" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead"
+               Text="这一组和前面所有控件都不一样：它不是「换套皮的内置控件」，定的是视觉规格——色板、轴线、网格、图例、十字线、刷新策略。本库把这套规格自绘实现了（DrawingContext，零第三方依赖）；数据量真压不住时换成图表库，规格照搬过去就行。" />
+
+    <TextBlock Classes="sub" Text="选型（2026 年 8 月）" />
+    <Border Classes="panel" HorizontalAlignment="Stretch">
+      <Grid ColumnDefinitions="150,120,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto"
+            ColumnSpacing="20" RowSpacing="10">
+        <Grid.Styles>
+          <Style Selector="TextBlock">
+            <Setter Property="TextWrapping" Value="Wrap" />
+            <Setter Property="VerticalAlignment" Value="Top" />
+          </Style>
+          <Style Selector="TextBlock.th">
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+          </Style>
+          <Style Selector="TextBlock.lib">
+            <Setter Property="FontWeight" Value="SemiBold" />
+          </Style>
+          <Style Selector="TextBlock.cell">
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+          </Style>
+        </Grid.Styles>
+
+        <TextBlock Grid.Row="0" Grid.Column="0" Classes="th" Text="库" />
+        <TextBlock Grid.Row="0" Grid.Column="1" Classes="th" Text="许可" />
+        <TextBlock Grid.Row="0" Grid.Column="2" Classes="th" Text="适用判断" />
+
+        <Border Grid.Row="1" Grid.ColumnSpan="3" Height="1"
+                Background="{DynamicResource CardStrokeColorDefaultBrush}" />
+
+        <TextBlock Grid.Row="2" Grid.Column="0" Classes="lib" Text="Avalonia Charts" />
+        <TextBlock Grid.Row="2" Grid.Column="1" Classes="cell" Text="Pro 订阅（付费）" />
+        <TextBlock Grid.Row="2" Grid.Column="2" Classes="cell"
+                   Text="2026-05 官方发布。走 Avalonia 自己的渲染管线和主题模型，意味着 ChartSeries1..8 这套 token 直接生效，不用手动映射颜色。内置十字线、trackball、缩放平移、图例交互。有 Pro 的话首选。" />
+
+        <TextBlock Grid.Row="3" Grid.Column="0" Classes="lib" Text="ScottPlot.Avalonia" />
+        <TextBlock Grid.Row="3" Grid.Column="1" Classes="cell" Text="MIT" />
+        <TextBlock Grid.Row="3" Grid.Column="2" Classes="cell"
+                   Text="大数据量吞吐最强，科学 / 工程绘图导向。缺点是自成一套主题体系，要写代码把 token 颜色喂给它。" />
+
+        <TextBlock Grid.Row="4" Grid.Column="0" Classes="lib" Text="LiveCharts2" />
+        <TextBlock Grid.Row="4" Grid.Column="1" Classes="cell" Text="MIT + 付费层" />
+        <TextBlock Grid.Row="4" Grid.Column="2" Classes="cell"
+                   Text="默认观感最好、API 最现代、MVVM 友好，但吞吐低于 ScottPlot。基于 SkiaSharp——嵌入式 Mali GPU 上要实测。" />
+
+        <StackPanel Grid.Row="5" Grid.Column="0">
+          <TextBlock Classes="lib" Text="自绘 DrawingContext" />
+          <TextBlock Classes="note" Margin="0,2,0,0" Text="← 本库走的这条" />
+        </StackPanel>
+        <TextBlock Grid.Row="5" Grid.Column="1" Classes="cell" Text="—" />
+        <TextBlock Grid.Row="5" Grid.Column="2" Classes="cell"
+                   Text="只画单通道 strip chart 的话反而最轻，RK3568 这类硬件上值得考虑。本库把 TrendChart / BarChart / Sparkline / Gauge / ChartFrame / ChartLegend 全按这条路实现了。" />
+      </Grid>
+    </Border>
+
+    <TextBlock Classes="note" MaxWidth="860"
+               Text="选自绘不是因为「够用」，是因为可控：整个库只依赖 Avalonia 本体，交叉编译到 arm64 不用管第三方的 native 包和 GPU 后端；线宽、虚线段长、容差带透明度这些规格写在 Render 里，改一处全库一致，不会出现「这张图的设定值虚线和那张不一样」。代价是没有框选缩放、没有自动轴布局——真需要那些就换库。" />
+
+    <TextBlock Classes="sub" Text="什么时候该换 —— 以及换的时候规格怎么带走" />
+    <Border Classes="panel" HorizontalAlignment="Stretch">
+      <StackPanel Spacing="12">
+        <StackPanel.Styles>
+          <Style Selector="TextBlock">
+            <Setter Property="TextWrapping" Value="Wrap" />
+          </Style>
+        </StackPanel.Styles>
+        <TextBlock Text="判断线在数据量和交互上，不在美观上：一屏几千点、几条通道、只要 trackball 十字线，自绘完全够；历史数据回放（几十万点）、要框选缩放、要多 Y 轴自动布局，就别硬撑，换 ScottPlot.Avalonia 或 LiveCharts2。" />
+        <TextBlock Text="换库不用重做视觉规格。八个系列色是资源，不是常量——第三方库拿 TryFindResource(&quot;ChartSeries3Brush&quot;, ActualThemeVariant) 取出来直接喂进它自己的 series 配置即可，主题翻转照样跟着走。线型层级（曲线 1.5px 实线 / 设定值 1px 虚线 4-3 / 报警限 1px 虚线 3-3 红 / 容差带 3.5% 填充 / 十字线 1px 点线）和下面三条刷新策略也照搬。" />
+      </StackPanel>
+    </Border>
+
+    <TextBlock Classes="sub" Text="刷新策略 —— 换哪个库都得自己控制" />
+    <Border Classes="panel" HorizontalAlignment="Stretch">
+      <StackPanel Spacing="14">
+        <StackPanel.Styles>
+          <Style Selector="TextBlock.rule">
+            <Setter Property="TextWrapping" Value="Wrap" />
+          </Style>
+          <Style Selector="TextBlock.rule-title">
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,0,0,2" />
+          </Style>
+        </StackPanel.Styles>
+
+        <StackPanel>
+          <TextBlock Classes="rule-title" Text="1 · 数值刷新节流到 4–10 Hz" />
+          <TextBlock Classes="rule" Text="Modbus 那边可能 50 Hz 在轮询，但人眼分辨不出 10 Hz 以上的变化——多出来的四十帧只是在烧 CPU。数据照单全收进缓冲，重画交给一个定时器合并触发，别每来一个报文就 InvalidateVisual。" />
+        </StackPanel>
+
+        <StackPanel>
+          <TextBlock Classes="rule-title" Text="2 · 超过 2000 点做 LTTB 抽稀" />
+          <TextBlock Classes="rule" Text="绘图区宽度就那么几百个像素，画二十万个点等于在同一列上反复涂色。用 LTTB（Largest-Triangle-Three-Buckets）——它按三角形面积挑点，尖峰和拐点会被保住；等距抽样或者取平均会把毛刺抹平，而毛刺往往正是要看的东西。" />
+        </StackPanel>
+
+        <StackPanel>
+          <TextBlock Classes="rule-title" Text="3 · 实时窗口用环形缓冲" />
+          <TextBlock Classes="rule" Text="固定容量的环形缓冲，写指针往前挪，覆盖最老的一格。每帧 new 一个数组再 Copy 看着人畜无害，滚动窗口下就是持续的 GC 压力，嵌入式上表现为周期性卡顿——一秒一顿，正好和刷新周期同频，很容易被误判成通信问题。" />
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <TextBlock Classes="sub" Text="色板 —— ChartSeries1..8，明暗两套" />
+    <Border Classes="panel" HorizontalAlignment="Stretch">
+      <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto"
+            RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto"
+            ColumnSpacing="20" RowSpacing="8">
+        <Grid.Styles>
+          <Style Selector="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="FontSize" Value="13" />
+          </Style>
+          <Style Selector="TextBlock.th">
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+          </Style>
+          <Style Selector="TextBlock.hex">
+            <Setter Property="FontFamily" Value="{DynamicResource MonospaceFontFamily}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+          </Style>
+          <!-- 色块走 DynamicResource：切主题时这一列要跟着翻，否则展示的就不是运行时真拿到的色 -->
+          <Style Selector="Border.swatch">
+            <Setter Property="Width" Value="56" />
+            <Setter Property="Height" Value="18" />
+            <Setter Property="CornerRadius" Value="3" />
+          </Style>
+        </Grid.Styles>
+
+        <TextBlock Grid.Row="0" Grid.Column="0" Classes="th" Text="色" />
+        <TextBlock Grid.Row="0" Grid.Column="1" Classes="th" Text="资源键" />
+        <TextBlock Grid.Row="0" Grid.Column="2" Classes="th" Text="浅色" />
+        <TextBlock Grid.Row="0" Grid.Column="3" Classes="th" Text="深色" />
+        <TextBlock Grid.Row="0" Grid.Column="4" Classes="th" Text="色名" />
+
+        <Border Grid.Row="1" Grid.ColumnSpan="5" Height="1"
+                Background="{DynamicResource CardStrokeColorDefaultBrush}" />
+
+        <Border Grid.Row="2" Grid.Column="0" Classes="swatch" Background="{DynamicResource ChartSeries1Brush}" />
+        <TextBlock Grid.Row="2" Grid.Column="1" Text="ChartSeries1Brush" />
+        <TextBlock Grid.Row="2" Grid.Column="2" Classes="hex" Text="#0078D4" />
+        <TextBlock Grid.Row="2" Grid.Column="3" Classes="hex" Text="#60CDFF" />
+        <TextBlock Grid.Row="2" Grid.Column="4" Text="蓝" />
+
+        <Border Grid.Row="3" Grid.Column="0" Classes="swatch" Background="{DynamicResource ChartSeries2Brush}" />
+        <TextBlock Grid.Row="3" Grid.Column="1" Text="ChartSeries2Brush" />
+        <TextBlock Grid.Row="3" Grid.Column="2" Classes="hex" Text="#CA5010" />
+        <TextBlock Grid.Row="3" Grid.Column="3" Classes="hex" Text="#FF8C42" />
+        <TextBlock Grid.Row="3" Grid.Column="4" Text="橙" />
+
+        <Border Grid.Row="4" Grid.Column="0" Classes="swatch" Background="{DynamicResource ChartSeries3Brush}" />
+        <TextBlock Grid.Row="4" Grid.Column="1" Text="ChartSeries3Brush" />
+        <TextBlock Grid.Row="4" Grid.Column="2" Classes="hex" Text="#038387" />
+        <TextBlock Grid.Row="4" Grid.Column="3" Classes="hex" Text="#38D6D6" />
+        <TextBlock Grid.Row="4" Grid.Column="4" Text="青" />
+
+        <Border Grid.Row="5" Grid.Column="0" Classes="swatch" Background="{DynamicResource ChartSeries4Brush}" />
+        <TextBlock Grid.Row="5" Grid.Column="1" Text="ChartSeries4Brush" />
+        <TextBlock Grid.Row="5" Grid.Column="2" Classes="hex" Text="#8764B8" />
+        <TextBlock Grid.Row="5" Grid.Column="3" Classes="hex" Text="#C3A6FF" />
+        <TextBlock Grid.Row="5" Grid.Column="4" Text="紫" />
+
+        <Border Grid.Row="6" Grid.Column="0" Classes="swatch" Background="{DynamicResource ChartSeries5Brush}" />
+        <TextBlock Grid.Row="6" Grid.Column="1" Text="ChartSeries5Brush" />
+        <TextBlock Grid.Row="6" Grid.Column="2" Classes="hex" Text="#C239B3" />
+        <TextBlock Grid.Row="6" Grid.Column="3" Classes="hex" Text="#F07CE0" />
+        <TextBlock Grid.Row="6" Grid.Column="4" Text="洋红" />
+
+        <Border Grid.Row="7" Grid.Column="0" Classes="swatch" Background="{DynamicResource ChartSeries6Brush}" />
+        <TextBlock Grid.Row="7" Grid.Column="1" Text="ChartSeries6Brush" />
+        <TextBlock Grid.Row="7" Grid.Column="2" Classes="hex" Text="#986F0B" />
+        <TextBlock Grid.Row="7" Grid.Column="3" Classes="hex" Text="#E3B23C" />
+        <TextBlock Grid.Row="7" Grid.Column="4" Text="金" />
+
+        <Border Grid.Row="8" Grid.Column="0" Classes="swatch" Background="{DynamicResource ChartSeries7Brush}" />
+        <TextBlock Grid.Row="8" Grid.Column="1" Text="ChartSeries7Brush" />
+        <TextBlock Grid.Row="8" Grid.Column="2" Classes="hex" Text="#4F6BED" />
+        <TextBlock Grid.Row="8" Grid.Column="3" Classes="hex" Text="#9AAEFF" />
+        <TextBlock Grid.Row="8" Grid.Column="4" Text="靛" />
+
+        <Border Grid.Row="9" Grid.Column="0" Classes="swatch" Background="{DynamicResource ChartSeries8Brush}" />
+        <TextBlock Grid.Row="9" Grid.Column="1" Text="ChartSeries8Brush" />
+        <TextBlock Grid.Row="9" Grid.Column="2" Classes="hex" Text="#4A6572" />
+        <TextBlock Grid.Row="9" Grid.Column="3" Classes="hex" Text="#93B0BF" />
+        <TextBlock Grid.Row="9" Grid.Column="4" Text="石板" />
+      </Grid>
+    </Border>
+
+    <TextBlock Classes="note" MaxWidth="860"
+               Text="八色里没有纯绿也没有纯红，是刻意的：HMI 里绿=运行、红=故障已经是语义色，一条绿色曲线会被操作员读成「这条正常」，而它可能正在超温。语义色只留给 StatusIndicator、AlarmBanner 和 Sparkline 的 :up / :down。深色一套不是浅色的算法反色——低饱和的深蓝在黑底上会糊掉，明度是逐条调出来的。四条以上曲线还要靠线型和粗细分层，颜色只够分四路。" />
+
+    <g:MapBlock Note="色板一定要从资源取，别在 series 配置里写死十六进制——写死之后切深色主题，图上八条线还是浅色那套，在黑底上直接糊成一团。">
+      <g:MapRow Key="实现" Value="Control.Render(DrawingContext) 自绘，零第三方依赖：TrendChart · BarChart · Sparkline · Gauge · ChartFrame · ChartLegend" />
+      <g:MapRow Key="色板" Value="ChartSeries1..8 / ChartSeries1..8Brush，明暗两套。蓝 / 橙 / 青 / 紫 / 洋红 / 金 / 靛 / 石板，刻意避开纯红纯绿" />
+      <g:MapRow Key="换库" Value="ScottPlot.Avalonia（吞吐优先）· LiveCharts2（观感 / MVVM 优先）· Avalonia Charts（有 Pro 订阅时首选）—— 用 TryFindResource(&quot;ChartSeries{n}Brush&quot;, ActualThemeVariant) 把色板喂进去" />
+      <g:MapRow Key="刷新" Value="节流 4–10 Hz · &gt;2000 点走 LTTB 抽稀 · 实时窗口用环形缓冲。三条都在应用层，图表库不管" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

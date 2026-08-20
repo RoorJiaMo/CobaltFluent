@@ -1,0 +1,59 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             x:Class="Cobalt.Fluent.Gallery.Pages.TextBoxPage">
+
+  <StackPanel HorizontalAlignment="Left">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="TextBox" />
+      <Border Classes="tag"><TextBlock Text="2 · 基础输入" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead"
+               Text="底边用 ControlStrongStrokeColorDefault（比按钮更明显）。聚焦时底边换成 2px accent，同时底 padding 减 1px 防止文字跳动——这一步漏了的话聚焦瞬间会看到内容抖一下。" />
+
+    <TextBlock Classes="sub" Text="状态矩阵" />
+    <g:SpecMatrix States="rest,pointerover,disabled">
+      <g:SpecMatrix.Sample>
+        <DataTemplate><TextBox Width="180" Text="85.5" /></DataTemplate>
+      </g:SpecMatrix.Sample>
+    </g:SpecMatrix>
+
+    <TextBlock Classes="sub" Text="占位符 / 校验" />
+    <Border Classes="panel">
+      <StackPanel Spacing="16">
+        <TextBox Width="240" Watermark="输入配方名称" />
+        <StackPanel Spacing="4">
+          <TextBlock Text="配方名称" />
+          <TextBox Width="240" Text="PES 标准" />
+        </StackPanel>
+        <StackPanel Spacing="4">
+          <TextBlock Text="目标温度" />
+          <TextBox x:Name="ErrorBox" Width="240" Text="420" />
+          <TextBlock Text="超出量程上限（-40 ~ 300 °C）"
+                     FontSize="{DynamicResource CaptionFontSize}"
+                     Foreground="{DynamicResource SystemFillColorCriticalBrush}" />
+        </StackPanel>
+        <TextBox Width="360" Height="96" AcceptsReturn="True" TextWrapping="Wrap"
+                 Watermark="备注……" />
+      </StackPanel>
+    </Border>
+
+    <TextBlock Classes="sub" Text="试玩 — 聚焦看底边" />
+    <Border Classes="play">
+      <StackPanel Spacing="12">
+        <TextBox Width="280" Watermark="点进来看底边变成 2px accent" />
+        <TextBlock Classes="note" Text="聚焦时底边从 1px 变 2px，同时底 padding 减 1px——文字不应该抖动。右上角「动效 0.25×」可以慢放。" />
+      </StackPanel>
+    </Border>
+
+    <g:MapBlock Note="校验态在 Avalonia 里用 TextBox:error 伪类（配合 DataValidation），不需要自己加 Classes。多行对应 AcceptsReturn=True。">
+      <g:MapRow Key="控件" Value="TextBox" />
+      <g:MapRow Key="属性" Value="Watermark（占位符）· AcceptsReturn（多行）· IsReadOnly" />
+      <g:MapRow Key="伪类" Value=":pointerover · :focus · :error · :disabled" />
+      <g:MapRow Key="资源键" Value="ControlFillColorDefault/Secondary/InputActiveBrush · ControlStrongStrokeColorDefaultBrush（底边）· AccentFillColorDefaultBrush（聚焦底边）· TextFillColorTertiaryBrush（占位符）" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

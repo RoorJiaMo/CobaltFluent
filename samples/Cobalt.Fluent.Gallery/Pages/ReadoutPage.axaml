@@ -1,0 +1,70 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             xmlns:fc="using:Cobalt.Fluent.Controls"
+             x:Class="Cobalt.Fluent.Gallery.Pages.ReadoutPage">
+
+  <StackPanel HorizontalAlignment="Left">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="Readout" />
+      <Border Classes="tag"><TextBlock Text="7 · HMI 专用" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead"
+               Text="数值读数。刷新时布局绝对不能跳动——等宽数字 + 按最大位数预留宽度。比例数字下 84.6 → 84.9 会让整行横移，一屏二十个读数就是一片抖动。" />
+
+    <TextBlock Classes="sub" Text="尺寸档 — 24 / 40 / 72" />
+    <Border Classes="panel">
+      <StackPanel Orientation="Horizontal" Spacing="48">
+        <fc:Readout Size="Small"  Label="进料压力" Value="2.4"  Unit="bar" Setpoint="2.5" />
+        <fc:Readout Size="Medium" Label="腔体温度" Value="85.5" Unit="°C"  Setpoint="85.0" />
+        <fc:Readout Size="Large"  Label="主轴转速" Value="1420" Unit="rpm" Format="F0" ValueMinChars="4" />
+      </StackPanel>
+    </Border>
+
+    <TextBlock Classes="sub" Text="状态 — 伪类由属性推出来，不用手加类" />
+    <Border Classes="panel">
+      <StackPanel Orientation="Horizontal" Spacing="48">
+        <StackPanel Spacing="8">
+          <fc:Readout x:Name="Normal" Label="正常" Value="85.2" Unit="°C" Setpoint="85.0" Tolerance="1.0" />
+          <TextBlock Classes="note" Text="rest" />
+        </StackPanel>
+        <StackPanel Spacing="8">
+          <fc:Readout x:Name="Deviating" Label="偏离容差带" Value="88.4" Unit="°C" Setpoint="85.0" Tolerance="1.0" />
+          <TextBlock Classes="note" Text=":deviating" />
+        </StackPanel>
+        <StackPanel Spacing="8">
+          <fc:Readout x:Name="Stale" Label="通信超时" Value="84.9" Unit="°C" Setpoint="85.0" />
+          <TextBlock Classes="note" Text=":stale — 值保留，只变灰" />
+        </StackPanel>
+        <StackPanel Spacing="8">
+          <fc:Readout Label="从未取到值" Unit="°C" />
+          <TextBlock Classes="note" Text=":nodata" />
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <TextBlock Classes="sub" Text="试玩 — 实时刷新 + 模拟通信中断" />
+    <Border Classes="play">
+      <StackPanel Spacing="16">
+        <StackPanel Orientation="Horizontal" Spacing="32">
+          <fc:Readout x:Name="Live" Size="Large" Label="腔体温度" Unit="°C"
+                      Setpoint="85.0" Tolerance="1.0" StaleAfter="0:0:2" />
+          <StackPanel Spacing="8" VerticalAlignment="Center">
+            <Button x:Name="ToggleComms" Content="模拟通信中断" />
+            <TextBlock Classes="note" MaxWidth="320"
+                       Text="断开后数值停在最后已知值并变灰，标签后面出现「数据过期」，下面一行开始数秒。恢复后继续跳。" />
+          </StackPanel>
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <g:MapBlock Note="等宽数字靠 FontFeatures=&quot;tnum=1&quot;（Avalonia 11.1+）。MinWidth 按 ValueMinChars 和字号折算，别让它跟着内容缩放。:stale 由控件内部的 DispatcherTimer 驱动——不要等下一次数据到达才判断，不来数据正是要报的情况。">
+      <g:MapRow Key="类型" Value="Readout : TemplatedControl" />
+      <g:MapRow Key="属性" Value="Label · Value:double? · Unit · Format=&quot;F1&quot; · Setpoint:double? · Tolerance · Size:{Small,Medium,Large} · LastUpdated:DateTime? · StaleAfter:TimeSpan · ValueMinChars" />
+      <g:MapRow Key="伪类" Value=":deviating（|Value-Setpoint|&gt;Tolerance）· :stale（Now-LastUpdated&gt;StaleAfter）· :nodata（Value==null）· :small/:medium/:large" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

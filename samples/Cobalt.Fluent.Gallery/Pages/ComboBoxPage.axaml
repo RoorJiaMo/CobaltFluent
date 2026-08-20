@@ -1,0 +1,65 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             x:Class="Cobalt.Fluent.Gallery.Pages.ComboBoxPage">
+
+  <StackPanel HorizontalAlignment="Left">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="ComboBox" />
+      <Border Classes="tag"><TextBlock Text="2 · 基础输入" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead"
+               Text="收起态用控件规格（4px 圆角，底边 ControlStrokeColorSecondary）；展开的下拉面板是弹出层，用 8px 圆角 + 亚克力 + flyout 阴影。两者规格不同，别混。" />
+
+    <TextBlock Classes="sub" Text="收起态" />
+    <g:SpecMatrix States="rest,pointerover,pressed,disabled,focus">
+      <g:SpecMatrix.Sample>
+        <DataTemplate>
+          <ComboBox Width="160" SelectedIndex="0">
+            <ComboBoxItem>温度控制</ComboBoxItem>
+            <ComboBoxItem>压力控制</ComboBoxItem>
+          </ComboBox>
+        </DataTemplate>
+      </g:SpecMatrix.Sample>
+    </g:SpecMatrix>
+
+    <TextBlock Classes="sub" Text="ComboBoxItem — 选中项左侧是 3×16 指示条，不是整行变蓝" />
+    <Border Classes="panel">
+      <StackPanel Width="220" Spacing="2">
+        <ListBoxItem Content="温度控制" IsSelected="True" />
+        <ListBoxItem Content="压力控制" />
+        <ListBoxItem Content="搅拌控制" />
+        <ListBoxItem Content="pH 控制" />
+      </StackPanel>
+    </Border>
+    <TextBlock Classes="note" MaxWidth="700"
+               Text="指示条高度约为行高的 40%，撑满会立刻显得不像 Win11。" />
+
+    <TextBlock Classes="sub" Text="试玩 — 点开看弹出层规格" />
+    <Border Classes="play">
+      <StackPanel Spacing="12">
+        <StackPanel Orientation="Horizontal" Spacing="12">
+          <ComboBox Width="180" SelectedIndex="0">
+            <ComboBoxItem>温度控制</ComboBoxItem>
+            <ComboBoxItem>压力控制</ComboBoxItem>
+            <ComboBoxItem>搅拌控制</ComboBoxItem>
+            <ComboBoxItem>pH 控制</ComboBoxItem>
+          </ComboBox>
+          <ComboBox Width="180" PlaceholderText="选择通道" />
+          <ComboBox Width="140" IsEnabled="False" PlaceholderText="已锁定" />
+        </StackPanel>
+        <TextBlock Classes="note" MaxWidth="760"
+                   Text="Avalonia 的 ComboBox 自己渲染 Popup + ComboBoxItem，不是系统原生下拉。点开看选中项左侧的 3×16 指示条；点面板外或按 Esc 关闭；下方放不下时会自动翻到上方。" />
+      </StackPanel>
+    </Border>
+
+    <g:MapBlock Note="收起态 4px 圆角、展开面板 8px 圆角，两者规格不同。Popup 下方放不下时会自动翻到上方。">
+      <g:MapRow Key="控件" Value="ComboBox · ComboBoxItem" />
+      <g:MapRow Key="伪类" Value="ComboBox:dropdownopen · ComboBoxItem:selected · :pointerover" />
+      <g:MapRow Key="资源键" Value="ControlFillColorDefault/Secondary/TertiaryBrush · AcrylicBackgroundFillColorDefaultBrush + SurfaceStrokeColorFlyoutBrush（必须成对）· AccentFillColorDefaultBrush（指示条）" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

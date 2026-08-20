@@ -1,0 +1,176 @@
+<!-- ParameterRow / ParameterTable —— 第 7 组，参数写入与回读。
+     过程控制的主力控件。核心是把「我改了」和「设备收到了」区分开，
+     这两者之间的空档是事故高发区。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:fc="using:Cobalt.Fluent.Controls">
+
+  <ControlTheme x:Key="{x:Type fc:ParameterRow}" TargetType="fc:ParameterRow">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <Setter Property="MinHeight" Value="{DynamicResource ParameterRowMinHeight}" />
+    <Setter Property="Padding" Value="12,4" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:ParameterRow">
+        <Border x:Name="PART_Root"
+                Background="{TemplateBinding Background}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Padding="{TemplateBinding Padding}"
+                BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}"
+                BorderThickness="0,0,0,1"
+                MinHeight="{TemplateBinding MinHeight}">
+          <!-- 列宽和 ParameterTable 的表头一致：标签 * / 读值 96 / 设定 140 / 单位 56 / 状态 auto -->
+          <Grid ColumnSpacing="12" VerticalAlignment="Center">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" MinWidth="120" />
+              <ColumnDefinition Width="96" />
+              <ColumnDefinition Width="140" />
+              <ColumnDefinition Width="56" />
+              <!-- 状态列写死宽度。内容宽度逐行不同（有的行没有下发按钮），
+                   用 Auto 的话每行各宽各的，会把前面的 * 列顶得错开——
+                   Avalonia 的 SharedSizeGroup 跨模板不生效，所以直接定死。
+                   要改宽度就覆盖 ParameterStateColumnWidth。 -->
+              <ColumnDefinition Width="{DynamicResource ParameterStateColumnWidth}" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Column="0"
+                       Text="{TemplateBinding Label}"
+                       VerticalAlignment="Center"
+                       TextTrimming="CharacterEllipsis"
+                       Foreground="{TemplateBinding Foreground}" />
+
+            <!-- 读值：设备上真实生效的值 -->
+            <TextBlock x:Name="PART_Actual"
+                       Grid.Column="1"
+                       Text="{TemplateBinding ActualText}"
+                       TextAlignment="Right"
+                       VerticalAlignment="Center"
+                       FontWeight="SemiBold"
+                       FontFeatures="{StaticResource TabularNumbers}"
+                       Foreground="{TemplateBinding Foreground}" />
+
+            <!-- 设定：操作员正在输入的值 -->
+            <TextBox x:Name="PART_Input"
+                     Grid.Column="2"
+                     Text="{TemplateBinding PendingText, Mode=TwoWay}"
+                     IsReadOnly="{TemplateBinding IsReadOnly}"
+                     VerticalAlignment="Center"
+                     TextAlignment="Right"
+                     FontFeatures="{StaticResource TabularNumbers}" />
+
+            <TextBlock Grid.Column="3"
+                       Text="{TemplateBinding Unit}"
+                       VerticalAlignment="Center"
+                       FontSize="{DynamicResource CaptionFontSize}"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+
+            <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+              <TextBlock x:Name="PART_State"
+                         Text="{TemplateBinding StateText}"
+                         VerticalAlignment="Center"
+                         FontSize="{DynamicResource CaptionFontSize}"
+                         Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+              <Button x:Name="PART_Apply"
+                      Content="下发"
+                      MinWidth="56"
+                      IsEnabled="{TemplateBinding CanApply}"
+                      IsVisible="{TemplateBinding IsReadOnly,
+                                  Converter={x:Static BoolConverters.Not}}" />
+            </StackPanel>
+          </Grid>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^:pointerover /template/ Border#PART_Root">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+    </Style>
+
+    <!-- :dirty 三重提示 —— 整行淡黄底 + 输入框底边变色 + 行尾徽章。
+         一屏二十行参数时，只改 2px 边框根本看不见。 -->
+    <Style Selector="^:dirty">
+      <Style Selector="^ /template/ Border#PART_Root">
+        <Setter Property="Background" Value="{DynamicResource SystemFillColorCautionBackgroundBrush}" />
+      </Style>
+      <Style Selector="^ /template/ TextBox#PART_Input">
+        <Setter Property="BorderBrush" Value="{DynamicResource SystemFillColorCautionBrush}" />
+        <Setter Property="BorderThickness" Value="1,1,1,2" />
+      </Style>
+      <Style Selector="^ /template/ TextBlock#PART_State">
+        <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCautionBrush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+      </Style>
+    </Style>
+
+    <Style Selector="^:writing /template/ TextBox#PART_Input">
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+      <Setter Property="BorderThickness" Value="1,1,1,2" />
+    </Style>
+
+    <!-- 失败：值已回滚到上次成功值，红底提示这次没生效 -->
+    <Style Selector="^:failed">
+      <Style Selector="^ /template/ Border#PART_Root">
+        <Setter Property="Background" Value="{DynamicResource SystemFillColorCriticalBackgroundBrush}" />
+      </Style>
+      <Style Selector="^ /template/ TextBox#PART_Input">
+        <Setter Property="BorderBrush" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+        <Setter Property="BorderThickness" Value="1,1,1,2" />
+      </Style>
+      <Style Selector="^ /template/ TextBlock#PART_State">
+        <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+      </Style>
+    </Style>
+
+    <Style Selector="^:outofrange">
+      <Style Selector="^ /template/ TextBox#PART_Input">
+        <Setter Property="BorderBrush" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+        <Setter Property="BorderThickness" Value="1,1,1,2" />
+      </Style>
+      <Style Selector="^ /template/ TextBlock#PART_State">
+        <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+      </Style>
+    </Style>
+
+    <Style Selector="^:readonly /template/ TextBlock#PART_Actual">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    </Style>
+  </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type fc:ParameterTable}" TargetType="fc:ParameterTable">
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:ParameterTable">
+        <StackPanel>
+          <!-- 表头列宽必须和 ParameterRow 模板里那组完全一致 -->
+          <Grid ColumnSpacing="12" Margin="12,4,12,8">
+            <Grid.ColumnDefinitions>
+              <ColumnDefinition Width="*" MinWidth="120" />
+              <ColumnDefinition Width="96" />
+              <ColumnDefinition Width="140" />
+              <ColumnDefinition Width="56" />
+              <ColumnDefinition Width="{DynamicResource ParameterStateColumnWidth}" />
+            </Grid.ColumnDefinitions>
+            <Grid.Styles>
+              <Style Selector="TextBlock">
+                <Setter Property="FontSize" Value="{DynamicResource CaptionFontSize}" />
+                <Setter Property="FontWeight" Value="SemiBold" />
+                <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+              </Style>
+            </Grid.Styles>
+            <TextBlock Grid.Column="0" Text="{TemplateBinding LabelHeader}" />
+            <TextBlock Grid.Column="1" Text="{TemplateBinding ActualHeader}" TextAlignment="Right" />
+            <TextBlock Grid.Column="2" Text="{TemplateBinding SetpointHeader}" />
+            <TextBlock Grid.Column="3" Text="{TemplateBinding UnitHeader}" />
+            <TextBlock Grid.Column="4" Text="{TemplateBinding StateHeader}" />
+          </Grid>
+          <Border BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}"
+                  BorderThickness="0,0,0,1" />
+          <ItemsPresenter ItemsPanel="{TemplateBinding ItemsPanel}" />
+        </StackPanel>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+</ResourceDictionary>

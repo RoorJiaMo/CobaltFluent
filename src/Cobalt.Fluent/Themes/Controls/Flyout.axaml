@@ -1,0 +1,432 @@
+<!-- ToolTip / FlyoutPresenter / MenuFlyoutPresenter / MenuItem / ContextMenu / Separator
+     —— 四种悬浮层：ToolTip / Flyout / MenuFlyout /
+        .MenuFlyoutItem / .MenuFlyoutSeparator 五段。
+
+     这几个是全库仅有的能用阴影的地方（另外两处是 ContentDialog 和 TeachingTip）。
+     页面内的元素一律靠描边分层，只有真正浮在内容之上的才给阴影。
+
+     悬浮层的底和边必须成对出现：
+       亚克力底 AcrylicBackgroundFillColorDefaultBrush + 描边 SurfaceStrokeColorFlyoutBrush。
+     混用别的底（比如 SolidBackgroundFillColorBase）或别的边（SurfaceStrokeColorDefault）
+     视觉上会立刻看出不是一套 —— 亚克力底偏透，配实色边会显得边比面重。
+
+     BoxShadow 是本文件唯一出现字面色值的地方：BoxShadow 语法收的是颜色不是画刷，
+     而 shadow-tooltip / shadow-flyout 的两层黑是固定不透明度、不随主题变的。
+     和 ComboBox.axaml 的展开面板用的是同一组值。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:conv="using:Avalonia.Controls.Converters"
+                    xmlns:fc="using:Cobalt.Fluent.Controls">
+
+  <!-- InputGesture 是 KeyGesture 对象，这只转换器把它按平台习惯排成 "Ctrl+S"。
+       在本文件里自带一份，不去引基座主题里的同名键 —— 跨字典的 StaticResource 解析不稳。 -->
+  <conv:PlatformKeyGestureConverter x:Key="MenuItemKeyGestureConverter" />
+
+  <!-- ======================================================================
+       ToolTip
+       两处例外，都是刻意的：
+         · 圆角用 4px（ControlCornerRadius）不是 8px。提示条贴着控件边出现，
+           跟着控件的圆角走才不会显得比控件还"大一号"。
+         · 阴影用 tooltip 档（0 4 8），比 flyout 档浅一级 —— 它离页面更近。
+       ====================================================================== -->
+  <ControlTheme x:Key="{x:Type ToolTip}" TargetType="ToolTip">
+    <Setter Property="Background" Value="{DynamicResource AcrylicBackgroundFillColorDefaultBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SurfaceStrokeColorFlyoutBrush}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource ControlBorderThickness}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <!-- 上下不对称，和按钮的 11,5,11,6 同源：补偿 Segoe 基线 -->
+    <Setter Property="Padding" Value="11,5,11,7" />
+    <!-- 最宽 320，超过就换行，不让提示条横穿整屏 -->
+    <Setter Property="MaxWidth" Value="320" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="ToolTip">
+        <Border x:Name="PART_LayoutRoot"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Padding="{TemplateBinding Padding}"
+                BoxShadow="0 4 8 0 #24000000, 0 0 2 0 #1F000000">
+          <ContentPresenter x:Name="PART_ContentPresenter"
+                            MaxWidth="{TemplateBinding MaxWidth}"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            TextBlock.TextWrapping="Wrap" />
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- 淡入。Avalonia 的 ToolTip 默认 Opacity=0、靠 :open 抬起来，
+         这是控件本身的开合机制，不是新加的动效。只动 opacity，不动位移。 -->
+    <Setter Property="Opacity" Value="0" />
+    <Setter Property="Transitions">
+      <Transitions>
+        <DoubleTransition Property="Opacity" Duration="0:0:0.167" />
+      </Transitions>
+    </Setter>
+    <Style Selector="^:open">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+  </ControlTheme>
+
+  <!-- ======================================================================
+       FlyoutPresenter
+       8px 圆角 + flyout 档阴影 + 内边距 16,15,16,17（FlyoutContentPadding）
+       ====================================================================== -->
+  <ControlTheme x:Key="{x:Type FlyoutPresenter}" TargetType="FlyoutPresenter">
+    <Setter Property="Background" Value="{DynamicResource AcrylicBackgroundFillColorDefaultBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SurfaceStrokeColorFlyoutBrush}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource ControlBorderThickness}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource OverlayCornerRadius}" />
+    <Setter Property="Padding" Value="{DynamicResource FlyoutContentPadding}" />
+    <!-- 宽度 96 到 456 之间 -->
+    <Setter Property="MinWidth" Value="96" />
+    <Setter Property="MaxWidth" Value="456" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Stretch" />
+    <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Auto" />
+    <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="FlyoutPresenter">
+        <Border x:Name="PART_LayoutRoot"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Padding="{TemplateBinding Padding}"
+                BoxShadow="0 8 16 0 #24000000, 0 0 2 0 #1F000000">
+          <ScrollViewer HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
+                        VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}">
+            <ContentPresenter x:Name="PART_ContentPresenter"
+                              Content="{TemplateBinding Content}"
+                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                              HorizontalContentAlignment="Stretch"
+                              VerticalContentAlignment="Stretch" />
+          </ScrollViewer>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <!-- ======================================================================
+       Separator
+       1px 分隔线 + 上下各 1px 外距。分隔线用 divider-stroke，
+       比 surface-stroke 淡 —— 它分的是同一张面里的两组，不是两张面。
+       ====================================================================== -->
+  <ControlTheme x:Key="{x:Type Separator}" TargetType="Separator">
+    <Setter Property="Background" Value="{DynamicResource DividerStrokeColorDefaultBrush}" />
+    <Setter Property="Focusable" Value="False" />
+    <Setter Property="Height" Value="1" />
+    <Setter Property="Margin" Value="0,1,0,1" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="Separator">
+        <Border x:Name="PART_Line"
+                Background="{TemplateBinding Background}"
+                Height="{TemplateBinding Height}"
+                HorizontalAlignment="Stretch" />
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <!-- ======================================================================
+       MenuItem
+       32 最小高 · 11,8,11,9 内边距 · 4,2 外距 · 4px 圆角。
+       外距那 4px 是 Win11 菜单的签名细节：选中条不贴着面板边，四周留一圈。
+
+       视觉规格只有 图标 / 文字 / 快捷键 三列，Avalonia 的 MenuItem 还要多两列：
+       勾选标记（ToggleType）和子菜单箭头。这两列是控件本身的功能，规格里没有对应物，
+       按同一套配色补齐，不另立视觉规格。
+
+       图标一律走 fc:SymbolIcon 画矢量，不用 Segoe Fluent Icons 的码位 ——
+       嵌入式 Linux 上没有那套字体，会渲染成豆腐块。
+       ====================================================================== -->
+  <ControlTheme x:Key="{x:Type MenuItem}" TargetType="MenuItem">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <Setter Property="Padding" Value="{DynamicResource MenuFlyoutItemPadding}" />
+    <Setter Property="Margin" Value="{DynamicResource MenuFlyoutItemMargin}" />
+    <Setter Property="MinHeight" Value="{DynamicResource MenuFlyoutItemMinHeight}" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <!-- 菜单项不是链接，不给手型 -->
+    <Setter Property="Cursor" Value="Arrow" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="MenuItem">
+        <Panel>
+          <Border x:Name="PART_LayoutRoot"
+                  Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  CornerRadius="{TemplateBinding CornerRadius}"
+                  Padding="{TemplateBinding Padding}"
+                  MinHeight="{TemplateBinding MinHeight}">
+              <Grid>
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemToggle" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemIcon" />
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemGesture" />
+                  <ColumnDefinition Width="Auto" SharedSizeGroup="MenuItemChevron" />
+                </Grid.ColumnDefinitions>
+
+                <!-- 勾选标记（ToggleType=CheckBox / Radio）。和图标位同宽 16 -->
+                <Panel x:Name="PART_ToggleIconPresenter"
+                       Grid.Column="0"
+                       Width="16"
+                       Height="16"
+                       Margin="0,0,12,0"
+                       VerticalAlignment="Center"
+                       IsVisible="False">
+                  <fc:SymbolIcon x:Name="PART_ToggleCheck"
+                                 Symbol="CheckMark"
+                                 FontSize="16"
+                                 Foreground="{TemplateBinding Foreground}"
+                                 IsVisible="False" />
+                  <Ellipse x:Name="PART_ToggleBullet"
+                           Width="8"
+                           Height="8"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Fill="{TemplateBinding Foreground}"
+                           IsVisible="False" />
+                </Panel>
+
+                <!-- 图标位 16 宽定死，不参与拉伸。
+                     和文字之间 12px = space-3 -->
+                <ContentPresenter x:Name="PART_IconPresenter"
+                                  Grid.Column="1"
+                                  Width="16"
+                                  Height="16"
+                                  Margin="0,0,12,0"
+                                  VerticalAlignment="Center"
+                                  Content="{TemplateBinding Icon}"
+                                  IsVisible="False" />
+
+                <!-- 文字吃掉剩余宽度 -->
+                <ContentPresenter x:Name="PART_HeaderPresenter"
+                                  Grid.Column="2"
+                                  Content="{TemplateBinding Header}"
+                                  ContentTemplate="{TemplateBinding HeaderTemplate}"
+                                  HorizontalAlignment="Stretch"
+                                  VerticalAlignment="Center"
+                                  RecognizesAccessKey="True" />
+
+                <!-- 快捷键：次级文字色 + 12px，左边留 24。
+                     离得远是有意的：快捷键是参考信息，不该和菜单项名抢读。 -->
+                <TextBlock x:Name="PART_InputGestureText"
+                           Grid.Column="3"
+                           Margin="24,0,0,0"
+                           HorizontalAlignment="Right"
+                           VerticalAlignment="Center"
+                           FontSize="{DynamicResource CaptionFontSize}"
+                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                           Text="{TemplateBinding InputGesture,
+                                  Converter={StaticResource MenuItemKeyGestureConverter}}" />
+
+                <fc:SymbolIcon x:Name="PART_Chevron"
+                               Grid.Column="4"
+                               Symbol="ChevronRight"
+                               FontSize="12"
+                               Margin="12,0,0,0"
+                               VerticalAlignment="Center"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+              </Grid>
+          </Border>
+
+          <!-- 子菜单。和 MenuFlyout 面板同一套规格：亚克力底 + flyout 描边 + 8px + 阴影 -->
+          <Popup x:Name="PART_Popup"
+                 WindowManagerAddShadowHint="False"
+                 Placement="RightEdgeAlignedTop"
+                 HorizontalOffset="-4"
+                 IsLightDismissEnabled="False"
+                 IsOpen="{TemplateBinding IsSubMenuOpen, Mode=TwoWay}">
+            <Border x:Name="PART_SubMenuBorder"
+                    Background="{DynamicResource AcrylicBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource SurfaceStrokeColorFlyoutBrush}"
+                    BorderThickness="{DynamicResource ControlBorderThickness}"
+                    CornerRadius="{DynamicResource OverlayCornerRadius}"
+                    Padding="{DynamicResource MenuFlyoutPresenterPadding}"
+                    MinWidth="120"
+                    HorizontalAlignment="Stretch"
+                    BoxShadow="0 8 16 0 #24000000, 0 0 2 0 #1F000000">
+              <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                            VerticalScrollBarVisibility="Auto">
+                <ItemsPresenter x:Name="PART_ItemsPresenter"
+                                ItemsPanel="{TemplateBinding ItemsPanel}"
+                                KeyboardNavigation.TabNavigation="Continue"
+                                Grid.IsSharedSizeScope="True" />
+              </ScrollViewer>
+            </Border>
+          </Popup>
+        </Panel>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- 悬停底。Avalonia 的菜单项鼠标划过和键盘走到都落在 :selected 上，
+         :pointerover 只覆盖鼠标那一半，所以两个都写，同一档底色。 -->
+    <Style Selector="^:selected /template/ Border#PART_LayoutRoot">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+    </Style>
+    <Style Selector="^:pointerover /template/ Border#PART_LayoutRoot">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+    </Style>
+
+    <!-- 按下底。挂在 Border 的 :pointerover 上，
+         这样按住父项、指针已经移到子菜单里的时候父项不会跟着变按下相。 -->
+    <Style Selector="^:pressed /template/ Border#PART_LayoutRoot:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorTertiaryBrush}" />
+    </Style>
+
+    <!-- 禁用：只掉文字色，底不变 -->
+    <Style Selector="^:disabled">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+      <Style Selector="^ /template/ Border#PART_LayoutRoot">
+        <Setter Property="Background" Value="Transparent" />
+      </Style>
+      <Style Selector="^ /template/ ContentPresenter#PART_HeaderPresenter">
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+      </Style>
+      <Style Selector="^ /template/ TextBlock#PART_InputGestureText">
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+      </Style>
+      <Style Selector="^ /template/ fc|SymbolIcon#PART_Chevron">
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+      </Style>
+    </Style>
+
+    <Style Selector="^:icon /template/ ContentPresenter#PART_IconPresenter">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+
+    <!-- 没有子项就不画箭头 -->
+    <Style Selector="^:empty /template/ fc|SymbolIcon#PART_Chevron">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+
+    <Style Selector="^:checked:toggle">
+      <Style Selector="^ /template/ Panel#PART_ToggleIconPresenter">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+      <Style Selector="^ /template/ fc|SymbolIcon#PART_ToggleCheck">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+    </Style>
+    <Style Selector="^:checked:radio">
+      <Style Selector="^ /template/ Panel#PART_ToggleIconPresenter">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+      <Style Selector="^ /template/ Ellipse#PART_ToggleBullet">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+    </Style>
+
+    <!-- Header="-" 的菜单项整条换成分隔线 -->
+    <Style Selector="^:separator">
+      <Setter Property="Template">
+        <ControlTemplate TargetType="MenuItem">
+          <Separator />
+        </ControlTemplate>
+      </Setter>
+    </Style>
+  </ControlTheme>
+
+  <!-- ======================================================================
+       MenuFlyoutPresenter
+       内边距 0,2：上下各 2px，左右 0 —— 左右的呼吸感由菜单项自己的 4px 外距给。
+       ====================================================================== -->
+  <ControlTheme x:Key="{x:Type MenuFlyoutPresenter}" TargetType="MenuFlyoutPresenter">
+    <Setter Property="Background" Value="{DynamicResource AcrylicBackgroundFillColorDefaultBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SurfaceStrokeColorFlyoutBrush}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource ControlBorderThickness}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource OverlayCornerRadius}" />
+    <Setter Property="Padding" Value="{DynamicResource MenuFlyoutPresenterPadding}" />
+    <!-- 最小宽 120 -->
+    <Setter Property="MinWidth" Value="120" />
+    <Setter Property="MaxWidth" Value="456" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+    <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="MenuFlyoutPresenter">
+        <Border x:Name="PART_LayoutRoot"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Padding="{TemplateBinding Padding}"
+                BoxShadow="0 8 16 0 #24000000, 0 0 2 0 #1F000000">
+          <ScrollViewer HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
+                        VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}">
+            <ItemsPresenter x:Name="PART_ItemsPresenter"
+                            ItemsPanel="{TemplateBinding ItemsPanel}"
+                            KeyboardNavigation.TabNavigation="Continue"
+                            Grid.IsSharedSizeScope="True" />
+          </ScrollViewer>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <!-- ======================================================================
+       ContextMenu —— 和 MenuFlyout 是同一张面，只是由右键唤起。
+       WindowManagerAddShadowHint=False：阴影由本库自己画，
+       否则窗管会再叠一层系统阴影，两层叠出来的边比设计稿重一档。
+       ====================================================================== -->
+  <ControlTheme x:Key="{x:Type ContextMenu}" TargetType="ContextMenu">
+    <Setter Property="Background" Value="{DynamicResource AcrylicBackgroundFillColorDefaultBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SurfaceStrokeColorFlyoutBrush}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource ControlBorderThickness}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource OverlayCornerRadius}" />
+    <Setter Property="Padding" Value="{DynamicResource MenuFlyoutPresenterPadding}" />
+    <Setter Property="MinWidth" Value="120" />
+    <Setter Property="MaxWidth" Value="456" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="Focusable" Value="True" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="WindowManagerAddShadowHint" Value="False" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="ContextMenu">
+        <Border x:Name="PART_LayoutRoot"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Padding="{TemplateBinding Padding}"
+                MinWidth="{TemplateBinding MinWidth}"
+                MaxWidth="{TemplateBinding MaxWidth}"
+                HorizontalAlignment="{TemplateBinding HorizontalAlignment}"
+                BoxShadow="0 8 16 0 #24000000, 0 0 2 0 #1F000000">
+          <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                        VerticalScrollBarVisibility="Auto">
+            <ItemsPresenter x:Name="PART_ItemsPresenter"
+                            ItemsPanel="{TemplateBinding ItemsPanel}"
+                            KeyboardNavigation.TabNavigation="Continue"
+                            Grid.IsSharedSizeScope="True" />
+          </ScrollViewer>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+</ResourceDictionary>

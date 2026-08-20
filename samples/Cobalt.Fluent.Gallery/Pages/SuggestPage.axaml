@@ -1,0 +1,115 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             xmlns:fc="using:Cobalt.Fluent.Controls"
+             x:Class="Cobalt.Fluent.Gallery.Pages.SuggestPage">
+
+  <StackPanel HorizontalAlignment="Left">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="Suggest / Breadcrumb / Segmented" />
+      <Border Classes="tag"><TextBlock Text="11 · 常用补充" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead"
+               Text="三只补位控件，各管一句话：AutoSuggestBox 管「名字记不全」，BreadcrumbBar 管「我在第几层」，SegmentedControl 管「现在是哪个模式」。第一只是 Avalonia 内置的 AutoCompleteBox，后两只本库自己做。" />
+
+    <TextBlock Classes="sub" Text="AutoSuggestBox — 框是控件规格，建议列表是弹出层规格" />
+    <Border Classes="panel">
+      <StackPanel Orientation="Horizontal" Spacing="32">
+        <AutoCompleteBox x:Name="SpecSuggest"
+                         Width="240"
+                         FilterMode="Contains"
+                         Watermark="输入 PES 或 结晶" />
+        <AutoCompleteBox x:Name="SpecSuggestDisabled"
+                         Width="240"
+                         FilterMode="Contains"
+                         Text="PES"
+                         IsEnabled="False" />
+      </StackPanel>
+    </Border>
+    <TextBlock Classes="note" MaxWidth="700"
+               Text="框、悬停底、聚焦那道 2px 底边全由 TextBox 主题出，这里只往框内右侧压了一枚放大镜（不吃指针事件，点它等于点框）。建议列表是另一套规格：8px 圆角 + 亚克力 + flyout 阴影 + 4px 内边距。两套规格别混——把弹出层的圆角搬到框上，立刻不像原生。" />
+
+    <TextBlock Classes="sub" Text="BreadcrumbBar — 末级是当前位置" />
+    <Border Classes="panel">
+      <fc:BreadcrumbBar>
+        <fc:BreadcrumbItem Content="配方库" />
+        <fc:BreadcrumbItem Content="聚合反应" />
+        <fc:BreadcrumbItem Content="PES-4CH 标准流程" />
+      </fc:BreadcrumbBar>
+    </Border>
+    <TextBlock Classes="note" MaxWidth="700"
+               Text="末级加粗且不可点：点自己什么也不会发生，做成可点只会让人怀疑是不是没点中。层级超过 4 级时中间要折叠成「…」——这一步得在数据层做，控件不替你折。" />
+
+    <g:SpecMatrix States="rest,pointerover,current">
+      <g:SpecMatrix.Sample>
+        <DataTemplate><fc:BreadcrumbItem Content="聚合反应" /></DataTemplate>
+      </g:SpecMatrix.Sample>
+    </g:SpecMatrix>
+
+    <TextBlock Classes="sub" Text="SegmentedControl — 手动 / 自动 / 维护" />
+    <Border Classes="panel">
+      <fc:SegmentedControl SelectedIndex="1">
+        <fc:SegmentedItem Content="手动" />
+        <fc:SegmentedItem>
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <fc:SymbolIcon Symbol="Play" FontSize="12" VerticalAlignment="Center" />
+            <TextBlock Text="自动" VerticalAlignment="Center" />
+          </StackPanel>
+        </fc:SegmentedItem>
+        <fc:SegmentedItem Content="维护" IsEnabled="False" />
+      </fc:SegmentedControl>
+    </Border>
+    <TextBlock Classes="note" MaxWidth="700"
+               Text="互斥模式选择。比 RadioButton 醒目，适合「手动/自动/维护」这种全局状态——它一直摆在那儿，操作员不用点开才知道现在在哪个模式。" />
+
+    <g:SpecMatrix States="rest,pointerover,selected,disabled">
+      <g:SpecMatrix.Sample>
+        <DataTemplate><fc:SegmentedItem Content="自动" /></DataTemplate>
+      </g:SpecMatrix.Sample>
+    </g:SpecMatrix>
+    <TextBlock Classes="note" MaxWidth="700"
+               Text="段本身是透明的，那条凹槽底是 SegmentedControl 出的，所以单拎一段出来看不见底。选中态是「浮起来」：实色填充 + 一圈 elevation 描边 + Semibold。" />
+
+    <TextBlock Classes="sub" Text="试玩 — 输入过滤 / 模式切换 / 点面包屑回上一层" />
+    <Border Classes="play">
+      <StackPanel Spacing="20">
+
+        <StackPanel Orientation="Horizontal" Spacing="32">
+          <AutoCompleteBox x:Name="PlaySuggest"
+                           Width="240"
+                           FilterMode="Contains"
+                           Watermark="输入 PES 或 结晶"
+                           VerticalAlignment="Top" />
+          <StackPanel Spacing="8">
+            <fc:SegmentedControl x:Name="ModePicker" SelectedIndex="1">
+              <fc:SegmentedItem Content="手动" />
+              <fc:SegmentedItem Content="自动" />
+              <fc:SegmentedItem Content="维护" />
+            </fc:SegmentedControl>
+            <TextBlock x:Name="ModeText" Classes="note" />
+          </StackPanel>
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Spacing="16">
+          <fc:BreadcrumbBar x:Name="PlayTrail" VerticalAlignment="Center" />
+          <Button x:Name="TrailReset" Content="回到最深一层" VerticalAlignment="Center" />
+        </StackPanel>
+
+        <TextBlock Classes="note" MaxWidth="700"
+                   Text="输入时实时过滤并高亮匹配段，点条目回填。SegmentedControl 点击互斥切换。点面包屑的上级会砍掉它后面的层级，末级点不动。高亮在 Avalonia 里用 TextBlock.Inlines 拼 Run，不要用富文本控件。" />
+      </StackPanel>
+    </Border>
+
+    <g:MapBlock Note="高亮匹配段在 Avalonia 里用 TextBlock.Inlines 拼 Run。ListBox 会复用容器，光换数据不重跑 ItemTemplate，所以每次输入要换一张新模板，高亮才跟得上光标。">
+      <g:MapRow Key="控件" Value="AutoCompleteBox（Avalonia 内置）· BreadcrumbBar / BreadcrumbItem · SegmentedControl / SegmentedItem（后两组本库自定义）" />
+      <g:MapRow Key="AutoCompleteBox" Value="ItemsSource · FilterMode=&quot;Contains&quot; · Watermark · ItemTemplate · MinimumPrefixLength · MaxDropDownHeight=504" />
+      <g:MapRow Key="BreadcrumbBar" Value="ItemsControl + WrapPanel(ItemSpacing=2)；末级由 RefreshStates() 打 IsCurrent，改完 Items 要自己再调一次 · ItemClicked(Index, Item)" />
+      <g:MapRow Key="SegmentedControl" Value="SelectingItemsControl + 横向 StackPanel(Spacing=2)，SelectionMode 默认就是单选；外观差异全在 ControlTheme 里" />
+      <g:MapRow Key="伪类" Value="BreadcrumbItem: :current（末级，加粗且吞掉自己那个分隔符）· SegmentedItem: :selected · :pointerover:not(:selected)" />
+      <g:MapRow Key="资源键" Value="SubtleFillColorSecondaryBrush（悬停底）· TextFillColorTertiaryBrush（分隔符）· ControlAltFillColorSecondaryBrush（凹槽）· ControlSolidFillColorDefaultBrush + ControlElevationBorderBrush（选中段）· AccentFillColorDefaultBrush（匹配段）" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

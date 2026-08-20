@@ -1,0 +1,272 @@
+<!-- Expander。
+
+     一只卡片壳套两块：
+       外框   1px card-stroke + 4px 圆角 + card-bg，overflow:hidden → ClipToBounds
+       头部   min-height 64、padding 8/16、hover subtle-hover、按下 subtle-pressed，
+              右端一个 32×32 的 chevron 方框（不是裸图标）
+       内容区 padding 16、与头部相接的那条边一根 1px divider-stroke、底色 solid-bg-tertiary
+     头部和内容区靠底色深浅拉层次，不靠阴影 —— 页面内元素一律不带阴影。
+
+     chevron 旋转：RotateTransform（TransformOperations 的 rotate）+ Transitions，
+     167ms = ControlFastAnimationDuration。
+     只动 transform，不动布局。
+
+     四个 ExpandDirection：头部 Dock 到相反侧，内容区的分隔线和圆角跟着换边。
+     相接处的圆角走 Metrics 里写死的 ControlCornerRadiusTop/Bottom/Left/Right，
+     不绑 ControlCornerRadius —— 接缝那半边必须是 0。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:fc="using:Cobalt.Fluent.Controls">
+
+  <!-- 头部。Expander 的展开靠这只 ToggleButton 的 IsChecked ↔ IsExpanded 双向绑定，
+       所以 chevron 的方向直接看 :checked，不需要外层再喂状态。
+       方向（up/left/right）够不到模板里的 chevron（/template/ 只穿一层），
+       由外层 Expander 通过 Tag 发下来。 -->
+  <ControlTheme x:Key="ExpanderHeaderToggleButton" TargetType="ToggleButton">
+    <!-- 头部自己不带底色，卡片底透上来；只有 hover / 按下才铺一层 subtle -->
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <!-- 内边距：上下 8、左右 16 -->
+    <Setter Property="Padding" Value="16,8" />
+    <Setter Property="MinHeight" Value="{DynamicResource ExpanderHeaderMinHeight}" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="Cursor" Value="Arrow" />
+    <Setter Property="FocusAdorner" Value="{StaticResource FluentFocusAdorner}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="ToggleButton">
+        <Border x:Name="PART_Root"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Padding="{TemplateBinding Padding}">
+          <!-- 文字那列吃满，chevron 那列按内容宽，之间留 16 -->
+          <Grid ColumnDefinitions="*,Auto">
+            <ContentPresenter x:Name="PART_ContentPresenter"
+                              Grid.Column="0"
+                              Content="{TemplateBinding Content}"
+                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                              Foreground="{TemplateBinding Foreground}"
+                              HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                              VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                              RecognizesAccessKey="True" />
+
+            <!-- chevron 是个 32×32 的方框，不是裸图标。左边留 16 -->
+            <Border x:Name="PART_ChevronBox"
+                    Grid.Column="1"
+                    Width="32"
+                    Height="32"
+                    Margin="16,0,0,0"
+                    VerticalAlignment="Center"
+                    Background="{DynamicResource ControlFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{DynamicResource ControlCornerRadius}">
+              <!-- ChevronDown，10px。转的是这个字形，不是换图标。
+                   画矢量不用图标字体：嵌入式 Linux 上没有 Segoe Fluent Icons，会渲染成豆腐块。 -->
+              <fc:SymbolIcon x:Name="PART_Chevron"
+                         Symbol="ChevronDown"
+                         FontSize="10"
+                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center"
+                         RenderTransformOrigin="50%,50%">
+                <fc:SymbolIcon.Transitions>
+                  <Transitions>
+                    <TransformOperationsTransition Property="RenderTransform"
+                                                   Duration="{StaticResource ControlFastAnimationDuration}"
+                                                   Easing="0.33,0,0.67,1" />
+                  </Transitions>
+                </fc:SymbolIcon.Transitions>
+              </fc:SymbolIcon>
+            </Border>
+          </Grid>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- 只过渡颜色 -->
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="{StaticResource ControlFasterAnimationDuration}" />
+      </Transitions>
+    </Setter>
+
+    <Style Selector="^:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+    </Style>
+
+    <Style Selector="^:pressed">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorTertiaryBrush}" />
+    </Style>
+
+    <Style Selector="^:disabled">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+      <Style Selector="^ /template/ Border#PART_ChevronBox">
+        <Setter Property="Background" Value="{DynamicResource ControlFillColorDisabledBrush}" />
+      </Style>
+      <Style Selector="^ /template/ fc|SymbolIcon#PART_Chevron">
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+      </Style>
+    </Style>
+
+    <!-- 起手角度写成 Style 而不是模板里的字面值：模板里的字面值是 LocalValue，
+         优先级压过 Style，下面那几条就转不动了。 -->
+    <Style Selector="^ /template/ fc|SymbolIcon#PART_Chevron">
+      <Setter Property="RenderTransform" Value="none" />
+    </Style>
+
+    <!-- 展开时 chevron 转 180° -->
+    <Style Selector="^:checked /template/ fc|SymbolIcon#PART_Chevron">
+      <Setter Property="RenderTransform" Value="rotate(180deg)" />
+    </Style>
+
+    <!-- 另外三个方向：收起时箭头指着「会往哪边展开」，展开后同样再转 180° 指回来。
+         这几条必须排在 ^:checked 之后 —— 同优先级里后写的赢。 -->
+    <Style Selector="^[Tag=up] /template/ fc|SymbolIcon#PART_Chevron">
+      <Setter Property="RenderTransform" Value="rotate(180deg)" />
+    </Style>
+    <Style Selector="^[Tag=up]:checked /template/ fc|SymbolIcon#PART_Chevron">
+      <Setter Property="RenderTransform" Value="rotate(360deg)" />
+    </Style>
+
+    <Style Selector="^[Tag=left] /template/ fc|SymbolIcon#PART_Chevron">
+      <Setter Property="RenderTransform" Value="rotate(90deg)" />
+    </Style>
+    <Style Selector="^[Tag=left]:checked /template/ fc|SymbolIcon#PART_Chevron">
+      <Setter Property="RenderTransform" Value="rotate(270deg)" />
+    </Style>
+
+    <Style Selector="^[Tag=right] /template/ fc|SymbolIcon#PART_Chevron">
+      <Setter Property="RenderTransform" Value="rotate(-90deg)" />
+    </Style>
+    <Style Selector="^[Tag=right]:checked /template/ fc|SymbolIcon#PART_Chevron">
+      <Setter Property="RenderTransform" Value="rotate(90deg)" />
+    </Style>
+  </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type Expander}" TargetType="Expander">
+    <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource ControlBorderThickness}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <!-- 内容区内边距 16 -->
+    <Setter Property="Padding" Value="16" />
+    <!-- 标题行最低 64 高 -->
+    <Setter Property="MinHeight" Value="{DynamicResource ExpanderHeaderMinHeight}" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <!-- 卡片按内容高，别被 Grid 的 * 行抻长 -->
+    <Setter Property="VerticalAlignment" Value="Top" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Top" />
+    <Setter Property="Cursor" Value="Arrow" />
+    <!-- Tab 落在头部那只 ToggleButton 上，外壳不再单独占一站 -->
+    <Setter Property="IsTabStop" Value="False" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="Expander">
+        <!-- 裁掉溢出：内容区的方角不许探出卡片的圆角 -->
+        <Border x:Name="PART_Root"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                ClipToBounds="True">
+          <DockPanel>
+            <ToggleButton x:Name="ExpanderHeader"
+                          Theme="{StaticResource ExpanderHeaderToggleButton}"
+                          MinHeight="{TemplateBinding MinHeight}"
+                          CornerRadius="{TemplateBinding CornerRadius}"
+                          Content="{TemplateBinding Header}"
+                          ContentTemplate="{TemplateBinding HeaderTemplate}"
+                          IsChecked="{TemplateBinding IsExpanded, Mode=TwoWay}" />
+
+            <!-- 收起时内容整块不占位 -->
+            <Border x:Name="ExpanderContent"
+                    IsVisible="{TemplateBinding IsExpanded}"
+                    Background="{DynamicResource SolidBackgroundFillColorTertiaryBrush}"
+                    BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}"
+                    BorderThickness="0,1,0,0"
+                    CornerRadius="{DynamicResource ControlCornerRadiusBottom}"
+                    Padding="{TemplateBinding Padding}">
+              <ContentPresenter x:Name="PART_ContentPresenter"
+                                Content="{TemplateBinding Content}"
+                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                Foreground="{TemplateBinding Foreground}"
+                                HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+            </Border>
+          </DockPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- ExpandDirection。头部 Dock 到内容的反面，Tag 顺手把 chevron 的起手角度带下去。
+         下面这些选择器都带伪类，所以能盖过模板里的 TemplateBinding。 -->
+    <Style Selector="^:down /template/ ToggleButton#ExpanderHeader">
+      <Setter Property="DockPanel.Dock" Value="Top" />
+    </Style>
+    <Style Selector="^:up /template/ ToggleButton#ExpanderHeader">
+      <Setter Property="DockPanel.Dock" Value="Bottom" />
+      <Setter Property="Tag" Value="up" />
+    </Style>
+    <Style Selector="^:left /template/ ToggleButton#ExpanderHeader">
+      <Setter Property="DockPanel.Dock" Value="Right" />
+      <Setter Property="VerticalAlignment" Value="Stretch" />
+      <Setter Property="Tag" Value="left" />
+    </Style>
+    <Style Selector="^:right /template/ ToggleButton#ExpanderHeader">
+      <Setter Property="DockPanel.Dock" Value="Left" />
+      <Setter Property="VerticalAlignment" Value="Stretch" />
+      <Setter Property="Tag" Value="right" />
+    </Style>
+
+    <!-- 分隔线永远在「贴着头部」的那条边上，圆角同理只留外侧那两个角 -->
+    <Style Selector="^:down /template/ Border#ExpanderContent">
+      <Setter Property="BorderThickness" Value="0,1,0,0" />
+      <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadiusBottom}" />
+    </Style>
+    <Style Selector="^:up /template/ Border#ExpanderContent">
+      <Setter Property="BorderThickness" Value="0,0,0,1" />
+      <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadiusTop}" />
+    </Style>
+    <Style Selector="^:left /template/ Border#ExpanderContent">
+      <Setter Property="BorderThickness" Value="0,0,1,0" />
+      <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadiusLeft}" />
+    </Style>
+    <Style Selector="^:right /template/ Border#ExpanderContent">
+      <Setter Property="BorderThickness" Value="1,0,0,0" />
+      <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadiusRight}" />
+    </Style>
+
+    <!-- 展开后头部与内容相接的那半边圆角拍平，接缝处不圆 -->
+    <Style Selector="^:expanded:down /template/ ToggleButton#ExpanderHeader">
+      <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadiusTop}" />
+    </Style>
+    <Style Selector="^:expanded:up /template/ ToggleButton#ExpanderHeader">
+      <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadiusBottom}" />
+    </Style>
+    <Style Selector="^:expanded:left /template/ ToggleButton#ExpanderHeader">
+      <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadiusRight}" />
+    </Style>
+    <Style Selector="^:expanded:right /template/ ToggleButton#ExpanderHeader">
+      <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadiusLeft}" />
+    </Style>
+
+    <Style Selector="^:disabled">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+    </Style>
+  </ControlTheme>
+
+</ResourceDictionary>

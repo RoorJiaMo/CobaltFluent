@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             xmlns:fc="using:Cobalt.Fluent.Controls"
+             x:Class="Cobalt.Fluent.Gallery.Pages.ParameterRowPage">
+
+  <StackPanel HorizontalAlignment="Left" MaxWidth="920">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="ParameterRow" />
+      <Border Classes="tag"><TextBlock Text="7 · HMI 专用" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead"
+               Text="过程控制的主力控件。核心是把「我改了」和「设备收到了」区分开——这两者之间的空档是事故高发区：操作员改完数字就走，以为已生效，实际上还躺在输入框里。" />
+
+    <TextBlock Classes="sub" Text="状态矩阵 — 五个态" />
+    <Border Classes="panel" HorizontalAlignment="Stretch">
+      <fc:ParameterTable x:Name="SpecTable" />
+    </Border>
+
+    <TextBlock Classes="sub" Text="试玩 —— 这个控件的交互就是它的规格" />
+    <Border Classes="play" HorizontalAlignment="Stretch">
+      <StackPanel Spacing="12">
+        <fc:ParameterTable x:Name="PlayTable" />
+        <TextBlock Classes="note" MaxWidth="820"
+                   Text="改「腔体温度」到 86.3 再下发：状态走 待下发 → 写入中 → 已生效，而框里最后填的是 86.5 —— 那是设备按 0.5 步进量化后回读的值，不是你输入的 86.3。改「进料压力」会下发失败，值回滚到上次成功值。改「主轴转速」超出 0–3000 会禁掉下发按钮。" />
+      </StackPanel>
+    </Border>
+
+    <g:MapBlock Note="PendingText 与已生效值不同即 :dirty。下发成功后调 CompleteWrite(回读值) —— 收的必须是设备回读回来的值，不是刚写下去的值：设备可能做了限幅或量化，显示输入值等于骗人。失败调 FailWrite()，值回滚到上次成功值。">
+      <g:MapRow Key="类型" Value="ParameterRow : TemplatedControl（容器 ParameterTable : ItemsControl）" />
+      <g:MapRow Key="属性" Value="Label · Unit · ActualValue:double? · Setpoint · PendingText · Minimum · Maximum · Format · IsReadOnly · WriteState:{Clean,Dirty,Writing,Failed,OutOfRange} · ApplyCommand · RevertCommand" />
+      <g:MapRow Key="方法" Value="Apply() · CompleteWrite(readback) · FailWrite(message) · Revert()" />
+      <g:MapRow Key="伪类" Value=":dirty :writing :failed :outofrange :readonly" />
+      <g:MapRow Key="列宽" Value="标签 * / 读值 96 / 设定 140 / 单位 56 / 状态 auto —— 表头和行用同一组，同容器内自然对齐" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

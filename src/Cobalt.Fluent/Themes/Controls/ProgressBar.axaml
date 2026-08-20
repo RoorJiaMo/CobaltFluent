@@ -1,0 +1,191 @@
+<!-- ProgressBar。
+     变体 Classes：paused（caution）· error（critical）
+     Avalonia 没有 :paused / :error 这两个内置伪类，所以走 Classes。
+
+     结构对照：
+       .ProgressBar        → ProgressBarRoot（Background=槽，ClipToBounds 裁掉跑出去的条）
+       .ProgressBar .fill → PART_Indicator（确定态，宽度由控件代码按 Value 算）
+       .indeterminate .fill → IndeterminateIndicator（不确定态，位置走内置动画）
+
+     视觉上是「一条通长槽 + 一条覆在上面的填充」，Avalonia 也是同一画法，
+     所以这里不需要像 Slider 那样拆成三段。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:converters="using:Avalonia.Controls.Converters">
+
+  <converters:StringFormatConverter x:Key="ProgressBarTextFormatConverter" />
+
+  <!-- 3px 高 + 半径 1.5 = 胶囊端头。和 Slider 轨道的 2 同一性质：
+       这是「整圆」而不是控件圆角，跟着 ControlCornerRadius(4) 走会在 3px 高的条上
+       切出方角，所以写死，不绑 ControlCornerRadius。 -->
+  <CornerRadius x:Key="ProgressBarCornerRadius">1.5</CornerRadius>
+
+  <!-- 200 是「起码这么长」，所以用 MinWidth 而不是 Width，
+       塞进 Grid / StackPanel 里还能拉长。 -->
+  <x:Double x:Key="ProgressBarMinLength">200</x:Double>
+
+  <ControlTheme x:Key="{x:Type ProgressBar}" TargetType="ProgressBar">
+    <!-- 槽 = control-alt-secondary，条 = accent-fill（借 Foreground 当条色插槽，
+         模板里两个 Indicator 都 TemplateBinding 到它，paused / error 改一处就够） -->
+    <Setter Property="Background" Value="{DynamicResource ControlAltFillColorSecondaryBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+    <!-- 进度条不描边，只有底色 -->
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="{StaticResource ProgressBarCornerRadius}" />
+    <Setter Property="MinHeight" Value="{DynamicResource ProgressBarHeight}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="ProgressBar">
+        <Border x:Name="ProgressBarRoot"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                ClipToBounds="True">
+          <Panel>
+            <!-- 确定态与不确定态互相淡入淡出：只动 opacity，符合动效约定 -->
+            <Panel x:Name="DeterminateRoot" Opacity="1">
+              <Panel.Transitions>
+                <Transitions>
+                  <DoubleTransition Property="Opacity" Duration="0:0:0.167" />
+                </Transitions>
+              </Panel.Transitions>
+              <Border x:Name="PART_Indicator"
+                      Margin="{TemplateBinding Padding}"
+                      Background="{TemplateBinding Foreground}"
+                      CornerRadius="{TemplateBinding CornerRadius}" />
+            </Panel>
+
+            <Panel x:Name="IndeterminateRoot" Opacity="0">
+              <Panel.Transitions>
+                <Transitions>
+                  <DoubleTransition Property="Opacity" Duration="0:0:0.167" />
+                </Transitions>
+              </Panel.Transitions>
+              <Border x:Name="IndeterminateIndicator"
+                      Margin="{TemplateBinding Padding}"
+                      Background="{TemplateBinding Foreground}"
+                      CornerRadius="{TemplateBinding CornerRadius}" />
+            </Panel>
+
+            <!-- ShowProgressText 是 Avalonia 自带的能力，视觉规格里没这一层。
+                 保留是为了不把控件的 API 砍掉；读数必须等宽。
+                 文字可见时根 Border 会被撑高到一行文字的高度，这点跟内置模板一致。 -->
+            <LayoutTransformControl x:Name="PART_LayoutTransformControl"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    IsVisible="{TemplateBinding ShowProgressText}">
+              <TextBlock Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                         FontFamily="{TemplateBinding FontFamily}"
+                         FontSize="{TemplateBinding FontSize}"
+                         FontFeatures="{StaticResource TabularNumbers}">
+                <TextBlock.Text>
+                  <MultiBinding Converter="{StaticResource ProgressBarTextFormatConverter}">
+                    <TemplateBinding Property="ProgressTextFormat" />
+                    <Binding Path="Value" RelativeSource="{RelativeSource TemplatedParent}" />
+                    <TemplateBinding Property="Percentage" />
+                    <TemplateBinding Property="Minimum" />
+                    <TemplateBinding Property="Maximum" />
+                  </MultiBinding>
+                </TextBlock.Text>
+              </TextBlock>
+            </LayoutTransformControl>
+          </Panel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- paused / error 换色时过渡一下，避免瞬切。只过渡颜色。 -->
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Foreground" Duration="0:0:0.167" />
+      </Transitions>
+    </Setter>
+
+    <!-- 横向 -->
+    <Style Selector="^:horizontal">
+      <Setter Property="MinWidth" Value="{DynamicResource ProgressBarMinLength}" />
+      <Setter Property="MinHeight" Value="{DynamicResource ProgressBarHeight}" />
+    </Style>
+    <Style Selector="^:horizontal /template/ Border#PART_Indicator">
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="VerticalAlignment" Value="Stretch" />
+    </Style>
+
+    <!-- 竖向：条从底往上长 -->
+    <Style Selector="^:vertical">
+      <Setter Property="MinWidth" Value="{DynamicResource ProgressBarHeight}" />
+      <Setter Property="MinHeight" Value="{DynamicResource ProgressBarMinLength}" />
+    </Style>
+    <Style Selector="^:vertical /template/ Border#PART_Indicator">
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="VerticalAlignment" Value="Bottom" />
+    </Style>
+    <Style Selector="^:vertical /template/ LayoutTransformControl#PART_LayoutTransformControl">
+      <Setter Property="LayoutTransform">
+        <Setter.Value>
+          <RotateTransform Angle="90" />
+        </Setter.Value>
+      </Setter>
+    </Style>
+
+    <!-- 不确定态。
+         33% 宽的一条，2s 一个来回。
+         这里走 Avalonia 内置那套：条宽和起止位置由控件按轨道长度算好放进
+         TemplateSettings，模板只负责把它们接上，所以不用自己写宽度百分比。
+         缓动用 ease-move (0.33,0,0.67,1)。 -->
+    <Style Selector="^:indeterminate /template/ Panel#DeterminateRoot">
+      <Setter Property="Opacity" Value="0" />
+    </Style>
+    <Style Selector="^:indeterminate /template/ Panel#IndeterminateRoot">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+
+    <Style Selector="^:horizontal /template/ Border#IndeterminateIndicator">
+      <Setter Property="Width" Value="{Binding $parent[ProgressBar].TemplateSettings.ContainerWidth}" />
+    </Style>
+    <Style Selector="^:vertical /template/ Border#IndeterminateIndicator">
+      <Setter Property="Height" Value="{Binding $parent[ProgressBar].TemplateSettings.ContainerWidth}" />
+    </Style>
+
+    <Style Selector="^:horizontal:indeterminate /template/ Border#IndeterminateIndicator">
+      <Style.Animations>
+        <Animation IterationCount="Infinite" Duration="0:0:2">
+          <KeyFrame KeySpline="0.33,0,0.67,1" KeyTime="0:0:0">
+            <Setter Property="TranslateTransform.X" Value="{Binding $parent[ProgressBar].TemplateSettings.ContainerAnimationStartPosition}" />
+          </KeyFrame>
+          <KeyFrame KeySpline="0.33,0,0.67,1" KeyTime="0:0:2">
+            <Setter Property="TranslateTransform.X" Value="{Binding $parent[ProgressBar].TemplateSettings.ContainerAnimationEndPosition}" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+
+    <Style Selector="^:vertical:indeterminate /template/ Border#IndeterminateIndicator">
+      <Style.Animations>
+        <Animation IterationCount="Infinite" Duration="0:0:2">
+          <KeyFrame KeySpline="0.33,0,0.67,1" KeyTime="0:0:0">
+            <Setter Property="TranslateTransform.Y" Value="{Binding $parent[ProgressBar].TemplateSettings.ContainerAnimationStartPosition}" />
+          </KeyFrame>
+          <KeyFrame KeySpline="0.33,0,0.67,1" KeyTime="0:0:2">
+            <Setter Property="TranslateTransform.Y" Value="{Binding $parent[ProgressBar].TemplateSettings.ContainerAnimationEndPosition}" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+
+    <!-- 变体 -->
+    <!-- 暂停：caution。这是「进度停了」，不是报警，所以走主题状态色不走安全色。 -->
+    <Style Selector="^.paused">
+      <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCautionBrush}" />
+    </Style>
+    <!-- 出错：critical。同上，alarm 级才用 SafetyRedBrush。 -->
+    <Style Selector="^.error">
+      <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+    </Style>
+  </ControlTheme>
+
+</ResourceDictionary>

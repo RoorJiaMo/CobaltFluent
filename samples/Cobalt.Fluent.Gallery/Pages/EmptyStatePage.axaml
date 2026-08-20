@@ -1,0 +1,194 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             xmlns:fc="using:Cobalt.Fluent.Controls"
+             x:Class="Cobalt.Fluent.Gallery.Pages.EmptyStatePage">
+
+  <StackPanel Spacing="0" HorizontalAlignment="Left">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="EmptyState / Skeleton" />
+      <Border Classes="tag"><TextBlock Text="10 · 表格增强" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead"
+               Text="空和加载是两种不同的状态，视觉上必须区分。Skeleton 比转圈好——它预示了内容的形状，让等待感觉更短。" />
+
+    <TextBlock Classes="sub" Text="EmptyState — 空必须给出路" />
+    <Border Classes="panel" Padding="0">
+      <StackPanel Orientation="Horizontal">
+        <fc:Card Width="340" Padding="0" BorderThickness="0">
+          <fc:EmptyState Icon="Search"
+                         Title="该时间段没有运行记录"
+                         Description="试试放宽时间范围，或者清除当前的筛选条件。">
+            <fc:EmptyState.ActionContent>
+              <Button Content="清除筛选" />
+            </fc:EmptyState.ActionContent>
+          </fc:EmptyState>
+        </fc:Card>
+
+        <Border Width="1" Background="{DynamicResource CardStrokeColorDefaultBrush}" />
+
+        <!-- 同一个控件，两套文案。筛选后是「你把路走窄了」，首次使用是「这里还没东西」，
+             给筛选后的空状态配「新建」按钮会让操作员以为筛选条件消失了。 -->
+        <fc:Card Width="340" Padding="0" BorderThickness="0">
+          <fc:EmptyState Icon="Document"
+                         Title="还没有配方"
+                         Description="导入一份现有配方，或者从空白开始新建一条。">
+            <fc:EmptyState.ActionContent>
+              <Button Content="新建配方" Classes="accent" />
+            </fc:EmptyState.ActionContent>
+          </fc:EmptyState>
+        </fc:Card>
+      </StackPanel>
+    </Border>
+    <TextBlock Classes="note"
+               Text="空状态必须给出路——「没有数据」是废话，「试试放宽时间范围」加一个清除按钮才有用。按钮点下去要真的改变筛选条件，摆一个不做事的按钮比不摆更糟。" />
+
+    <TextBlock Classes="sub" Text="Skeleton — 列表骨架" />
+    <Border Classes="panel">
+      <Grid ColumnDefinitions="140,96,72" RowDefinitions="28,1,40,40,40">
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="批次号"
+                   FontSize="12" VerticalAlignment="Center"
+                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+        <TextBlock Grid.Row="0" Grid.Column="1" Text="配方"
+                   FontSize="12" VerticalAlignment="Center"
+                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+        <TextBlock Grid.Row="0" Grid.Column="2" Text="峰值"
+                   FontSize="12" VerticalAlignment="Center" TextAlignment="Right"
+                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+
+        <Border Grid.Row="1" Grid.ColumnSpan="3"
+                Background="{DynamicResource CardStrokeColorDefaultBrush}" />
+
+        <!-- 条宽参差是有意的：三行等宽灰条看着像三条分隔线，不像正在加载的数据。
+             列宽和行高照抄真表，数据到位时不会跳一下。 -->
+        <fc:Skeleton Grid.Row="2" Grid.Column="0" Width="110" HorizontalAlignment="Left"  VerticalAlignment="Center" />
+        <fc:Skeleton Grid.Row="2" Grid.Column="1" Width="70"  HorizontalAlignment="Left"  VerticalAlignment="Center" />
+        <fc:Skeleton Grid.Row="2" Grid.Column="2" Width="50"  HorizontalAlignment="Right" VerticalAlignment="Center" />
+
+        <fc:Skeleton Grid.Row="3" Grid.Column="0" Width="118" HorizontalAlignment="Left"  VerticalAlignment="Center" />
+        <fc:Skeleton Grid.Row="3" Grid.Column="1" Width="62"  HorizontalAlignment="Left"  VerticalAlignment="Center" />
+        <fc:Skeleton Grid.Row="3" Grid.Column="2" Width="46"  HorizontalAlignment="Right" VerticalAlignment="Center" />
+
+        <fc:Skeleton Grid.Row="4" Grid.Column="0" Width="104" HorizontalAlignment="Left"  VerticalAlignment="Center" />
+        <fc:Skeleton Grid.Row="4" Grid.Column="1" Width="74"  HorizontalAlignment="Left"  VerticalAlignment="Center" />
+        <fc:Skeleton Grid.Row="4" Grid.Column="2" Width="52"  HorizontalAlignment="Right" VerticalAlignment="Center" />
+      </Grid>
+    </Border>
+    <TextBlock Classes="note"
+               Text="骨架的列宽、行高、对齐方式都要和真表一致，数值列同样右对齐。骨架和数据长得不一样的话，等待省下的那点焦虑会在数据到位那一刻全还回去。" />
+
+    <TextBlock Classes="sub" Text="IsShimmerEnabled — 微光是常驻动画" />
+    <Border Classes="panel">
+      <StackPanel Orientation="Horizontal" Spacing="48">
+        <StackPanel Spacing="12">
+          <fc:Skeleton Width="180" />
+          <fc:Skeleton Width="140" />
+          <fc:Skeleton Width="164" />
+          <TextBlock Classes="note" Text="IsShimmerEnabled=True（默认）" />
+        </StackPanel>
+        <StackPanel Spacing="12">
+          <fc:Skeleton Width="180" IsShimmerEnabled="False" />
+          <fc:Skeleton Width="140" IsShimmerEnabled="False" />
+          <fc:Skeleton Width="164" IsShimmerEnabled="False" />
+          <TextBlock Classes="note" Text="IsShimmerEnabled=False — 静态灰条" />
+        </StackPanel>
+      </StackPanel>
+    </Border>
+    <TextBlock Classes="note"
+               Text="微光每条 1.4 秒无限循环，只要控件在树上就一直跑。一屏十几条在 RK3568 那类板子上就是十几条持续重绘，画面还没出来先把 GPU 占了。要么整屏用静态灰条，要么只给前 3 行开——下面几行操作员本来也没在盯。" />
+
+    <TextBlock Classes="sub" Text="试玩 — 加载 / 有数据 / 空是三种状态" />
+    <Border Classes="play">
+      <StackPanel Spacing="16">
+        <StackPanel Orientation="Horizontal" Spacing="16">
+          <Button x:Name="Reload" Content="重新加载" />
+          <CheckBox x:Name="Filtered" Content="筛选：近 1 小时" VerticalAlignment="Center" />
+        </StackPanel>
+
+        <!-- 三种状态叠在同一个固定尺寸的 Panel 里，靠 IsVisible 切。
+             换状态时容器不改尺寸，页面才不会上下弹。 -->
+        <Panel Width="440" Height="260">
+
+          <Grid x:Name="Loading" VerticalAlignment="Top"
+                ColumnDefinitions="140,96,72" RowDefinitions="28,1,40,40,40">
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="批次号"
+                       FontSize="12" VerticalAlignment="Center"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+            <TextBlock Grid.Row="0" Grid.Column="1" Text="配方"
+                       FontSize="12" VerticalAlignment="Center"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+            <TextBlock Grid.Row="0" Grid.Column="2" Text="峰值"
+                       FontSize="12" VerticalAlignment="Center" TextAlignment="Right"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+            <Border Grid.Row="1" Grid.ColumnSpan="3"
+                    Background="{DynamicResource CardStrokeColorDefaultBrush}" />
+
+            <fc:Skeleton Grid.Row="2" Grid.Column="0" Width="110" HorizontalAlignment="Left"  VerticalAlignment="Center" />
+            <fc:Skeleton Grid.Row="2" Grid.Column="1" Width="70"  HorizontalAlignment="Left"  VerticalAlignment="Center" />
+            <fc:Skeleton Grid.Row="2" Grid.Column="2" Width="50"  HorizontalAlignment="Right" VerticalAlignment="Center" />
+
+            <fc:Skeleton Grid.Row="3" Grid.Column="0" Width="118" HorizontalAlignment="Left"  VerticalAlignment="Center" />
+            <fc:Skeleton Grid.Row="3" Grid.Column="1" Width="62"  HorizontalAlignment="Left"  VerticalAlignment="Center" />
+            <fc:Skeleton Grid.Row="3" Grid.Column="2" Width="46"  HorizontalAlignment="Right" VerticalAlignment="Center" />
+
+            <!-- 第 3 行往后关掉微光：动画只是给「有东西在来」一个信号，
+                 前两行已经说完了，剩下的条数不用为此付帧率。 -->
+            <fc:Skeleton Grid.Row="4" Grid.Column="0" Width="104" HorizontalAlignment="Left"  VerticalAlignment="Center" IsShimmerEnabled="False" />
+            <fc:Skeleton Grid.Row="4" Grid.Column="1" Width="74"  HorizontalAlignment="Left"  VerticalAlignment="Center" IsShimmerEnabled="False" />
+            <fc:Skeleton Grid.Row="4" Grid.Column="2" Width="52"  HorizontalAlignment="Right" VerticalAlignment="Center" IsShimmerEnabled="False" />
+          </Grid>
+
+          <Grid x:Name="Rows" IsVisible="False" VerticalAlignment="Top"
+                ColumnDefinitions="140,96,72" RowDefinitions="28,1,40,40,40">
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="批次号"
+                       FontSize="12" VerticalAlignment="Center"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+            <TextBlock Grid.Row="0" Grid.Column="1" Text="配方"
+                       FontSize="12" VerticalAlignment="Center"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+            <TextBlock Grid.Row="0" Grid.Column="2" Text="峰值"
+                       FontSize="12" VerticalAlignment="Center" TextAlignment="Right"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+            <Border Grid.Row="1" Grid.ColumnSpan="3"
+                    Background="{DynamicResource CardStrokeColorDefaultBrush}" />
+
+            <TextBlock Grid.Row="2" Grid.Column="0" Text="B-2411-018" VerticalAlignment="Center" />
+            <TextBlock Grid.Row="2" Grid.Column="1" Text="PES-4CH"    VerticalAlignment="Center" />
+            <TextBlock Grid.Row="2" Grid.Column="2" Text="208.4"      VerticalAlignment="Center" TextAlignment="Right" />
+
+            <TextBlock Grid.Row="3" Grid.Column="0" Text="B-2411-017" VerticalAlignment="Center" />
+            <TextBlock Grid.Row="3" Grid.Column="1" Text="结晶 A"     VerticalAlignment="Center" />
+            <TextBlock Grid.Row="3" Grid.Column="2" Text="196.2"      VerticalAlignment="Center" TextAlignment="Right" />
+
+            <TextBlock Grid.Row="4" Grid.Column="0" Text="B-2411-016" VerticalAlignment="Center" />
+            <TextBlock Grid.Row="4" Grid.Column="1" Text="PES-4CH"    VerticalAlignment="Center" />
+            <TextBlock Grid.Row="4" Grid.Column="2" Text="211.0"      VerticalAlignment="Center" TextAlignment="Right" />
+          </Grid>
+
+          <fc:EmptyState x:Name="Empty" IsVisible="False"
+                         Icon="Search"
+                         Title="该时间段没有运行记录"
+                         Description="试试放宽时间范围，或者清除当前的筛选条件。">
+            <fc:EmptyState.ActionContent>
+              <Button x:Name="ClearFilter" Content="清除筛选" />
+            </fc:EmptyState.ActionContent>
+          </fc:EmptyState>
+
+        </Panel>
+
+        <TextBlock Classes="note" MaxWidth="700"
+                   Text="勾上筛选再加载，结果为空——这时给的是「放宽时间范围」和一个真能用的清除按钮，不是一句「无数据」。点「清除筛选」会把上面那个勾去掉并重新拉一次，数据就回来了。" />
+      </StackPanel>
+    </Border>
+
+    <g:MapBlock Note="Skeleton 的 shimmer 在嵌入式上是常驻动画，一屏十几条会有开销。RK3568 上建议改成静态灰条，或者只给前 3 行做动画。">
+      <g:MapRow Key="控件" Value="自定义 EmptyState · Skeleton（Avalonia 内置里都没有对应物）" />
+      <g:MapRow Key="属性" Value="EmptyState: Icon:Symbol · Title · Description · ActionContent · ActionCommand ；Skeleton: IsShimmerEnabled" />
+      <g:MapRow Key="伪类" Value="Skeleton:shimmer（由 IsShimmerEnabled 推出来，不用手加类）" />
+      <g:MapRow Key="资源键" Value="ControlAltFillColorSecondaryBrush（灰条底）· SubtleFillColorSecondary（微光渐变中点）· TextFillColorTertiaryBrush（空状态图标与描述）" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

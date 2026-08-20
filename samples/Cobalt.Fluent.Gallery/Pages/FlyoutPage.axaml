@@ -1,0 +1,154 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             xmlns:fc="using:Cobalt.Fluent.Controls"
+             x:Class="Cobalt.Fluent.Gallery.Pages.FlyoutPage">
+
+  <StackPanel HorizontalAlignment="Left">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="Flyout" />
+      <Border Classes="tag"><TextBlock Text="6 · 弹出" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead"
+               Text="8px 圆角 + 亚克力 + shadow-flyout，内边距 16,15,16,17。亚克力和描边是成对的：Flyout 用 SurfaceStrokeColorFlyout，常驻面板用 SurfaceStrokeColorDefault，混用视觉会错。" />
+
+    <TextBlock Classes="sub" Text="面板本体 — 摊平了看" />
+    <Border Classes="panel">
+      <StackPanel Orientation="Horizontal" Spacing="24">
+
+        <!-- 直接摆一个 FlyoutPresenter，不照着规格另画一张。弹出层平时只在
+             Popup 里露一瞬，仿一份贴在页面上就成了两套东西：改了主题这里不跟着变。 -->
+        <FlyoutPresenter Width="280">
+          <StackPanel>
+            <TextBlock Theme="{StaticResource BodyStrongTextBlockStyle}"
+                       Text="确认清空日志？" Margin="0,0,0,8" />
+            <TextBlock Theme="{StaticResource BodyTextBlockStyle}"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                       TextWrapping="Wrap" Margin="0,0,0,16"
+                       Text="此操作不可撤销，将删除 1 248 条记录。" />
+            <Grid ColumnDefinitions="*,8,*">
+              <Button Grid.Column="0" Content="取消"
+                      HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+              <Button Grid.Column="2" Content="清空"
+                      HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+            </Grid>
+          </StackPanel>
+        </FlyoutPresenter>
+
+        <TextBlock Classes="note" Margin="0" MaxWidth="300" VerticalAlignment="Center"
+                   Text="破坏性操作的确认弹层里，主按钮位置放「取消」，危险操作用普通 Button。这里两个都是 Standard——不给「清空」加 accent，避免误触。" />
+
+      </StackPanel>
+    </Border>
+
+    <TextBlock Classes="sub" Text="底和边成对 — 弹出层 vs 常驻面板" />
+    <Border Classes="panel">
+      <StackPanel Spacing="12">
+        <StackPanel Orientation="Horizontal" Spacing="24" VerticalAlignment="Top">
+
+          <StackPanel Spacing="8">
+            <FlyoutPresenter Width="220">
+              <TextBlock Theme="{StaticResource BodyTextBlockStyle}" TextWrapping="Wrap"
+                         Text="浮在内容之上：亚克力底偏透，配同样偏透的 flyout 描边。" />
+            </FlyoutPresenter>
+            <TextBlock Classes="note" Margin="0"
+                       Text="AcrylicBackgroundFillColorDefault + SurfaceStrokeColorFlyout" />
+          </StackPanel>
+
+          <StackPanel Spacing="8">
+            <!-- 常驻面板这一格必须手写：页面内的面就是 Border，没有对应控件可摆。 -->
+            <Border Width="220" Padding="16,15,16,17"
+                    Background="{DynamicResource CardBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource SurfaceStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{DynamicResource OverlayCornerRadius}">
+              <TextBlock Theme="{StaticResource BodyTextBlockStyle}" TextWrapping="Wrap"
+                         Text="躺在页面里：实色底，配实色的 default 描边，不给阴影。" />
+            </Border>
+            <TextBlock Classes="note" Margin="0"
+                       Text="CardBackgroundFillColorDefault + SurfaceStrokeColorDefault" />
+          </StackPanel>
+
+        </StackPanel>
+
+        <TextBlock Classes="note"
+                   Text="拿实色描边去配亚克力底，边会比面还重，一眼看出不是一套。阴影同理：只有真正浮起来的那层才有 shadow-flyout，页面里的面靠描边分层。" />
+        <TextBlock Classes="note"
+                   Text="嵌入式 Linux 上把亚克力整个关掉，AcrylicBackgroundFillColorDefaultBrush 改指 SolidBackgroundFillColorQuarternaryBrush 实色——实时模糊在 Mali GPU 上是每帧全屏像素操作，弹一次面板整屏掉帧。描边和圆角不动，换的只是那一层底。" />
+      </StackPanel>
+    </Border>
+
+    <TextBlock Classes="sub" Text="挂在哪一边 — Placement" />
+    <Border Classes="play">
+      <StackPanel Spacing="12">
+        <StackPanel Orientation="Horizontal" Spacing="12">
+          <Button Content="Bottom（默认）">
+            <Button.Flyout>
+              <Flyout Placement="Bottom">
+                <TextBlock Text="挂在按钮下方。" />
+              </Flyout>
+            </Button.Flyout>
+          </Button>
+          <Button Content="Right">
+            <Button.Flyout>
+              <Flyout Placement="Right">
+                <TextBlock Text="挂在按钮右侧。" />
+              </Flyout>
+            </Button.Flyout>
+          </Button>
+          <Button Content="Top">
+            <Button.Flyout>
+              <Flyout Placement="Top">
+                <TextBlock Text="挂在按钮上方。" />
+              </Flyout>
+            </Button.Flyout>
+          </Button>
+        </StackPanel>
+        <TextBlock Classes="note"
+                   Text="Placement 只是首选边，屏幕放不下时 Popup 会自己翻到对面。触摸屏上贴着屏底的按钮别硬指 Bottom——翻上来的那一下位置会跳。" />
+      </StackPanel>
+    </Border>
+
+    <TextBlock Classes="sub" Text="试玩 — 破坏性操作的确认弹层" />
+    <Border Classes="play">
+      <StackPanel Spacing="12">
+        <StackPanel Orientation="Horizontal" Spacing="12">
+          <Button x:Name="ClearTrigger" Content="清空日志">
+            <Button.Flyout>
+              <Flyout>
+                <StackPanel Width="248">
+                  <TextBlock Theme="{StaticResource BodyStrongTextBlockStyle}"
+                             Text="确认清空日志？" Margin="0,0,0,8" />
+                  <TextBlock x:Name="ConfirmDetail"
+                             Theme="{StaticResource BodyTextBlockStyle}"
+                             Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                             TextWrapping="Wrap" Margin="0,0,0,16" />
+                  <Grid ColumnDefinitions="*,8,*">
+                    <Button x:Name="CancelClear" Grid.Column="0" Content="取消"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+                    <Button x:Name="ConfirmClear" Grid.Column="2" Content="清空"
+                            HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+                  </Grid>
+                </StackPanel>
+              </Flyout>
+            </Button.Flyout>
+          </Button>
+          <Button x:Name="Refill" Content="重新灌入日志" IsEnabled="False" />
+        </StackPanel>
+        <TextBlock x:Name="PlayLog" Classes="note" Margin="0" />
+        <TextBlock Classes="note"
+                   Text="点空白处或按 Esc 也算取消——轻量确认就该能这么退出。真删不掉的东西（改配方、复位报警）用 ContentDialog：那种要挡住整屏，不能一点旁边就没了。" />
+      </StackPanel>
+    </Border>
+
+    <g:MapBlock Note="嵌入式 Linux 上关掉亚克力，AcrylicBackgroundFillColorDefaultBrush 改用 SolidBackgroundFillColorQuarternaryBrush 实色。实时模糊在 Mali GPU 上是每帧全屏像素操作。">
+      <g:MapRow Key="控件" Value="Flyout / FlyoutPresenter" />
+      <g:MapRow Key="资源键" Value="AcrylicBackgroundFillColorDefaultBrush + SurfaceStrokeColorFlyoutBrush（必须成对）· OverlayCornerRadius · FlyoutContentPadding=16,15,16,17" />
+      <g:MapRow Key="阴影" Value="BoxShadow=&quot;0 8 16 0 #24000000, 0 0 2 0 #1F000000&quot;（shadow-flyout，比 ToolTip 的 0 4 8 深一档）" />
+      <g:MapRow Key="挂载" Value="&lt;Button.Flyout&gt;&lt;Flyout/&gt;&lt;/Button.Flyout&gt; · 非按钮用 FlyoutBase.AttachedFlyout + FlyoutBase.ShowAttachedFlyout(this) · Placement · ShowMode · Hide()" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

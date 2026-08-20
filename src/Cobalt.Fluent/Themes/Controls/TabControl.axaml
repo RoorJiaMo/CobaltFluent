@@ -1,0 +1,222 @@
+<!-- TabControl / TabItem —— 标签条加标签。
+     下划线式选项卡，用于固定的功能分区（总览 / 趋势 / 报警 / 日志）。
+     浏览器式、带关闭按钮的 .TabView / .TabViewItem 是同一节里的另一套控件，不在本文件。
+
+     两处必须动 Template（内置模板给不了）：
+       1. tab 条底部那根 1px divider —— 内置 TabControl 模板里 ItemsPresenter 是裸的，没有可挂描边的容器
+       2. 选中指示条要「跟随 header 内容」—— 内置模板的 PART_SelectedPipe 在 Padding 之内，
+          横向 Stretch 时会连 TabItem 的 padding 一起铺满。这里把它提到 Padding 之外，
+          再用 Margin 显式留 12px，左右各缩进这么多。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <ControlTheme x:Key="{x:Type TabControl}" TargetType="TabControl">
+    <!-- 选项卡骑在页面底上，自己不铺色 -->
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Stretch" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="TabControl">
+        <Border Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}">
+          <DockPanel>
+            <!-- 标签条：贴着内容那一侧一根 1px divider。
+                 厚度和外边距由下面四条 TabStripPlacement 样式给，因为四个方向贴的边不同。 -->
+            <Border x:Name="PART_StripBorder"
+                    DockPanel.Dock="{TemplateBinding TabStripPlacement}"
+                    BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}">
+              <ItemsPresenter x:Name="PART_ItemsPresenter"
+                              ItemsPanel="{TemplateBinding ItemsPanel}" />
+            </Border>
+
+            <ContentPresenter x:Name="PART_SelectedContentHost"
+                              Margin="{TemplateBinding Padding}"
+                              Content="{TemplateBinding SelectedContent}"
+                              ContentTemplate="{TemplateBinding SelectedContentTemplate}"
+                              HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                              VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+          </DockPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- divider 贴内容那一侧；Margin 是 divider 与内容之间的 12px 呼吸位（= space-3），
+         写在描边外侧，所以线本身仍然紧贴 tab。 -->
+    <Style Selector="^[TabStripPlacement=Top] /template/ Border#PART_StripBorder">
+      <Setter Property="BorderThickness" Value="0,0,0,1" />
+      <Setter Property="Margin" Value="0,0,0,12" />
+    </Style>
+    <Style Selector="^[TabStripPlacement=Bottom] /template/ Border#PART_StripBorder">
+      <Setter Property="BorderThickness" Value="0,1,0,0" />
+      <Setter Property="Margin" Value="0,12,0,0" />
+    </Style>
+    <Style Selector="^[TabStripPlacement=Left] /template/ Border#PART_StripBorder">
+      <Setter Property="BorderThickness" Value="0,0,1,0" />
+      <Setter Property="Margin" Value="0,0,12,0" />
+    </Style>
+    <Style Selector="^[TabStripPlacement=Right] /template/ Border#PART_StripBorder">
+      <Setter Property="BorderThickness" Value="1,0,0,0" />
+      <Setter Property="Margin" Value="12,0,0,0" />
+    </Style>
+
+    <!-- 竖排 tab 条：默认 ItemsPanel 是 WrapPanel，转成纵向才排得成一列 -->
+    <Style Selector="^[TabStripPlacement=Left] /template/ ItemsPresenter#PART_ItemsPresenter > WrapPanel">
+      <Setter Property="Orientation" Value="Vertical" />
+    </Style>
+    <Style Selector="^[TabStripPlacement=Right] /template/ ItemsPresenter#PART_ItemsPresenter > WrapPanel">
+      <Setter Property="Orientation" Value="Vertical" />
+    </Style>
+  </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type TabItem}" TargetType="TabItem">
+    <Setter Property="Background" Value="Transparent" />
+    <!-- 未选中走 text-secondary，选中才升到 primary。这是「哪一页是当前页」的主要信号之一 -->
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <!-- 圆角 4,4,0,0 —— 只圆上面两角，下面两角和 divider 相接，必须是直角。
+         用写死的 ControlCornerRadiusTop，不拼 ControlCornerRadius。 -->
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadiusTop}" />
+    <!-- 左右内边距 12，标签之间各留 4 -->
+    <Setter Property="Padding" Value="12,0" />
+    <Setter Property="Margin" Value="4,0" />
+    <Setter Property="MinHeight" Value="{DynamicResource TabItemMinHeight}" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <!-- 标签常是「工位 1 / 通道 12 / 轴 3」这类带序号的，等宽数字让各页标签宽度稳定 -->
+    <Setter Property="FontFeatures" Value="{StaticResource TabularNumbers}" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Cursor" Value="Arrow" />
+    <Setter Property="FocusAdorner" Value="{StaticResource FluentFocusAdorner}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="TabItem">
+        <!-- 指示条是 PART_LayoutRoot 的兄弟而不是子级：它要按自己的 12px 留边定位，
+             不能被 TabItem 的 Padding 二次推挤。 -->
+        <Panel>
+          <Border x:Name="PART_LayoutRoot"
+                  Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  CornerRadius="{TemplateBinding CornerRadius}"
+                  Padding="{TemplateBinding Padding}">
+            <ContentPresenter x:Name="PART_ContentPresenter"
+                              Content="{TemplateBinding Header}"
+                              ContentTemplate="{TemplateBinding HeaderTemplate}"
+                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                              RecognizesAccessKey="True" />
+          </Border>
+
+          <!-- 选中指示条：2px 高、圆角 1、强调色，左右各缩进 12。
+               圆角 1 = 半个厚度，是把 2px 条两端收成圆头，和 8/4/0 那三档圆角不是一回事
+               （同 Shared.axaml 里 3px 指示条用的 1.5）。
+               尺寸 / 贴边由下面四条 TabStripPlacement 样式给。 -->
+          <!-- 尺寸/贴边在模板里就给一套 Top 的默认值：TabStripPlacement 由父 TabControl
+               设置，脱离 TabControl 单独用的 TabItem（展柜的状态矩阵就是这样）匹配不到
+               下面任何一条 placement 样式，指示条会没有尺寸而铺满整个 tab，
+               变成一块盖住文字的蓝底。 -->
+          <Border x:Name="PART_SelectedPipe"
+                  Background="{DynamicResource AccentFillColorDefaultBrush}"
+                  CornerRadius="1"
+                  Height="{DynamicResource TabItemPipeThickness}"
+                  HorizontalAlignment="Stretch"
+                  VerticalAlignment="Bottom"
+                  Margin="12,0"
+                  IsHitTestVisible="False"
+                  IsVisible="False" />
+        </Panel>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- 只过渡底色。规格没点名要过渡，但同类的悬停底
+         （Button / ListBoxItem）全库都是 83ms 渐显，这里跟齐，免得只有选项卡是硬切。 -->
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="0:0:0.083" />
+      </Transitions>
+    </Setter>
+
+    <!-- 选中项不吃 hover 底，
+         否则指示条那一格会在指针扫过时闪一下 -->
+    <Style Selector="^:pointerover:not(:selected)">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    </Style>
+
+    <!-- 选中：前景升到 primary + 字重 600 + 底部指示条 -->
+    <Style Selector="^:selected">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Style Selector="^ /template/ Border#PART_SelectedPipe">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+    </Style>
+
+    <Style Selector="^:disabled">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+      <Style Selector="^ /template/ Border#PART_SelectedPipe">
+        <Setter Property="Background" Value="{DynamicResource AccentFillColorDisabledBrush}" />
+      </Style>
+    </Style>
+
+    <!-- 四个 TabStripPlacement。每条把指示条整套摆位说全（宽/高/贴边/留边），
+         切换方向时不会残留上一套的尺寸；顺带把圆角转到背离内容的那两角、
+         把 4px 外边距转到 tab 排列的那个方向。
+         宽和高必须两个都写：模板里那套 Top 默认值是写在部件上的，
+         带触发条件的样式能盖掉它，但没写到的属性会原样留着 ——
+         横排只设 Width 的话，竖排就会顶着模板留下的 Height=2 缩成一个 2×2 的点。
+         「这一维不限死、让 Stretch 去撑」写成 NaN（= XAML 里的 Auto）。 -->
+    <Style Selector="^[TabStripPlacement=Top] /template/ Border#PART_SelectedPipe">
+      <Setter Property="Width" Value="NaN" />
+      <Setter Property="Height" Value="{DynamicResource TabItemPipeThickness}" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="VerticalAlignment" Value="Bottom" />
+      <Setter Property="Margin" Value="12,0" />
+    </Style>
+
+    <Style Selector="^[TabStripPlacement=Bottom]">
+      <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadiusBottom}" />
+      <Style Selector="^ /template/ Border#PART_SelectedPipe">
+        <Setter Property="Width" Value="NaN" />
+        <Setter Property="Height" Value="{DynamicResource TabItemPipeThickness}" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="VerticalAlignment" Value="Top" />
+        <Setter Property="Margin" Value="12,0" />
+      </Style>
+    </Style>
+
+    <Style Selector="^[TabStripPlacement=Left]">
+      <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadiusLeft}" />
+      <Setter Property="Margin" Value="0,4" />
+      <Setter Property="HorizontalContentAlignment" Value="Left" />
+      <!-- 竖排时指示条转 90°：上下各留 12，48 高的 tab 上正好剩 24 —— 和 WinUI 的
+           TabItemVerticalPipeHeight 一致，同时仍然是「跟随 header 内容、两端各留 12」那条规则 -->
+      <Style Selector="^ /template/ Border#PART_SelectedPipe">
+        <Setter Property="Width" Value="{DynamicResource TabItemPipeThickness}" />
+        <Setter Property="Height" Value="NaN" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
+        <Setter Property="Margin" Value="0,12" />
+      </Style>
+    </Style>
+
+    <Style Selector="^[TabStripPlacement=Right]">
+      <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadiusRight}" />
+      <Setter Property="Margin" Value="0,4" />
+      <Setter Property="HorizontalContentAlignment" Value="Right" />
+      <Style Selector="^ /template/ Border#PART_SelectedPipe">
+        <Setter Property="Width" Value="{DynamicResource TabItemPipeThickness}" />
+        <Setter Property="Height" Value="NaN" />
+        <Setter Property="HorizontalAlignment" Value="Right" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
+        <Setter Property="Margin" Value="0,12" />
+      </Style>
+    </Style>
+  </ControlTheme>
+
+</ResourceDictionary>

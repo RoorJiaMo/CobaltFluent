@@ -1,0 +1,362 @@
+<!-- Slider，横竖两向。
+
+     结构对照：
+       .Slider  → 外层 Border（Background=Transparent，整块 200×32 都要能 hover / 点，
+                  否则悬停只有压在那条 4px 的轨道上才生效）
+       .track   → PART_IncreaseButton（未填充段，control-strong-fill）
+       .fill    → PART_DecreaseButton（已填充段，accent-fill）
+       .thumb   → PART_Thumb（20×20 圆，control-solid-fill 底 + 1px control-stroke-default）
+       .thumb::after → 拇指模板里的内点（12×12 accent，hover 14、pressed 10）
+
+     视觉上是一条通长的槽 + 一段覆在左半的填充；Avalonia 的 Track 是
+     「减段 | 拇指 | 增段」三件套，拇指两侧各让出 10px。因为拇指不透明且正好 20px 宽，
+     两种画法的可见结果一致，所以这里跟 Track 走，不再额外铺一条通长底轨。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- 轨道 4px 高、圆角 2。
+       4px 高的条 + 半径 2 = 胶囊端头，和圆拇指同属「整圆」而不是控件圆角，
+       跟着 ControlCornerRadius 走反而会在 4px 高的条上切出方角 ——
+       与 ProgressBar 那条 3px 高的进度条写死 1.5 同理。 -->
+  <x:Double x:Key="SliderTrackHeight">4</x:Double>
+  <CornerRadius x:Key="SliderTrackCornerRadius">2</CornerRadius>
+  <x:Double x:Key="SliderThumbSize">20</x:Double>
+  <x:Double x:Key="SliderTickBarSize">4</x:Double>
+
+  <!-- 内点 12px，悬停撑到 14px、按下收到 10px。
+       底板固定 14×14（最大档），三档尺寸走 RenderTransform 缩放：
+       scale(.857)=12px · scale(1)=14px · scale(.714)=10px。
+       不过渡 Width/Height（也不过渡 Margin）是因为那会逐帧重跑布局，破坏
+       「动效只动 transform 和 opacity」这条不变量；内点是纯填充无描边，
+       缩放不会带出描边变粗的副作用。写法与 CheckRadio 的 PART_CheckGlyph 同源。 -->
+  <x:Double x:Key="SliderThumbGlyphSize">14</x:Double>
+
+  <!-- 轨道段。Track 的减段 / 增段都是 RepeatButton（点空白处翻页），
+       必须显式挂 Theme —— 否则会套上 Button.axaml 里那个 RepeatButton 主题（带 64 最小宽和描边）。
+       HitArea 往外撑 10px：轨道只有 4px 高，不撑开根本点不中。 -->
+  <ControlTheme x:Key="FluentSliderTrackHorizontalTheme" TargetType="RepeatButton">
+    <Setter Property="Focusable" Value="False" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="RepeatButton">
+        <Grid>
+          <Border x:Name="HitArea" Margin="0,-10" Background="Transparent" />
+          <Border x:Name="PART_TrackPiece"
+                  Background="{TemplateBinding Background}"
+                  CornerRadius="{StaticResource SliderTrackCornerRadius}"
+                  Height="{StaticResource SliderTrackHeight}"
+                  VerticalAlignment="Center" />
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <ControlTheme x:Key="FluentSliderTrackVerticalTheme" TargetType="RepeatButton">
+    <Setter Property="Focusable" Value="False" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="RepeatButton">
+        <Grid>
+          <Border x:Name="HitArea" Margin="-10,0" Background="Transparent" />
+          <Border x:Name="PART_TrackPiece"
+                  Background="{TemplateBinding Background}"
+                  CornerRadius="{StaticResource SliderTrackCornerRadius}"
+                  Width="{StaticResource SliderTrackHeight}"
+                  HorizontalAlignment="Center" />
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <!-- 拇指。外圈和内点都用 Ellipse 画，不用 Border+CornerRadius：
+       圆角只有 8/4/0，圆形一律交给 Ellipse。
+       内点颜色借 Foreground、内点尺寸档位借 Tag 走 —— 这两个属性在 Thumb 上本来没用处，
+       借过来当「插槽」，Slider 那边一层 /template/ 就能改到内点
+       （ControlTheme 的样式只下发到自己模板里的一层，钻不进 Thumb 的模板）。
+       拇指不加阴影：阴影只给悬浮层，页面内元素靠 1px 描边。 -->
+  <ControlTheme x:Key="FluentSliderThumbTheme" TargetType="Thumb">
+    <Setter Property="Width" Value="{StaticResource SliderThumbSize}" />
+    <Setter Property="Height" Value="{StaticResource SliderThumbSize}" />
+    <Setter Property="Margin" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="Background" Value="{DynamicResource ControlSolidFillColorDefaultBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="Thumb">
+        <Panel>
+          <Ellipse x:Name="PART_ThumbBase"
+                   Fill="{TemplateBinding Background}"
+                   Stroke="{TemplateBinding BorderBrush}"
+                   StrokeThickness="1"
+                   UseLayoutRounding="False" />
+          <Ellipse x:Name="PART_ThumbGlyph"
+                   Width="{StaticResource SliderThumbGlyphSize}"
+                   Height="{StaticResource SliderThumbGlyphSize}"
+                   Fill="{TemplateBinding Foreground}"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   RenderTransformOrigin="50%,50%"
+                   RenderTransform="scale(0.857)"
+                   UseLayoutRounding="False">
+            <Ellipse.Transitions>
+              <Transitions>
+                <TransformOperationsTransition Property="RenderTransform"
+                                               Duration="{StaticResource ControlFasterAnimationDuration}" />
+                <BrushTransition Property="Fill" Duration="{StaticResource ControlFasterAnimationDuration}" />
+              </Transitions>
+            </Ellipse.Transitions>
+          </Ellipse>
+        </Panel>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- 尺寸档位。Slider 那边按自己的 :pointerover / :pressed 往 Tag 上写档位，
+         这一层再落到内点的缩放上；Tag 没写时就是常态的 12px。 -->
+    <Style Selector="^[Tag=grow] /template/ Ellipse#PART_ThumbGlyph">
+      <Setter Property="RenderTransform" Value="scale(1)" />
+    </Style>
+    <Style Selector="^[Tag=shrink] /template/ Ellipse#PART_ThumbGlyph">
+      <Setter Property="RenderTransform" Value="scale(0.714)" />
+    </Style>
+  </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type Slider}" TargetType="Slider">
+    <!-- Background = 未填充轨道，Foreground = 已填充轨道。沿用 Avalonia / WinUI 的约定，
+         调用方想换单个滑块的填充色时不必重写模板。 -->
+    <Setter Property="Background" Value="{DynamicResource ControlStrongFillColorDefaultBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="Cursor" Value="Arrow" />
+    <Setter Property="FocusAdorner" Value="{StaticResource FluentFocusAdorner}" />
+
+    <Style Selector="^:horizontal">
+      <Setter Property="Template">
+        <ControlTemplate TargetType="Slider">
+          <DataValidationErrors>
+            <Border x:Name="PART_Root"
+                    Background="Transparent"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="{TemplateBinding CornerRadius}"
+                    Padding="{TemplateBinding Padding}">
+              <!-- 中间行给星号：MinHeight 撑到 control-height(32) 后多出来的高度归中间行，
+                   轨道和拇指才会落在 32 的中线上；刻度行是 Auto，不显示时不占高。 -->
+              <Grid x:Name="HorizontalTemplate"
+                    MinHeight="{DynamicResource ControlHeight}"
+                    RowDefinitions="Auto,*,Auto">
+                <Grid.Styles>
+                  <Style Selector="TickBar">
+                    <Setter Property="ReservedSpace" Value="{Binding #PART_Track.Thumb.Bounds}" />
+                  </Style>
+                </Grid.Styles>
+
+                <TickBar x:Name="TopTickBar"
+                         Grid.Row="0"
+                         Ticks="{TemplateBinding Ticks}"
+                         TickFrequency="{TemplateBinding TickFrequency}"
+                         Orientation="{TemplateBinding Orientation}"
+                         Minimum="{TemplateBinding Minimum}"
+                         Maximum="{TemplateBinding Maximum}"
+                         IsDirectionReversed="{TemplateBinding IsDirectionReversed}"
+                         Height="{StaticResource SliderTickBarSize}"
+                         Margin="0,0,0,4"
+                         VerticalAlignment="Bottom"
+                         Placement="Top"
+                         IsVisible="False"
+                         Fill="{DynamicResource ControlStrongFillColorDefaultBrush}" />
+
+                <Track x:Name="PART_Track"
+                       Grid.Row="1"
+                       Orientation="Horizontal"
+                       VerticalAlignment="Center"
+                       Minimum="{TemplateBinding Minimum}"
+                       Maximum="{TemplateBinding Maximum}"
+                       Value="{TemplateBinding Value, Mode=TwoWay}"
+                       IsDirectionReversed="{TemplateBinding IsDirectionReversed}">
+                  <Track.DecreaseButton>
+                    <RepeatButton x:Name="PART_DecreaseButton"
+                                  Theme="{StaticResource FluentSliderTrackHorizontalTheme}"
+                                  Background="{TemplateBinding Foreground}"
+                                  Focusable="False" />
+                  </Track.DecreaseButton>
+                  <Track.IncreaseButton>
+                    <RepeatButton x:Name="PART_IncreaseButton"
+                                  Theme="{StaticResource FluentSliderTrackHorizontalTheme}"
+                                  Background="{TemplateBinding Background}"
+                                  Focusable="False" />
+                  </Track.IncreaseButton>
+                  <Thumb x:Name="PART_Thumb"
+                         Theme="{StaticResource FluentSliderThumbTheme}" />
+                </Track>
+
+                <TickBar x:Name="BottomTickBar"
+                         Grid.Row="2"
+                         Ticks="{TemplateBinding Ticks}"
+                         TickFrequency="{TemplateBinding TickFrequency}"
+                         Orientation="{TemplateBinding Orientation}"
+                         Minimum="{TemplateBinding Minimum}"
+                         Maximum="{TemplateBinding Maximum}"
+                         IsDirectionReversed="{TemplateBinding IsDirectionReversed}"
+                         Height="{StaticResource SliderTickBarSize}"
+                         Margin="0,4,0,0"
+                         VerticalAlignment="Top"
+                         Placement="Bottom"
+                         IsVisible="False"
+                         Fill="{DynamicResource ControlStrongFillColorDefaultBrush}" />
+              </Grid>
+            </Border>
+          </DataValidationErrors>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+
+    <!-- 竖向。按横向那套尺寸镜像出来：
+         宽度取 control-height(32)，轨道由 4px 高变 4px 宽，拇指不变。 -->
+    <Style Selector="^:vertical">
+      <Setter Property="Template">
+        <ControlTemplate TargetType="Slider">
+          <DataValidationErrors>
+            <Border x:Name="PART_Root"
+                    Background="Transparent"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="{TemplateBinding CornerRadius}"
+                    Padding="{TemplateBinding Padding}">
+              <Grid x:Name="VerticalTemplate"
+                    MinWidth="{DynamicResource ControlHeight}"
+                    ColumnDefinitions="Auto,*,Auto">
+                <Grid.Styles>
+                  <Style Selector="TickBar">
+                    <Setter Property="ReservedSpace" Value="{Binding #PART_Track.Thumb.Bounds}" />
+                  </Style>
+                </Grid.Styles>
+
+                <TickBar x:Name="LeftTickBar"
+                         Grid.Column="0"
+                         Ticks="{TemplateBinding Ticks}"
+                         TickFrequency="{TemplateBinding TickFrequency}"
+                         Orientation="{TemplateBinding Orientation}"
+                         Minimum="{TemplateBinding Minimum}"
+                         Maximum="{TemplateBinding Maximum}"
+                         IsDirectionReversed="{TemplateBinding IsDirectionReversed}"
+                         Width="{StaticResource SliderTickBarSize}"
+                         Margin="0,0,4,0"
+                         HorizontalAlignment="Right"
+                         Placement="Left"
+                         IsVisible="False"
+                         Fill="{DynamicResource ControlStrongFillColorDefaultBrush}" />
+
+                <Track x:Name="PART_Track"
+                       Grid.Column="1"
+                       Orientation="Vertical"
+                       HorizontalAlignment="Center"
+                       Minimum="{TemplateBinding Minimum}"
+                       Maximum="{TemplateBinding Maximum}"
+                       Value="{TemplateBinding Value, Mode=TwoWay}"
+                       IsDirectionReversed="{TemplateBinding IsDirectionReversed}">
+                  <Track.DecreaseButton>
+                    <RepeatButton x:Name="PART_DecreaseButton"
+                                  Theme="{StaticResource FluentSliderTrackVerticalTheme}"
+                                  Background="{TemplateBinding Foreground}"
+                                  Focusable="False" />
+                  </Track.DecreaseButton>
+                  <Track.IncreaseButton>
+                    <RepeatButton x:Name="PART_IncreaseButton"
+                                  Theme="{StaticResource FluentSliderTrackVerticalTheme}"
+                                  Background="{TemplateBinding Background}"
+                                  Focusable="False" />
+                  </Track.IncreaseButton>
+                  <Thumb x:Name="PART_Thumb"
+                         Theme="{StaticResource FluentSliderThumbTheme}" />
+                </Track>
+
+                <TickBar x:Name="RightTickBar"
+                         Grid.Column="2"
+                         Ticks="{TemplateBinding Ticks}"
+                         TickFrequency="{TemplateBinding TickFrequency}"
+                         Orientation="{TemplateBinding Orientation}"
+                         Minimum="{TemplateBinding Minimum}"
+                         Maximum="{TemplateBinding Maximum}"
+                         IsDirectionReversed="{TemplateBinding IsDirectionReversed}"
+                         Width="{StaticResource SliderTickBarSize}"
+                         Margin="4,0,0,0"
+                         HorizontalAlignment="Left"
+                         Placement="Right"
+                         IsVisible="False"
+                         Fill="{DynamicResource ControlStrongFillColorDefaultBrush}" />
+              </Grid>
+            </Border>
+          </DataValidationErrors>
+        </ControlTemplate>
+      </Setter>
+    </Style>
+
+    <!-- 刻度显隐。TickPlacement 是 Avalonia 的既有 API，视觉规格里没这一层，
+         但去掉的话调用方设了 TickPlacement 会什么都不出，所以保留内置的四条。 -->
+    <Style Selector="^[TickPlacement=TopLeft] /template/ TickBar#TopTickBar">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="^[TickPlacement=Outside] /template/ TickBar#TopTickBar">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="^[TickPlacement=BottomRight] /template/ TickBar#BottomTickBar">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="^[TickPlacement=Outside] /template/ TickBar#BottomTickBar">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="^[TickPlacement=TopLeft] /template/ TickBar#LeftTickBar">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="^[TickPlacement=Outside] /template/ TickBar#LeftTickBar">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="^[TickPlacement=BottomRight] /template/ TickBar#RightTickBar">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="^[TickPlacement=Outside] /template/ TickBar#RightTickBar">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+
+    <!-- 悬停 / 按下只动内点。轨道不吃这两个态，
+         所以这里刻意不跟 Avalonia 内置那样在悬停时把轨道也调色。 -->
+    <Style Selector="^:pointerover /template/ Thumb#PART_Thumb">
+      <Setter Property="Tag" Value="grow" />
+    </Style>
+
+    <Style Selector="^:pressed /template/ Thumb#PART_Thumb">
+      <Setter Property="Tag" Value="shrink" />
+    </Style>
+
+    <Style Selector="^:error">
+      <Style Selector="^ /template/ RepeatButton#PART_DecreaseButton">
+        <Setter Property="Background" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+      </Style>
+      <Style Selector="^ /template/ Thumb#PART_Thumb">
+        <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+      </Style>
+    </Style>
+
+    <!-- 放在最后：禁用要盖过 :error 和上面两条状态 -->
+    <Style Selector="^:disabled">
+      <Style Selector="^ /template/ RepeatButton#PART_DecreaseButton">
+        <Setter Property="Background" Value="{DynamicResource AccentFillColorDisabledBrush}" />
+      </Style>
+      <Style Selector="^ /template/ RepeatButton#PART_IncreaseButton">
+        <Setter Property="Background" Value="{DynamicResource ControlFillColorDisabledBrush}" />
+      </Style>
+      <!-- 禁用只把内点调成 text-disabled，拇指外圈保持原样（仍是白底细描边），
+           这里如实照搬，不额外把外圈也灰掉。 -->
+      <Style Selector="^ /template/ Thumb#PART_Thumb">
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+        <Setter Property="Tag" Value="rest" />
+      </Style>
+      <Style Selector="^ /template/ TickBar">
+        <Setter Property="Fill" Value="{DynamicResource ControlStrongFillColorDisabledBrush}" />
+      </Style>
+    </Style>
+  </ControlTheme>
+
+</ResourceDictionary>

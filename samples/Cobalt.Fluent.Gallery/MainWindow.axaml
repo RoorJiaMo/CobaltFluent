@@ -1,0 +1,50 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+        x:Class="Cobalt.Fluent.Gallery.MainWindow"
+        Title="Cobalt.Fluent —— Avalonia 控件库展柜"
+        Width="1440" Height="960"
+        Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+        FontFamily="{DynamicResource ContentControlThemeFontFamily}"
+        FontSize="{DynamicResource BodyFontSize}">
+
+  <Grid RowDefinitions="56,*">
+
+    <!-- 顶栏属于 base layer，不加背景 -->
+    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="20,0">
+      <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+        <TextBlock Text="Cobalt.Fluent" Theme="{StaticResource SubtitleTextBlockStyle}" />
+        <Border Classes="tag" VerticalAlignment="Center">
+          <TextBlock Text="Avalonia 11.3 · 57 控件" />
+        </Border>
+      </StackPanel>
+
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+        <CheckBox x:Name="ThemeToggle" Content="深色主题" />
+        <CheckBox x:Name="MotionToggle" Content="动效 0.25×" />
+      </StackPanel>
+    </Grid>
+
+    <Grid Grid.Row="1" ColumnDefinitions="280,*">
+
+      <!-- 左侧目录：11 组分类 -->
+      <ScrollViewer Grid.Column="0" Padding="4,0,4,16">
+        <ListBox x:Name="Toc"
+                 Background="Transparent"
+                 BorderThickness="0"
+                 SelectionMode="Single" />
+      </ScrollViewer>
+
+      <!-- content layer：从右下角贴上来，只圆左上角 —— Win11 设置界面的做法 -->
+      <Border Grid.Column="1"
+              Background="{DynamicResource LayerFillColorDefaultBrush}"
+              BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+              BorderThickness="1,1,0,0"
+              CornerRadius="8,0,0,0">
+        <ScrollViewer x:Name="ContentScroll" Padding="32,24,32,64">
+          <ContentControl x:Name="PageHost" />
+        </ScrollViewer>
+      </Border>
+    </Grid>
+  </Grid>
+</Window>

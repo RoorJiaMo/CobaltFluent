@@ -1,0 +1,126 @@
+<!-- ToggleButton / HyperlinkButton —— 都从 Button 那套派生。
+     ToggleButton 外观整体继承 Button，
+     只补 :checked / :indeterminate 两个 Button 没有的态。
+     HyperlinkButton 是独立一套：无底色、accent 文字、hover 才出下划线。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- ToggleButton —— 选中态用 accent 填充。
+       :checked / :indeterminate 是 Avalonia 的真伪类，不用额外挂 class。 -->
+  <ControlTheme x:Key="{x:Type ToggleButton}" TargetType="ToggleButton"
+                BasedOn="{StaticResource {x:Type Button}}">
+
+    <!-- IsChecked = null。视觉规格里只有开 / 关两态，
+         这里按「既不是开也不是关」处理：中性底 + 加重描边，和 off 态拉开距离，
+         又不占用 accent（accent 只留给真正的 on）。 -->
+    <Style Selector="^:indeterminate">
+      <Setter Property="Background" Value="{DynamicResource ControlAltFillColorTertiaryBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource ControlStrongStrokeColorDefaultBrush}" />
+
+      <Style Selector="^:pointerover">
+        <Setter Property="Background" Value="{DynamicResource ControlAltFillColorQuarternaryBrush}" />
+      </Style>
+      <!-- 按下留在 ControlAltFill 族里，不要跳回 ControlFill ——
+           ControlFillColorTertiary 在浅色主题下（30% 白）比 rest/hover 都亮，
+           按下去反而变亮，和「陷进去」的手感相反。这里靠前景压一档 + 底边拍平表示按下。 -->
+      <Style Selector="^:pressed">
+        <Setter Property="Background" Value="{DynamicResource ControlAltFillColorQuarternaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+      </Style>
+      <Style Selector="^:disabled">
+        <Setter Property="Background" Value="{DynamicResource ControlFillColorDisabledBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+      </Style>
+    </Style>
+
+    <!-- IsChecked = true。描边走 on-accent、底边深一档到 on-accent-secondary，
+         就是 AccentControlElevationBorderBrush 这支渐变，和 Button.accent 同一支。 -->
+    <Style Selector="^:checked">
+      <Setter Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentControlElevationBorderBrush}" />
+
+      <Style Selector="^:pointerover">
+        <Setter Property="Background" Value="{DynamicResource AccentFillColorSecondaryBrush}" />
+      </Style>
+      <!-- 按下时底边渐变拍平成实色；前景同时压到 on-accent-secondary，
+           否则会漏用 Button 基础 :pressed 的 TextFillColorSecondary，在 accent 底上读不清。 -->
+      <Style Selector="^:pressed">
+        <Setter Property="Background" Value="{DynamicResource AccentFillColorTertiaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorSecondaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorOnAccentDefaultBrush}" />
+      </Style>
+      <Style Selector="^:disabled">
+        <Setter Property="Background" Value="{DynamicResource AccentFillColorDisabledBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+      </Style>
+    </Style>
+  </ControlTheme>
+
+  <!-- HyperlinkButton —— 透明底 + accent 文字，下划线只在 hover 出现（静态不带线，
+       免得整页链接看着像被划过一遍）。 -->
+  <ControlTheme x:Key="{x:Type HyperlinkButton}" TargetType="HyperlinkButton">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentTextFillColorPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="{DynamicResource ControlBorderThickness}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <Setter Property="Padding" Value="{DynamicResource ControlPadding}" />
+    <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
+    <Setter Property="BackgroundSizing" Value="OuterBorderEdge" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <!-- 链接按钮只垂直居中，不像普通按钮那样水平也居中，
+         链接按内容左对齐（也没有 MinWidth，所以只有被拉宽时才看得出差别）。 -->
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Cursor" Value="Arrow" />
+    <Setter Property="FocusAdorner" Value="{StaticResource FluentFocusAdorner}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="HyperlinkButton">
+        <ContentPresenter x:Name="PART_ContentPresenter"
+                          Background="{TemplateBinding Background}"
+                          BackgroundSizing="{TemplateBinding BackgroundSizing}"
+                          BorderBrush="{TemplateBinding BorderBrush}"
+                          BorderThickness="{TemplateBinding BorderThickness}"
+                          CornerRadius="{TemplateBinding CornerRadius}"
+                          Padding="{TemplateBinding Padding}"
+                          Content="{TemplateBinding Content}"
+                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                          RecognizesAccessKey="True" />
+      </ControlTemplate>
+    </Setter>
+    <!-- 只过渡颜色和 opacity -->
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="0:0:0.083" />
+        <DoubleTransition Property="Opacity" Duration="0:0:0.083" />
+      </Transitions>
+    </Setter>
+
+    <Style Selector="^:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+      <Setter Property="TextBlock.TextDecorations" Value="Underline" />
+    </Style>
+
+    <Style Selector="^:pressed">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorTertiaryBrush}" />
+      <Setter Property="TextBlock.TextDecorations" Value="Underline" />
+      <Setter Property="Opacity" Value="0.8" />
+    </Style>
+
+    <Style Selector="^:disabled">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+    </Style>
+  </ControlTheme>
+
+</ResourceDictionary>

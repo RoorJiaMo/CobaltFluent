@@ -1,0 +1,241 @@
+<!-- ToggleSwitch。
+     轨道 40×20 药丸 + 12×12 拇指圆点，off 落在左端，on 平移 20px 到右端。
+
+     签名手感在两处，各走各的时长：
+       · 拇指位移 —— 167ms，走控件自带的 KnobTransitions
+       · 按下拉伸 —— 12 → 17，83ms，比位移快一倍，
+                     所以按下去是「先撑开、再滑过去」，不是整块一起动
+
+     Avalonia 的 ToggleSwitch 只认两个部件名：PART_MovingKnobs（必需，拖拽和位移都作用在它身上）
+     和 PART_SwitchKnob。位移距离不是模板里写的常数，而是 **PART_SwitchKnob 的宽度**
+     （ToggleSwitch.UpdateKnobPos: 选中时 Canvas.SetLeft(knobs, switchKnob.Bounds.Width)）。
+     所以这个 Canvas 必须正好 20 宽 —— 拇指的行程就是它的宽度，改它等于改位移。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <ControlTheme x:Key="{x:Type ToggleSwitch}" TargetType="ToggleSwitch">
+    <!-- Avalonia 给 OnContent / OffContent 注册的默认值是英文 "On" / "Off"；
+         默认形态是光秃秃一条轨道，开 / 关文字按需再加。
+         必须清成 null，不能设成空串：ContentPresenter 的 :empty 伪类判的是 Content 为 null，
+         空串照样算「有内容」，下面那两条收边距的样式就不生效，
+         轨道右边会白白挂着 space-3 的 12px（聚焦框跟着一起宽 12，实测 40 变 52）。
+         要文字就按需给：OnContent="开" OffContent="关"。 -->
+    <Setter Property="OnContent" Value="{x:Null}" />
+    <Setter Property="OffContent" Value="{x:Null}" />
+    <!-- 整行都要能命中：悬停判定挂在整只控件上，不是只挂在轨道上 -->
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <!-- 随内容收缩，不铺满容器 -->
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Cursor" Value="Arrow" />
+    <Setter Property="FocusAdorner" Value="{StaticResource FluentFocusAdorner}" />
+
+    <!-- 拇指位移。缓动 cubic-bezier(.33,0,.67,1)。
+         控件在拖拽期间会自己把这份 Transitions 摘掉，松手再装回来 —— 拖的时候拇指跟手，不追帧。 -->
+    <Setter Property="KnobTransitions">
+      <Transitions>
+        <DoubleTransition Property="Canvas.Left"
+                          Duration="{StaticResource ControlFastAnimationDuration}"
+                          Easing="0.33,0,0.67,1" />
+      </Transitions>
+    </Setter>
+
+    <Setter Property="Template">
+      <ControlTemplate TargetType="ToggleSwitch">
+        <Grid x:Name="PART_Root"
+              Background="{TemplateBinding Background}"
+              RowDefinitions="Auto,*">
+
+          <!-- 抬头文字（Content）在上面一行，WinUI 的规矩；空着这一层就塌掉，不占位 -->
+          <ContentPresenter x:Name="PART_ContentPresenter"
+                            Grid.Row="0"
+                            Margin="0,0,0,8"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            Foreground="{TemplateBinding Foreground}"
+                            HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalAlignment="Top"
+                            RecognizesAccessKey="True" />
+
+          <!-- 上下各留 6，把 20 高的轨道垫成 control-height 的一行 -->
+          <Grid Grid.Row="1"
+                RowDefinitions="6,Auto,6"
+                ColumnDefinitions="Auto,Auto"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Top">
+
+            <!-- 聚焦框画在「轨道 + 文字」这一块上，不包抬头。
+                 放在最前面 = 压在最底层，不能挡住拇指的指针事件（拖拽靠它） -->
+            <Panel x:Name="PART_SwitchArea"
+                   Grid.RowSpan="3" Grid.ColumnSpan="2"
+                   Margin="0,5"
+                   Background="Transparent"
+                   TemplatedControl.IsTemplateFocusTarget="True" />
+
+            <!-- 轨道。圆角 10 = 高度的一半，是个药丸而不是圆角矩形，
+                 和 RadioButton 的圆一样属于形状本身，不参与 8/4/0 那套圆角阶。 -->
+            <Border x:Name="PART_Track"
+                    Grid.Row="1" Grid.Column="0"
+                    Width="40" Height="20"
+                    CornerRadius="10"
+                    Background="{DynamicResource ControlAltFillColorSecondaryBrush}"
+                    BorderBrush="{DynamicResource ControlStrongStrokeColorDefaultBrush}"
+                    BorderThickness="{DynamicResource ControlBorderThickness}"
+                    UseLayoutRounding="False">
+              <Border.Transitions>
+                <Transitions>
+                  <BrushTransition Property="Background" Duration="{StaticResource ControlFastAnimationDuration}" />
+                  <BrushTransition Property="BorderBrush" Duration="{StaticResource ControlFastAnimationDuration}" />
+                </Transitions>
+              </Border.Transitions>
+            </Border>
+
+            <!-- 位移轨。宽度 20 就是拇指的行程，控件按它算位移 -->
+            <Canvas x:Name="PART_SwitchKnob"
+                    Grid.Row="1" Grid.Column="0"
+                    Width="20" Height="20"
+                    HorizontalAlignment="Left">
+              <Panel x:Name="PART_MovingKnobs" Width="20" Height="20">
+                <!-- 拇指。12×12，左沿 4 = 1px 描边 + 内缩 3（top 同理，靠垂直居中落在 4）。
+                     按下撑到 17 宽走的是 Width 过渡（本库另一处这么干的是 RadioButton 的内点）：
+                     用 RenderTransform 缩会把圆点拉扁，描边也跟着变形，这里要的是圆点变胶囊。
+                     靠左对齐 + 左边距 4，所以按下时左沿不动、只向右撑；
+                     on 态由 ^:checked 翻成靠右对齐向左撑，否则左沿 24 撑到 17 会捅出 40 宽轨道的右边
+                     。两种对齐的静止位置完全一致。 -->
+                <Ellipse x:Name="PART_Thumb"
+                         Width="12" Height="12"
+                         Fill="{DynamicResource ControlStrongFillColorDefaultBrush}"
+                         HorizontalAlignment="Left"
+                         Margin="4,0,0,0"
+                         VerticalAlignment="Center"
+                         UseLayoutRounding="False">
+                  <Ellipse.Transitions>
+                    <Transitions>
+                      <DoubleTransition Property="Width"
+                                        Duration="{StaticResource ControlFasterAnimationDuration}"
+                                        Easing="0.33,0,0.67,1" />
+                      <BrushTransition Property="Fill" Duration="{StaticResource ControlFastAnimationDuration}" />
+                    </Transitions>
+                  </Ellipse.Transitions>
+                </Ellipse>
+              </Panel>
+            </Canvas>
+
+            <!-- On / Off 文字叠在同一格里，靠 opacity 换。
+                 空内容时把 space-3 的间距一起收掉，聚焦框才不会凭空多出 12px。 -->
+            <ContentPresenter x:Name="PART_OffContentPresenter"
+                              Grid.RowSpan="3" Grid.Column="1"
+                              Margin="12,0,0,0"
+                              Content="{TemplateBinding OffContent}"
+                              ContentTemplate="{TemplateBinding OffContentTemplate}"
+                              Foreground="{TemplateBinding Foreground}"
+                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+              <ContentPresenter.Transitions>
+                <Transitions>
+                  <DoubleTransition Property="Opacity" Duration="{StaticResource ControlFasterAnimationDuration}" />
+                </Transitions>
+              </ContentPresenter.Transitions>
+            </ContentPresenter>
+
+            <ContentPresenter x:Name="PART_OnContentPresenter"
+                              Grid.RowSpan="3" Grid.Column="1"
+                              Margin="12,0,0,0"
+                              Opacity="0"
+                              Content="{TemplateBinding OnContent}"
+                              ContentTemplate="{TemplateBinding OnContentTemplate}"
+                              Foreground="{TemplateBinding Foreground}"
+                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+              <ContentPresenter.Transitions>
+                <Transitions>
+                  <DoubleTransition Property="Opacity" Duration="{StaticResource ControlFasterAnimationDuration}" />
+                </Transitions>
+              </ContentPresenter.Transitions>
+            </ContentPresenter>
+          </Grid>
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- 三个 ContentPresenter 都要能塌掉：空的时候不留边距 -->
+    <Style Selector="^ /template/ ContentPresenter#PART_ContentPresenter:empty">
+      <Setter Property="Margin" Value="0" />
+    </Style>
+    <Style Selector="^ /template/ ContentPresenter#PART_OffContentPresenter:empty">
+      <Setter Property="Margin" Value="0" />
+    </Style>
+    <Style Selector="^ /template/ ContentPresenter#PART_OnContentPresenter:empty">
+      <Setter Property="Margin" Value="0" />
+    </Style>
+
+    <Style Selector="^:pointerover">
+      <Style Selector="^ /template/ Border#PART_Track">
+        <Setter Property="Background" Value="{DynamicResource ControlAltFillColorTertiaryBrush}" />
+      </Style>
+    </Style>
+
+    <!-- 按下只撑拇指，轨道底色不动 -->
+    <Style Selector="^:pressed">
+      <Style Selector="^ /template/ Ellipse#PART_Thumb">
+        <Setter Property="Width" Value="17" />
+      </Style>
+    </Style>
+
+    <!-- 未选中的禁用态。放在 :checked 之前，「选中 + 禁用」由下面嵌套的 ^:disabled 接管。 -->
+    <Style Selector="^:disabled">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+
+      <Style Selector="^ /template/ Border#PART_Track">
+        <Setter Property="BorderBrush" Value="{DynamicResource TextFillColorDisabledBrush}" />
+      </Style>
+      <Style Selector="^ /template/ Ellipse#PART_Thumb">
+        <Setter Property="Fill" Value="{DynamicResource TextFillColorDisabledBrush}" />
+      </Style>
+    </Style>
+
+    <Style Selector="^:checked">
+      <!-- on 态描边收掉：accent 底上再压一圈 strong-stroke 会显脏 -->
+      <Style Selector="^ /template/ Border#PART_Track">
+        <Setter Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+      </Style>
+      <!-- 拇指换到右端撑：静止位置和靠左对齐时一模一样，只有 :pressed 撑到 17 时才分岔 -->
+      <Style Selector="^ /template/ Ellipse#PART_Thumb">
+        <Setter Property="Fill" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
+        <Setter Property="HorizontalAlignment" Value="Right" />
+        <Setter Property="Margin" Value="0,0,4,0" />
+      </Style>
+      <Style Selector="^ /template/ ContentPresenter#PART_OffContentPresenter">
+        <Setter Property="Opacity" Value="0" />
+      </Style>
+      <Style Selector="^ /template/ ContentPresenter#PART_OnContentPresenter">
+        <Setter Property="Opacity" Value="1" />
+      </Style>
+
+      <Style Selector="^:pointerover /template/ Border#PART_Track">
+        <Setter Property="Background" Value="{DynamicResource AccentFillColorSecondaryBrush}" />
+      </Style>
+
+      <!-- 选中 + 禁用：禁用写在选中之后，所以拇指回到 text-disabled，
+           这里显式写死，不靠样式先后顺序去赌。 -->
+      <Style Selector="^:disabled">
+        <Style Selector="^ /template/ Border#PART_Track">
+          <Setter Property="Background" Value="{DynamicResource AccentFillColorDisabledBrush}" />
+          <Setter Property="BorderBrush" Value="Transparent" />
+        </Style>
+        <Style Selector="^ /template/ Ellipse#PART_Thumb">
+          <Setter Property="Fill" Value="{DynamicResource TextFillColorDisabledBrush}" />
+        </Style>
+      </Style>
+    </Style>
+  </ControlTheme>
+
+</ResourceDictionary>

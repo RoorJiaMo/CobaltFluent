@@ -1,0 +1,133 @@
+<!-- 第 11 组：Stepper / StepperItem。
+     CommonTheme.axaml 的抬头把 Stepper 算进了第 10、11 组，但那个文件里一直没落地，
+     Stepper 只能靠 ItemsControl 的默认模板出一列光秃秃的文字。这里补上。
+     一条多步流程，配 CurrentIndex 推出每一步的态。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:fc="using:Cobalt.Fluent.Controls">
+
+  <!-- ==================== Stepper ==================== -->
+  <!-- UniformGrid 而不是 StackPanel：各步等宽，
+       否则「安全确认」和「开始运行」的连接线长短不一，看着像走歪了。 -->
+  <ControlTheme x:Key="{x:Type fc:Stepper}" TargetType="fc:Stepper">
+    <Setter Property="ItemsPanel">
+      <ItemsPanelTemplate>
+        <UniformGrid Rows="1" />
+      </ItemsPanelTemplate>
+    </Setter>
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:Stepper">
+        <ItemsPresenter ItemsPanel="{TemplateBinding ItemsPanel}" />
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <!-- ==================== StepperItem ==================== -->
+  <ControlTheme x:Key="{x:Type fc:StepperItem}" TargetType="fc:StepperItem">
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    <Setter Property="FontSize" Value="{DynamicResource CaptionFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:StepperItem">
+        <!-- 第一行固定 28（bullet 直径）。连接线在这一行里垂直居中，
+             也就是离顶 14px —— 差几像素就能看出来歪。 -->
+        <Grid ColumnDefinitions="Auto,*" RowDefinitions="28,Auto">
+
+          <Border x:Name="PART_Bullet"
+                  Grid.Row="0" Grid.Column="0"
+                  Width="28" Height="28" CornerRadius="14"
+                  Background="{DynamicResource ControlAltFillColorSecondaryBrush}"
+                  BorderBrush="{DynamicResource ControlStrokeColorSecondaryBrush}"
+                  BorderThickness="1">
+            <Panel>
+              <TextBlock x:Name="PART_Number"
+                         Text="{TemplateBinding StepNumber}"
+                         FontSize="{DynamicResource CaptionFontSize}"
+                         FontFeatures="{StaticResource TabularNumbers}"
+                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                         HorizontalAlignment="Center" VerticalAlignment="Center" />
+              <fc:SymbolIcon x:Name="PART_Check" Symbol="CheckMark" FontSize="11"
+                             IsVisible="False"
+                             Foreground="{DynamicResource TextOnAccentFillColorPrimaryBrush}"
+                             HorizontalAlignment="Center" VerticalAlignment="Center" />
+              <!-- 实底上的前景一律走 TextOnAccentFillColorPrimary（浅色白 / 深色黑）。
+                   写死白色的话，深色主题的 critical 是浅粉底，叉就糊在上面了。 -->
+              <fc:SymbolIcon x:Name="PART_Fail" Symbol="Cancel" FontSize="11"
+                             IsVisible="False"
+                             Foreground="{DynamicResource TextOnAccentFillColorPrimaryBrush}"
+                             HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Panel>
+          </Border>
+
+          <Rectangle x:Name="PART_Line"
+                     Grid.Row="0" Grid.Column="1"
+                     Height="1" Margin="8,0,8,0"
+                     VerticalAlignment="Center"
+                     Fill="{DynamicResource DividerStrokeColorDefaultBrush}" />
+
+          <ContentPresenter Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+                            Margin="0,6,12,0"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            Foreground="{TemplateBinding Foreground}"
+                            FontSize="{TemplateBinding FontSize}"
+                            FontWeight="{TemplateBinding FontWeight}" />
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- 已完成：bullet 换成勾，且**它右边那段线**也变 accent —— 线的颜色表示
+         「这一段已经走过了」，属于前一步，不属于后一步。 -->
+    <Style Selector="^:done">
+      <Style Selector="^ /template/ Border#PART_Bullet">
+        <Setter Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+      </Style>
+      <Style Selector="^ /template/ TextBlock#PART_Number">
+        <Setter Property="IsVisible" Value="False" />
+      </Style>
+      <Style Selector="^ /template/ fc|SymbolIcon#PART_Check">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+      <Style Selector="^ /template/ Rectangle#PART_Line">
+        <Setter Property="Fill" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+      </Style>
+    </Style>
+
+    <!-- 当前步：实底 + 2px accent 描边的空心圈。数字留着，操作员要知道走到第几步。 -->
+    <Style Selector="^:current">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Style Selector="^ /template/ Border#PART_Bullet">
+        <Setter Property="Background" Value="{DynamicResource ControlSolidFillColorDefaultBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="2" />
+      </Style>
+      <Style Selector="^ /template/ TextBlock#PART_Number">
+        <Setter Property="Foreground" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+      </Style>
+    </Style>
+
+    <!-- 失败：红实底 + 叉。文字也跟着变红，不能只靠 bullet 一个 28px 的圆表达失败。 -->
+    <Style Selector="^:error">
+      <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Style Selector="^ /template/ Border#PART_Bullet">
+        <Setter Property="Background" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+      </Style>
+      <Style Selector="^ /template/ TextBlock#PART_Number">
+        <Setter Property="IsVisible" Value="False" />
+      </Style>
+      <Style Selector="^ /template/ fc|SymbolIcon#PART_Fail">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+    </Style>
+
+    <Style Selector="^:last /template/ Rectangle#PART_Line">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+  </ControlTheme>
+
+</ResourceDictionary>

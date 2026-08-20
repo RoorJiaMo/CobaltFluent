@@ -1,0 +1,87 @@
+# ============================================================================
+# Cobalt.Fluent
+#
+# 反过来提醒一句：本仓库有四个「生成物」是**必须提交**的，别顺手加进来 ——
+#   src/Cobalt.Fluent/Themes/Tokens.axaml            （tools/gen_tokens.py 生成）
+#   src/Cobalt.Fluent/Themes/CobaltFluentTheme.axaml （合并列表由 gen_theme_index.py 重建）
+#   samples/…/Infrastructure/SectionRegistry.cs      （gen_gallery_pages.py 生成）
+#   docs/CONTROLS.md                                 （gen_api_docs.py 生成）
+# 它们进仓库是故意的：CI 会重跑脚本再 git diff --exit-code，
+# 忘了同步就红。忽略掉的话这道检查直接失效。
+# ============================================================================
+
+# ---------- .NET 编译产物 ----------
+# SDK 风格项目的输出全在这两个目录里，不需要再写 [Dd]ebug/ [Rr]elease/ ——
+# 那两条是给旧式 C++/.NET Framework 项目的，在这里只会误伤同名的源码目录。
+bin/
+obj/
+
+*.dll
+*.exe
+*.pdb
+*.so
+*.dylib
+
+# 单文件发布 / AOT 的中间产物
+publish/
+*.publishproj
+
+# ---------- NuGet ----------
+packages/
+*.nupkg
+*.snupkg
+# 中央包管理的锁文件要不要提交有争议；本仓库不用它，先忽略着
+packages.lock.json
+
+# ---------- 测试 ----------
+TestResults/
+*.trx
+*.coverage
+*.coverlet.json
+coverage*.xml
+coverage*.json
+[Cc]overlet[Rr]eport/
+
+# ---------- 用户 / IDE 私有设置 ----------
+# 这些是「每个人自己一份」的，进仓库只会互相覆盖
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.DotSettings.user
+
+.vs/
+.idea/
+.vscode/
+# 想共享调试配置的话，单独放行：
+#   !.vscode/launch.json
+#   !.vscode/tasks.json
+
+# ---------- 工具链（tools/ 下是 Python 脚本） ----------
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.mypy_cache/
+.ruff_cache/
+
+# ---------- 本仓库自己的产物 ----------
+# 无头渲染出来的截图、打包出来的 bundle / zip，都能重新生成，不进仓库。
+# 需要留档时看 CI 的 gallery-shots artifact。
+artifacts/
+
+# tools/check.sh 会把源码复制到临时目录再编译（避免和 IDE 抢 obj 锁），
+# 万一没删干净落在仓库里，别提交
+.probe/
+
+# Avalonia 官方主题的本地参考副本，体积大且随版本变，各人自己拉
+.avalonia-ref/
+
+# ---------- 操作系统 ----------
+.DS_Store
+._*
+Thumbs.db
+ehthumbs.db
+desktop.ini
+*~
+.*.swp

@@ -1,0 +1,179 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             xmlns:fc="using:Cobalt.Fluent.Controls"
+             x:Class="Cobalt.Fluent.Gallery.Pages.CommandBarPage">
+
+  <StackPanel HorizontalAlignment="Left">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="CommandBar" />
+      <Border Classes="tag"><TextBlock Text="6 · 弹出" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead"
+               Text="高 48，AppBarButton 40×40（带标签时更宽）。属于 base layer——不要把它放进 content layer 再套卡片，那样层级就错了。" />
+
+    <TextBlock Classes="sub" Text="主命令栏 — 图标上、文字下" />
+
+    <!-- 外面这层 Border 是 base layer 本体（窗口底色），不是展柜的 panel：
+         CommandBar 自己背景透明，套进 Card 里就成了「卡片上的工具栏」，层级错一级。 -->
+    <Border Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="{DynamicResource ControlCornerRadius}"
+            HorizontalAlignment="Left"
+            Width="720">
+      <Grid ColumnDefinitions="*,Auto">
+        <fc:CommandBar>
+          <fc:AppBarButton Icon="Play"  Label="运行" />
+          <fc:AppBarButton Icon="Pause" Label="暂停" />
+          <fc:AppBarButton Icon="Stop"  Label="停止" IsEnabled="False" />
+          <fc:AppBarSeparator />
+          <fc:AppBarButton Icon="Save"     Label="保存" />
+          <fc:AppBarButton Icon="Download" Label="导出" />
+          <fc:AppBarSeparator />
+          <fc:AppBarButton Icon="Refresh" Label="刷新" />
+        </fc:CommandBar>
+
+        <!-- 溢出按钮贴右端。本库的 CommandBar 没有 SecondaryCommands，
+             右侧单独摆一条只放「更多」的栏，位置和 WinUI 的溢出入口一致。 -->
+        <fc:CommandBar Grid.Column="1" DefaultLabelPosition="Collapsed">
+          <fc:AppBarButton Icon="More" ToolTip.Tip="更多命令" />
+        </fc:CommandBar>
+      </Grid>
+    </Border>
+
+    <TextBlock Classes="note"
+               Text="「停止」灰着是因为没在跑，不是摆设——命令栏上的按钮该禁用就禁用，别用弹提示代替。分隔线把「过程控制」和「数据」两组隔开，一条栏里超过三组就该考虑拆栏了。" />
+
+    <TextBlock Classes="sub" Text="DefaultLabelPosition — Bottom / Right / Collapsed" />
+    <Border Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="{DynamicResource ControlCornerRadius}"
+            HorizontalAlignment="Left"
+            Padding="0,4">
+      <StackPanel>
+        <fc:CommandBar DefaultLabelPosition="Bottom">
+          <fc:AppBarButton Icon="Play" Label="运行" />
+          <fc:AppBarButton Icon="Pause" Label="暂停" />
+          <fc:AppBarSeparator />
+          <fc:AppBarButton Icon="Save" Label="保存" />
+        </fc:CommandBar>
+        <TextBlock Classes="note" Margin="12,0,12,8" Text="Bottom — 默认。标签 11px，按钮按文字撑宽。" />
+
+        <fc:CommandBar DefaultLabelPosition="Right">
+          <fc:AppBarButton Icon="Play" Label="运行" />
+          <fc:AppBarButton Icon="Pause" Label="暂停" />
+          <fc:AppBarSeparator />
+          <fc:AppBarButton Icon="Save" Label="保存" />
+        </fc:CommandBar>
+        <TextBlock Classes="note" Margin="12,0,12,8" Text="Right — 标签升到正文字号，一行放不下几个，适合命令少而名字长的场合。" />
+
+        <fc:CommandBar DefaultLabelPosition="Collapsed">
+          <fc:AppBarButton Icon="Play" Label="运行" ToolTip.Tip="运行" />
+          <fc:AppBarButton Icon="Pause" Label="暂停" ToolTip.Tip="暂停" />
+          <fc:AppBarSeparator />
+          <fc:AppBarButton Icon="Save" Label="保存" ToolTip.Tip="保存" />
+        </fc:CommandBar>
+        <TextBlock Classes="note" Margin="12,0,12,4" Text="Collapsed — Label 照写不删，只是不显示；ToolTip 和读屏还得靠它。" />
+      </StackPanel>
+    </Border>
+
+    <TextBlock Classes="note"
+               Text="子项没单独设过 LabelPosition 才跟着栏走，挂上可视树的那一刻取一次值。要让整栏跟着运行时切换，得逐个按钮改 LabelPosition。" />
+
+    <TextBlock Classes="sub" Text="AppBarButton 状态 — 无底色，全靠 subtle 层反馈" />
+    <g:SpecMatrix States="rest,pointerover,pressed,disabled,focus">
+      <g:SpecMatrix.Sample>
+        <DataTemplate>
+          <fc:AppBarButton Icon="Refresh" Label="刷新" />
+        </DataTemplate>
+      </g:SpecMatrix.Sample>
+    </g:SpecMatrix>
+
+    <TextBlock Classes="note"
+               Text="rest 完全透明，:pointerover 才浮出 SubtleFillColorSecondary。命令栏一排十几个按钮，各带一块底色就成了色块墙——所以底色只在指针底下那一个上出现。" />
+
+    <TextBlock Classes="sub" Text="仅图标（紧凑）" />
+    <Border Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+            BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+            BorderThickness="1"
+            CornerRadius="{DynamicResource ControlCornerRadius}"
+            HorizontalAlignment="Left">
+      <!-- 高 40、按钮 32×32：留给数据密集的界面，比如表格上方那一条。 -->
+      <fc:CommandBar Height="40" DefaultLabelPosition="Collapsed">
+        <fc:AppBarButton Icon="Play"  Label="运行" Height="32" MinWidth="32" ToolTip.Tip="运行" />
+        <fc:AppBarButton Icon="Pause" Label="暂停" Height="32" MinWidth="32" ToolTip.Tip="暂停" />
+        <fc:AppBarSeparator />
+        <fc:AppBarButton Icon="Save"    Label="保存" Height="32" MinWidth="32" ToolTip.Tip="保存" />
+        <fc:AppBarButton Icon="Refresh" Label="刷新" Height="32" MinWidth="32" ToolTip.Tip="刷新" />
+      </fc:CommandBar>
+    </Border>
+
+    <TextBlock Classes="note"
+               Text="紧凑模式每个按钮都要配 ToolTip。溢出的命令收进右端「…」按钮的 MenuFlyout，不要横向滚动。" />
+
+    <TextBlock Classes="sub" Text="试玩 — 标签位置切换 + 溢出菜单" />
+    <Border Classes="play">
+      <StackPanel Spacing="16">
+
+        <fc:SegmentedControl x:Name="PositionPicker" SelectedIndex="0" HorizontalAlignment="Left">
+          <fc:SegmentedItem Content="Bottom" />
+          <fc:SegmentedItem Content="Right" />
+          <fc:SegmentedItem Content="Collapsed" />
+        </fc:SegmentedControl>
+
+        <Border Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
+                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1"
+                CornerRadius="{DynamicResource ControlCornerRadius}"
+                Width="620">
+          <Grid ColumnDefinitions="*,Auto">
+            <fc:CommandBar x:Name="PlayBar">
+              <fc:AppBarButton x:Name="RunButton"  Icon="Play"  Label="运行" ToolTip.Tip="运行" />
+              <fc:AppBarButton x:Name="PauseButton" Icon="Pause" Label="暂停" ToolTip.Tip="暂停" IsEnabled="False" />
+              <fc:AppBarButton x:Name="StopButton" Icon="Stop"  Label="停止" ToolTip.Tip="停止" IsEnabled="False" />
+              <fc:AppBarSeparator />
+              <fc:AppBarButton Icon="Save"     Label="保存" ToolTip.Tip="保存" />
+              <fc:AppBarButton Icon="Download" Label="导出" ToolTip.Tip="导出" />
+            </fc:CommandBar>
+
+            <fc:CommandBar Grid.Column="1" DefaultLabelPosition="Collapsed">
+              <fc:AppBarButton Icon="More" ToolTip.Tip="更多命令">
+                <fc:AppBarButton.Flyout>
+                  <MenuFlyout Placement="BottomEdgeAlignedRight">
+                    <MenuItem Header="打印报表">
+                      <MenuItem.Icon><fc:SymbolIcon Symbol="Document" /></MenuItem.Icon>
+                    </MenuItem>
+                    <MenuItem Header="导出诊断包">
+                      <MenuItem.Icon><fc:SymbolIcon Symbol="Diagnostic" /></MenuItem.Icon>
+                    </MenuItem>
+                    <Separator />
+                    <MenuItem Header="页面设置">
+                      <MenuItem.Icon><fc:SymbolIcon Symbol="Settings" /></MenuItem.Icon>
+                    </MenuItem>
+                  </MenuFlyout>
+                </fc:AppBarButton.Flyout>
+              </fc:AppBarButton>
+            </fc:CommandBar>
+          </Grid>
+        </Border>
+
+        <TextBlock x:Name="StatusText" Classes="note" Margin="0" Text="状态：待机" />
+
+        <TextBlock Classes="note" MaxWidth="700"
+                   Text="切到 Collapsed 时整栏一下子窄一大截，右端的「更多」跟着往左收——命令栏的宽度是算出来的，别在外面写死。运行 / 暂停 / 停止 互相禁用：能不能点由状态决定，点了不该点的再弹提示是下策。" />
+      </StackPanel>
+    </Border>
+
+    <g:MapBlock Note="本库的 CommandBar 是个 ItemsControl，没有 PrimaryCommands / SecondaryCommands 和 IsOpen——溢出自己在右端摆一个 Icon=More 的 AppBarButton 挂 MenuFlyout。子项的 LabelPosition 只在挂上可视树时取一次栏上的默认值，运行时切换要逐个按钮改。">
+      <g:MapRow Key="控件" Value="fc:CommandBar : ItemsControl · fc:AppBarButton : Button · fc:AppBarSeparator : TemplatedControl" />
+      <g:MapRow Key="属性" Value="CommandBar.DefaultLabelPosition={Bottom,Right,Collapsed} · AppBarButton.Icon:Symbol · AppBarButton.Label · AppBarButton.LabelPosition" />
+      <g:MapRow Key="伪类" Value="AppBarButton:label-bottom · :label-right · :label-collapsed（由 LabelPosition 推出来）" />
+      <g:MapRow Key="资源键" Value="CommandBar.Background → Transparent（继承 base layer）· CommandBarHeight=48 · SubtleFillColorSecondaryBrush（:pointerover）· SubtleFillColorTertiaryBrush（:pressed）· DividerStrokeColorDefaultBrush（分隔线）" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

@@ -1,0 +1,103 @@
+<!-- 展柜自身的样式：页面标题、小节标题、说明小字、展示面板、试玩区那些。
+     不属于控件库，用库的项目不需要它。 -->
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure">
+
+  <Style Selector="TextBlock.page-title">
+    <Setter Property="Theme" Value="{StaticResource TitleTextBlockStyle}" />
+    <Setter Property="Margin" Value="0,0,0,4" />
+  </Style>
+
+  <Style Selector="TextBlock.sub">
+    <Setter Property="Theme" Value="{StaticResource BodyStrongTextBlockStyle}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    <Setter Property="Margin" Value="0,24,0,8" />
+  </Style>
+
+  <Style Selector="TextBlock.lead">
+    <Setter Property="Theme" Value="{StaticResource BodyTextBlockStyle}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+    <Setter Property="MaxWidth" Value="760" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="Margin" Value="0,0,0,16" />
+  </Style>
+
+  <Style Selector="TextBlock.note">
+    <Setter Property="Theme" Value="{StaticResource CaptionTextBlockStyle}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+    <Setter Property="MaxWidth" Value="760" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="Margin" Value="0,6,0,0" />
+  </Style>
+
+  <!-- 章节标签，如「2 · 基础输入」 -->
+  <Style Selector="Border.tag">
+    <Setter Property="Background" Value="{DynamicResource ControlAltFillColorSecondaryBrush}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <Setter Property="Padding" Value="6,1,6,2" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+  </Style>
+  <Style Selector="Border.tag > TextBlock">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+  </Style>
+
+  <!-- 普通展示面板 -->
+  <Style Selector="Border.panel">
+    <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <Setter Property="Padding" Value="16" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+  </Style>
+
+  <!-- 试玩区：蓝框。这一块是可操作实例，不是规格。 -->
+  <Style Selector="Border.play">
+    <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <Setter Property="Padding" Value="16" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+  </Style>
+
+  <!-- Avalonia 对照块 -->
+  <Style Selector="Border.map">
+    <Setter Property="Background" Value="{DynamicResource SolidBackgroundFillColorSecondaryBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <Setter Property="Padding" Value="16,12" />
+    <Setter Property="Margin" Value="0,16,0,0" />
+    <Setter Property="MaxWidth" Value="860" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+  </Style>
+  <Style Selector="Border.map TextBlock">
+    <Setter Property="FontFamily" Value="{DynamicResource MonospaceFontFamily}" />
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </Style>
+  <Style Selector="Border.map TextBlock.k">
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}" />
+    <Setter Property="MinWidth" Value="72" />
+  </Style>
+  <Style Selector="Border.map TextBlock.v">
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+  </Style>
+
+  <Style Selector="g|SpecMatrix">
+    <Setter Property="LabelBrush" Value="{DynamicResource TextFillColorTertiaryBrush}" />
+  </Style>
+
+  <!-- 目录 -->
+  <Style Selector="TextBlock.toc-group">
+    <Setter Property="FontSize" Value="12" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    <Setter Property="Margin" Value="12,12,12,4" />
+  </Style>
+
+</Styles>

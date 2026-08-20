@@ -1,0 +1,86 @@
+<!-- DeviceStatusBar —— 第 7 组，设备状态条。
+     常驻底栏。操作员靠它判断「系统还活着」。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:fc="using:Cobalt.Fluent.Controls">
+
+  <ControlTheme x:Key="{x:Type fc:DeviceStatusBar}" TargetType="fc:DeviceStatusBar">
+    <Setter Property="Background" Value="{DynamicResource SolidBackgroundFillColorBaseBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    <Setter Property="Height" Value="{DynamicResource DeviceStatusBarHeight}" />
+    <Setter Property="FontSize" Value="{DynamicResource CaptionFontSize}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:DeviceStatusBar">
+        <Border Background="{TemplateBinding Background}"
+                BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}"
+                BorderThickness="0,1,0,0"
+                Padding="16,0">
+          <!-- 用 DockPanel 而不是 StackPanel：右侧那段要贴右边，
+               StackPanel 沿主轴不会拉伸子项，塞不出中间的弹性空档。 -->
+          <DockPanel LastChildFill="True">
+            <DockPanel.Styles>
+              <Style Selector="TextBlock">
+                <Setter Property="VerticalAlignment" Value="Center" />
+                <Setter Property="FontSize" Value="{DynamicResource CaptionFontSize}" />
+                <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+              </Style>
+            </DockPanel.Styles>
+
+            <!-- 心跳 + 状态 + 端点。心跳由 Beat() 驱动，不是固定周期动画。 -->
+            <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" Spacing="8"
+                        VerticalAlignment="Center" Margin="0,0,16,0">
+              <fc:Heartbeat x:Name="PART_Heartbeat" />
+              <TextBlock x:Name="PART_State" Text="{TemplateBinding StateText}" />
+              <TextBlock Text="{TemplateBinding Endpoint}"
+                         FontFeatures="{StaticResource TabularNumbers}"
+                         IsVisible="{TemplateBinding Endpoint,
+                                     Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            </StackPanel>
+
+            <TextBlock DockPanel.Dock="Left"
+                       Margin="0,0,16,0"
+                       Text="{TemplateBinding PollRateText}"
+                       FontFeatures="{StaticResource TabularNumbers}"
+                       IsVisible="{TemplateBinding PollRateText,
+                                   Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+            <!-- 右侧：操作员 + 时钟 -->
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="8"
+                        VerticalAlignment="Center" Margin="16,0,0,0">
+              <fc:SymbolIcon Symbol="Contact" FontSize="12" VerticalAlignment="Center"
+                             Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                             IsVisible="{TemplateBinding CurrentUser,
+                                         Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+              <TextBlock Text="{TemplateBinding CurrentUser}"
+                         IsVisible="{TemplateBinding CurrentUser,
+                                     Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+              <TextBlock Text="{TemplateBinding ClockText}"
+                         FontFeatures="{StaticResource TabularNumbers}"
+                         IsVisible="{TemplateBinding ShowClock}" />
+            </StackPanel>
+
+            <!-- 中间：自定义段，占满剩余宽度 -->
+            <ItemsControl ItemsSource="{TemplateBinding Items}" VerticalAlignment="Center">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Orientation="Horizontal" Spacing="16" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+            </ItemsControl>
+          </DockPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^:degraded /template/ TextBlock#PART_State">
+      <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCautionBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <Style Selector="^:disconnected /template/ TextBlock#PART_State">
+      <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+  </ControlTheme>
+
+</ResourceDictionary>

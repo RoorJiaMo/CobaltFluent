@@ -1,0 +1,584 @@
+<!-- 补充控件：数字框、建议框、分隔条、滚动条。
+
+     这个文件里的四类东西：
+       NumericUpDown / ButtonSpinner  = 数字框：TextBox + 框内右侧的上下微调
+       AutoCompleteBox                = 建议框：输入框 + 一张建议列表
+       GridSplitter                   = 4px 命中区 + 1px 分隔线（hover 变 2px 强调色）
+       ScrollBar                      = 只把内置 Fluent 模板用到的配色键换成本库 token，模板不动
+
+     输入框那一支（NumberBox / AutoSuggestBox）都不自己画框：框、hover 底、聚焦底边那 2px
+     强调色、报错底边，全部由 TextBox.axaml 那支主题出，本文件只往 InnerRightContent
+     里塞东西，外加把右内边距收一收（给微调区 / 放大镜让位）。
+     这正是 TextBox.axaml 注释里说「两个位置是留给它们的」的用法。
+     所以这几只控件也和 TextBox 一样把 FocusAdorner 清空：聚焦已经由底边表示，
+     再套一圈聚焦框会和底边打架。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:fc="using:Cobalt.Fluent.Controls">
+
+  <!-- ===================================================================
+       NumberBox：TextBox + 框内微调区
+       =================================================================== -->
+
+  <!-- 微调区宽 30，在框内右侧，上下各半。 -->
+  <x:Double x:Key="NumberBoxSpinnerWidth">30</x:Double>
+
+  <!-- NumberBox 框内那只 TextBox / 带框 ButtonSpinner 的内边距。
+       右边一共让出 34：其中 30 是微调区自己占的，留给内边距的只剩 4，
+       文字正好停在微调区左边。
+       和 TextBox.axaml 同理，这两个值必须成对改：底边 1px 时下内边距 6，
+       底边 2px（聚焦 / 报错）时下内边距 5，加起来永远是 7，文字才不会跳一像素。 -->
+  <Thickness x:Key="NumberBoxPadding">11,5,4,6</Thickness>
+  <Thickness x:Key="NumberBoxPaddingThickUnderline">11,5,4,5</Thickness>
+
+  <!-- 右边一共让出 32，是给那枚压在框上的放大镜让的位。
+       这里不动 TextBox 自带的内边距，改成在框内右侧留一格空位：
+       TextBox 自己的右内边距是 11，再留 21 正好凑够 32，
+       文字停在离框 32 处，和放大镜（离右 10、宽 14）之间留出一道空隙。
+       留空位而不是改内边距，是为了让使用处自己挂 InnerRightContent（清除按钮之类）时
+       这一格能整格让开 —— 内边距是让不开的。 -->
+  <x:Double x:Key="AutoSuggestBoxIconSlotWidth">21</x:Double>
+
+  <!-- 微调按钮：上下各半 · 无边框 · 透明底 · text-secondary · margin 1 ·
+       hover subtle-hover · pressed subtle-pressed。
+       MinHeight 13 + Margin 1 = 外框 15，上下两只正好凑满 30 高的微调区。
+       圆角取 4：全库只有 8/4/0，这么小的方块用 4 已经够圆。 -->
+  <ControlTheme x:Key="NumberBoxSpinButtonStyle" TargetType="RepeatButton">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <Setter Property="Margin" Value="1" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="MinWidth" Value="0" />
+    <Setter Property="MinHeight" Value="13" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Cursor" Value="Arrow" />
+    <!-- Tab 落在输入框上，不在这两只按钮上 -->
+    <Setter Property="Focusable" Value="False" />
+    <Setter Property="IsTabStop" Value="False" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="RepeatButton">
+        <Border x:Name="PART_Root"
+                Background="{TemplateBinding Background}"
+                CornerRadius="{TemplateBinding CornerRadius}">
+          <ContentPresenter Content="{TemplateBinding Content}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center" />
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="0:0:0.083" />
+      </Transitions>
+    </Setter>
+
+    <Style Selector="^:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+    </Style>
+    <Style Selector="^:pressed">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorTertiaryBrush}" />
+    </Style>
+    <!-- 到量程端点时 ButtonSpinner 会把对应那只按钮禁掉，只灰箭头、不铺底 -->
+    <Style Selector="^:disabled">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+    </Style>
+  </ControlTheme>
+
+  <!-- 光秃秃的微调区：只有上下两只按钮，不带框。NumericUpDown 把它塞进
+       TextBox 的 InnerRightContent，所以框由 TextBox 出，这里一点底一点边都不能有。 -->
+  <ControlTheme x:Key="NumberBoxSpinnerStyle" TargetType="ButtonSpinner">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="MinWidth" Value="0" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="Width" Value="{StaticResource NumberBoxSpinnerWidth}" />
+    <Setter Property="VerticalAlignment" Value="Stretch" />
+    <Setter Property="Focusable" Value="False" />
+    <Setter Property="IsTabStop" Value="False" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="ButtonSpinner">
+        <Grid x:Name="PART_SpinnerPanel"
+              RowDefinitions="*,*"
+              IsVisible="{TemplateBinding ShowButtonSpinner}">
+          <RepeatButton x:Name="PART_IncreaseButton"
+                        Grid.Row="0"
+                        Theme="{StaticResource NumberBoxSpinButtonStyle}">
+            <!-- 箭头 8px。
+                 走本库的矢量图标而不是图标字体：嵌入式 Linux 上没有 Segoe Fluent Icons。
+                 全库的 chevron 共用 Symbol.ChevronUp / ChevronDown 这一支，
+                 手画一条 Path 会和 ComboBox / Expander / DatePicker 的字形对不齐。
+                 图标在按钮的 Content 里而不是它的模板里，Foreground 只能用 $parent 绑，
+                 这样端点禁用时才跟着按钮一起变灰。 -->
+            <fc:SymbolIcon Symbol="ChevronUp"
+                           FontSize="8"
+                           Foreground="{Binding $parent[RepeatButton].Foreground}" />
+          </RepeatButton>
+          <RepeatButton x:Name="PART_DecreaseButton"
+                        Grid.Row="1"
+                        Theme="{StaticResource NumberBoxSpinButtonStyle}">
+            <fc:SymbolIcon Symbol="ChevronDown"
+                           FontSize="8"
+                           Foreground="{Binding $parent[RepeatButton].Foreground}" />
+          </RepeatButton>
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <!-- 带框的 ButtonSpinner（内容任意 + 右侧微调）。
+       几何和配色跟 .NumberBox 同一套：三边 control-stroke-default、
+       底边一条独立的 control-strong-stroke，聚焦时底边加粗成 2px 强调色。
+       底边单独画而不是把四边凑成渐变，理由同 TextBox.axaml：
+       只有独立一条时 1px→2px 的厚度切换才干净。 -->
+  <ControlTheme x:Key="{x:Type ButtonSpinner}" TargetType="ButtonSpinner">
+    <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource ControlBorderThickness}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <Setter Property="Padding" Value="{StaticResource NumberBoxPadding}" />
+    <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
+    <Setter Property="MinWidth" Value="{DynamicResource ControlMinWidth}" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <!-- 聚焦由底边那 2px 表示，和 TextBox 同理 -->
+    <Setter Property="FocusAdorner" Value="{x:Null}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="ButtonSpinner">
+        <DataValidationErrors>
+          <Panel>
+            <Border x:Name="PART_BorderElement"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="{TemplateBinding CornerRadius}"
+                    MinWidth="{TemplateBinding MinWidth}"
+                    MinHeight="{TemplateBinding MinHeight}" />
+
+            <Border x:Name="PART_UnderlineElement"
+                    BorderBrush="{DynamicResource ControlStrongStrokeColorDefaultBrush}"
+                    BorderThickness="0,0,0,1"
+                    CornerRadius="{TemplateBinding CornerRadius}"
+                    IsHitTestVisible="False" />
+
+            <Border Margin="{TemplateBinding BorderThickness}">
+              <DockPanel>
+                <!-- 停靠边由下面的 Style 给（:left 时换到左边）。
+                     这里不写 DockPanel.Dock 属性：写了就是本地值，Style 改不动。 -->
+                <Grid x:Name="PART_SpinnerPanel"
+                      Width="{StaticResource NumberBoxSpinnerWidth}"
+                      RowDefinitions="*,*"
+                      IsVisible="{TemplateBinding ShowButtonSpinner}">
+                  <RepeatButton x:Name="PART_IncreaseButton"
+                                Grid.Row="0"
+                                Theme="{StaticResource NumberBoxSpinButtonStyle}">
+                    <fc:SymbolIcon Symbol="ChevronUp"
+                                   FontSize="8"
+                                   Foreground="{Binding $parent[RepeatButton].Foreground}" />
+                  </RepeatButton>
+                  <RepeatButton x:Name="PART_DecreaseButton"
+                                Grid.Row="1"
+                                Theme="{StaticResource NumberBoxSpinButtonStyle}">
+                    <fc:SymbolIcon Symbol="ChevronDown"
+                                   FontSize="8"
+                                   Foreground="{Binding $parent[RepeatButton].Foreground}" />
+                  </RepeatButton>
+                </Grid>
+
+                <ContentPresenter x:Name="PART_ContentPresenter"
+                                  Content="{TemplateBinding Content}"
+                                  ContentTemplate="{TemplateBinding ContentTemplate}"
+                                  Padding="{TemplateBinding Padding}"
+                                  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+              </DockPanel>
+            </Border>
+          </Panel>
+        </DataValidationErrors>
+      </ControlTemplate>
+    </Setter>
+
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="0:0:0.083" />
+      </Transitions>
+    </Setter>
+
+    <Style Selector="^ /template/ Grid#PART_SpinnerPanel">
+      <Setter Property="DockPanel.Dock" Value="Right" />
+    </Style>
+
+    <Style Selector="^:pointerover">
+      <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+    </Style>
+
+    <!-- 内容可聚焦（NumberBox 那种里面塞输入框的）时靠 focus-within，
+         自身拿到焦点时靠 focus，两条同一套表现 -->
+    <Style Selector="^:focus-within, ^:focus">
+      <Setter Property="Background" Value="{DynamicResource ControlFillColorInputActiveBrush}" />
+      <Setter Property="Padding" Value="{StaticResource NumberBoxPaddingThickUnderline}" />
+    </Style>
+    <Style Selector="^:focus-within /template/ Border#PART_UnderlineElement, ^:focus /template/ Border#PART_UnderlineElement">
+      <Setter Property="BorderThickness" Value="0,0,0,2" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+    </Style>
+
+    <!-- 排在聚焦之后：聚焦着也要看得出这个框是错的 -->
+    <Style Selector="^:error">
+      <Setter Property="Padding" Value="{StaticResource NumberBoxPaddingThickUnderline}" />
+    </Style>
+    <Style Selector="^:error /template/ Border#PART_UnderlineElement">
+      <Setter Property="BorderThickness" Value="0,0,0,2" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+    </Style>
+
+    <Style Selector="^:disabled">
+      <Setter Property="Background" Value="{DynamicResource ControlFillColorDisabledBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+    </Style>
+    <Style Selector="^:disabled /template/ Border#PART_UnderlineElement">
+      <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+    </Style>
+
+    <!-- ButtonSpinnerLocation="Left"：微调区换到左边 -->
+    <Style Selector="^:left /template/ Grid#PART_SpinnerPanel">
+      <Setter Property="DockPanel.Dock" Value="Left" />
+    </Style>
+  </ControlTheme>
+
+  <!-- NumberBox 框内那只 TextBox。除了内边距，一切都继承 TextBox 那支主题。
+       右内边距从 11 收到 4，加上微调区自己占的 30 正好凑够 34，
+       文字停在微调区左边 4px 处。
+       内边距必须在这一层（ControlTheme）给，不能写在模板里的 TextBox 上：
+       写在模板里就是本地值，会把 TextBox 主题 :focus / :error 那对补偿值一起顶掉，
+       聚焦时底边从 1px 变 2px 而下内边距不跟着减，文字要跳一像素。 -->
+  <ControlTheme x:Key="NumberBoxTextBoxStyle" TargetType="TextBox"
+                BasedOn="{StaticResource {x:Type TextBox}}">
+    <Setter Property="Padding" Value="{StaticResource NumberBoxPadding}" />
+
+    <Style Selector="^:focus">
+      <Setter Property="Padding" Value="{StaticResource NumberBoxPaddingThickUnderline}" />
+    </Style>
+    <!-- 顺序同 TextBox.axaml：:error 排在 :focus 后面 -->
+    <Style Selector="^:error">
+      <Setter Property="Padding" Value="{StaticResource NumberBoxPaddingThickUnderline}" />
+    </Style>
+  </ControlTheme>
+
+  <!-- NumericUpDown —— 模板就是一只 TextBox，微调区挂在它的 InnerRightContent 上，
+       这样框、hover 底、聚焦底边、禁用相全部继承 TextBox 那支主题，一处都不用重画；
+       只有那条收窄的右内边距由上面那支 keyed 主题补。 -->
+  <ControlTheme x:Key="{x:Type NumericUpDown}" TargetType="NumericUpDown">
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
+    <Setter Property="MinWidth" Value="{DynamicResource ControlMinWidth}" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <!-- 数字左对齐：微调区在右边，右对齐的话数字会顶着它 -->
+    <Setter Property="TextAlignment" Value="Left" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <!-- 聚焦由内部 TextBox 的底边表示 -->
+    <Setter Property="FocusAdorner" Value="{x:Null}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="NumericUpDown">
+        <!-- 这里不再套一层 DataValidationErrors：错误提示由内部 TextBox 那层出，
+             套两层的话同一条校验信息会显示两遍。 -->
+        <TextBox x:Name="PART_TextBox"
+                 Theme="{StaticResource NumberBoxTextBoxStyle}"
+                 Foreground="{TemplateBinding Foreground}"
+                 MinHeight="{TemplateBinding MinHeight}"
+                 MinWidth="0"
+                 Watermark="{TemplateBinding Watermark}"
+                 IsReadOnly="{TemplateBinding IsReadOnly}"
+                 Text="{TemplateBinding Text}"
+                 TextAlignment="{TemplateBinding TextAlignment}"
+                 AcceptsReturn="False"
+                 TextWrapping="NoWrap"
+                 HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                 VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                 DataValidationErrors.Errors="{TemplateBinding (DataValidationErrors.Errors)}"
+                 InnerLeftContent="{TemplateBinding InnerLeftContent}"
+                 FontFeatures="{StaticResource TabularNumbers}">
+          <TextBox.InnerRightContent>
+            <!-- 使用处自己挂的 InnerRightContent（单位之类）排在微调区左边。
+
+                 这一支里一律用 $parent 绑定，不能用 TemplateBinding：
+                 挂在模板子控件「属性」上的东西（这里是 TextBox.InnerRightContent）
+                 在套模板那一刻还不在逻辑树上，拿不到 TemplatedParent，
+                 TemplateBinding 会静默失效（不报错，只是绑不上）。 -->
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Stretch">
+              <ContentPresenter Content="{Binding $parent[NumericUpDown].InnerRightContent}"
+                                VerticalContentAlignment="Center" />
+              <ButtonSpinner x:Name="PART_Spinner"
+                             Theme="{StaticResource NumberBoxSpinnerStyle}"
+                             AllowSpin="{Binding $parent[NumericUpDown].AllowSpin}"
+                             ShowButtonSpinner="{Binding $parent[NumericUpDown].ShowButtonSpinner}" />
+            </StackPanel>
+          </TextBox.InnerRightContent>
+        </TextBox>
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^:disabled">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+    </Style>
+  </ControlTheme>
+
+  <!-- ===================================================================
+       AutoSuggestBox
+       =================================================================== -->
+
+  <!-- AutoCompleteBox —— 两套规格别混：
+         输入框走**控件**规格（框由 TextBox 主题出，右侧一枚放大镜）
+         建议列表走**弹出层**规格（8px 圆角 + 亚克力底 + flyout 描边 + 阴影 + padding 4） -->
+  <ControlTheme x:Key="{x:Type AutoCompleteBox}" TargetType="AutoCompleteBox">
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
+    <Setter Property="MinWidth" Value="{DynamicResource ControlMinWidth}" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="VerticalAlignment" Value="Top" />
+    <!-- 和 ComboBox 的下拉面板同一档：再长就该换成带筛选的对话框了 -->
+    <Setter Property="MaxDropDownHeight" Value="504" />
+    <!-- 聚焦由内部 TextBox 的底边表示 -->
+    <Setter Property="FocusAdorner" Value="{x:Null}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="AutoCompleteBox">
+        <Grid x:Name="PART_LayoutRoot">
+          <TextBox x:Name="PART_TextBox"
+                   Foreground="{TemplateBinding Foreground}"
+                   MinHeight="{TemplateBinding MinHeight}"
+                   MinWidth="0"
+                   Watermark="{TemplateBinding Watermark}"
+                   CaretIndex="{TemplateBinding CaretIndex, Mode=TwoWay}"
+                   ClearSelectionOnLostFocus="{TemplateBinding ClearSelectionOnLostFocus}"
+                   MaxLength="{TemplateBinding MaxLength}"
+                   DataValidationErrors.Errors="{TemplateBinding (DataValidationErrors.Errors)}"
+                   InnerLeftContent="{TemplateBinding InnerLeftContent}">
+            <TextBox.InnerRightContent>
+              <!-- 框内右侧这一格：使用处自己挂的东西（清除按钮之类）+ 放大镜的空位。
+                   这一支里只能用 $parent 绑定：挂在模板子控件「属性」上的东西
+                   套模板那一刻还不在逻辑树上，拿不到 TemplatedParent，
+                   TemplateBinding 会静默失效（不报错，只是绑不上）。 -->
+              <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                <ContentPresenter Content="{Binding $parent[AutoCompleteBox].InnerRightContent}"
+                                  VerticalContentAlignment="Center" />
+                <Panel Width="{StaticResource AutoSuggestBoxIconSlotWidth}"
+                       IsVisible="{Binding $parent[AutoCompleteBox].InnerRightContent,
+                                           Converter={x:Static ObjectConverters.IsNull}}" />
+              </StackPanel>
+            </TextBox.InnerRightContent>
+          </TextBox>
+
+          <!-- 14px 放大镜，压在框内右边 10 处，text-secondary，
+               不吃指针事件（点它等于点框）。
+               压在框上而不是塞进 InnerRightContent：那个位置让给使用处，
+               使用处自己挂了东西（清除按钮之类）时这枚放大镜就让位。 -->
+          <fc:SymbolIcon x:Name="PART_SearchIcon"
+                         Symbol="Search"
+                         FontSize="14"
+                         Margin="0,0,10,0"
+                         HorizontalAlignment="Right"
+                         VerticalAlignment="Center"
+                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                         IsHitTestVisible="False"
+                         IsVisible="{TemplateBinding InnerRightContent, Converter={x:Static ObjectConverters.IsNull}}" />
+
+          <!-- 建议列表 —— 从这里往下是弹出层规格，和上面那只框不是一套。
+               和框之间留 4 -->
+          <Popup x:Name="PART_Popup"
+                 WindowManagerAddShadowHint="False"
+                 PlacementTarget="PART_TextBox"
+                 VerticalOffset="4"
+                 MinWidth="{Binding Bounds.Width, RelativeSource={RelativeSource TemplatedParent}}"
+                 MaxHeight="{TemplateBinding MaxDropDownHeight}"
+                 IsLightDismissEnabled="True"
+                 InheritsTransform="True">
+            <!-- 建议列表：亚克力底 + surface-stroke-flyout + 8px 圆角 +
+                 flyout 阴影 + padding 4。
+                 阴影是本文件唯一出现字面色值的地方：BoxShadow 语法收的是颜色不是画刷，
+                 而 shadow-flyout 的两层黑是固定不透明度、不随主题变的。 -->
+            <Border x:Name="PART_SuggestionsContainer"
+                    Background="{DynamicResource AcrylicBackgroundFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource SurfaceStrokeColorFlyoutBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{DynamicResource OverlayCornerRadius}"
+                    Padding="4"
+                    HorizontalAlignment="Stretch"
+                    BoxShadow="0 8 16 0 #24000000, 0 0 2 0 #1F000000">
+              <!-- 底、边、内边距都由外面那只 Border 出，列表本身要透明，否则会出现双框 -->
+              <ListBox x:Name="PART_SelectingItemsControl"
+                       Background="Transparent"
+                       BorderThickness="0"
+                       Padding="0"
+                       ItemTemplate="{TemplateBinding ItemTemplate}"
+                       ScrollViewer.IsScrollChainingEnabled="False" />
+            </Border>
+          </Popup>
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^:disabled">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+      <Style Selector="^ /template/ fc|SymbolIcon#PART_SearchIcon">
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+      </Style>
+    </Style>
+  </ControlTheme>
+
+  <!-- ===================================================================
+       GridSplitter
+       =================================================================== -->
+
+  <!-- 4px 宽的命中区，里面只画 1px 的分隔线（divider-stroke），
+       hover 时线变 2px 强调色并挪到最左（视觉上「抓住了」）。
+       命中区比线宽是故意的：1px 的线鼠标根本压不准。
+
+       横竖两向各一条线，靠 IsVisible 切换。
+       竖向（拖列宽）是默认；横向（拖行高）挂 Classes="horizontal"，
+       或者直接写 ResizeDirection="Rows"，两种写法都认。
+       尺寸类属性全部写成 Style 的 Setter 而不是模板里的属性 ——
+       模板里写就是本地值，hover 那几条 Style 改不动。 -->
+  <ControlTheme x:Key="{x:Type GridSplitter}" TargetType="GridSplitter">
+    <!-- 命中区要有底才接得到指针事件，Transparent 就够 -->
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="MinWidth" Value="4" />
+    <Setter Property="MinHeight" Value="4" />
+    <Setter Property="Focusable" Value="True" />
+    <Setter Property="Cursor" Value="SizeWestEast" />
+    <Setter Property="FocusAdorner" Value="{StaticResource FluentFocusAdorner}" />
+    <!-- ShowsPreview 打开时拖动过程中显示的那根预览线 -->
+    <Setter Property="PreviewContent">
+      <Template>
+        <Rectangle Fill="{DynamicResource AccentFillColorDefaultBrush}" />
+      </Template>
+    </Setter>
+    <Setter Property="Template">
+      <ControlTemplate TargetType="GridSplitter">
+        <Panel Background="{TemplateBinding Background}">
+          <Rectangle x:Name="PART_LineVertical"
+                     HorizontalAlignment="Left"
+                     VerticalAlignment="Stretch"
+                     IsHitTestVisible="False" />
+          <Rectangle x:Name="PART_LineHorizontal"
+                     HorizontalAlignment="Stretch"
+                     VerticalAlignment="Top"
+                     IsHitTestVisible="False" />
+        </Panel>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- 竖向：线贴在命中区左边 1px 处，宽 1 -->
+    <Style Selector="^ /template/ Rectangle#PART_LineVertical">
+      <Setter Property="IsVisible" Value="True" />
+      <Setter Property="Width" Value="1" />
+      <Setter Property="Margin" Value="1,0,0,0" />
+      <Setter Property="Fill" Value="{DynamicResource DividerStrokeColorDefaultBrush}" />
+      <Setter Property="Transitions">
+        <Transitions>
+          <BrushTransition Property="Fill" Duration="0:0:0.083" />
+        </Transitions>
+      </Setter>
+    </Style>
+
+    <!-- 横向：线贴在命中区上边 1px 处，高 1 -->
+    <Style Selector="^ /template/ Rectangle#PART_LineHorizontal">
+      <Setter Property="IsVisible" Value="False" />
+      <Setter Property="Height" Value="1" />
+      <Setter Property="Margin" Value="0,1,0,0" />
+      <Setter Property="Fill" Value="{DynamicResource DividerStrokeColorDefaultBrush}" />
+      <Setter Property="Transitions">
+        <Transitions>
+          <BrushTransition Property="Fill" Duration="0:0:0.083" />
+        </Transitions>
+      </Setter>
+    </Style>
+
+    <!-- hover：线加粗到 2px、贴边、换强调色。
+         :pressed 跟 hover 同相 —— 拖动时指针经常已经离开这 4px，
+         少了这一条线会在拖到一半时变回灰的。 -->
+    <Style Selector="^:pointerover /template/ Rectangle#PART_LineVertical, ^:pressed /template/ Rectangle#PART_LineVertical">
+      <Setter Property="Width" Value="2" />
+      <Setter Property="Margin" Value="0" />
+      <Setter Property="Fill" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+    </Style>
+    <Style Selector="^:pointerover /template/ Rectangle#PART_LineHorizontal, ^:pressed /template/ Rectangle#PART_LineHorizontal">
+      <Setter Property="Height" Value="2" />
+      <Setter Property="Margin" Value="0" />
+      <Setter Property="Fill" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+    </Style>
+
+    <!-- 横向变体：换线、换光标 -->
+    <Style Selector="^.horizontal, ^[ResizeDirection=Rows]">
+      <Setter Property="Cursor" Value="SizeNorthSouth" />
+    </Style>
+    <Style Selector="^.horizontal /template/ Rectangle#PART_LineVertical, ^[ResizeDirection=Rows] /template/ Rectangle#PART_LineVertical">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="^.horizontal /template/ Rectangle#PART_LineHorizontal, ^[ResizeDirection=Rows] /template/ Rectangle#PART_LineHorizontal">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+
+    <Style Selector="^:disabled /template/ Rectangle#PART_LineVertical">
+      <Setter Property="Fill" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+    </Style>
+    <Style Selector="^:disabled /template/ Rectangle#PART_LineHorizontal">
+      <Setter Property="Fill" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+    </Style>
+  </ControlTheme>
+
+  <!-- ===================================================================
+       ScrollBar 配色
+       ===================================================================
+       滚动条模板不重做（内置 Fluent 那套的展开动画是对的），
+       这里只把它模板里用到的配色键换成本库 token，免得滚动条是唯一一处不跟主题走的东西。
+       键名沿用 Avalonia Fluent 的原名；本字典排在 FluentTheme 之后，同名键整体覆盖它。
+       画刷一律由 token 的 Color 键现搭，文件里不出现裸色值。 -->
+
+  <!-- 收起态是浮在内容上的一根细条，底和边都不要 -->
+  <SolidColorBrush x:Key="ScrollBarBackground" Color="Transparent" />
+  <SolidColorBrush x:Key="ScrollBarBackgroundPointerOver" Color="Transparent" />
+  <SolidColorBrush x:Key="ScrollBarBorderBrush" Color="Transparent" />
+  <SolidColorBrush x:Key="ScrollBarForeground" Color="{DynamicResource TextFillColorSecondary}" />
+
+  <!-- 展开态才铺底：亚克力条 + 一根 divider 细边。滚动条是悬浮层，这里用亚克力不违规 -->
+  <SolidColorBrush x:Key="ScrollBarTrackFill" Color="Transparent" />
+  <SolidColorBrush x:Key="ScrollBarTrackStroke" Color="Transparent" />
+  <SolidColorBrush x:Key="ScrollBarTrackFillPointerOver" Color="{DynamicResource AcrylicBackgroundFillColorDefault}" />
+  <SolidColorBrush x:Key="ScrollBarTrackStrokePointerOver" Color="{DynamicResource DividerStrokeColorDefault}" />
+
+  <!-- 滑块：Win11 的反馈是「变宽」不是「变色」，所以三态同色，只有禁用换 -->
+  <SolidColorBrush x:Key="ScrollBarPanningThumbBackground" Color="{DynamicResource ControlStrongFillColorDefault}" />
+  <SolidColorBrush x:Key="ScrollBarThumbBackgroundColor" Color="{DynamicResource ControlStrongFillColorDefault}" />
+  <SolidColorBrush x:Key="ScrollBarThumbFill" Color="{DynamicResource ControlStrongFillColorDefault}" />
+  <SolidColorBrush x:Key="ScrollBarThumbFillPointerOver" Color="{DynamicResource ControlStrongFillColorDefault}" />
+  <SolidColorBrush x:Key="ScrollBarThumbFillPressed" Color="{DynamicResource ControlStrongFillColorDefault}" />
+  <SolidColorBrush x:Key="ScrollBarThumbFillDisabled" Color="{DynamicResource ControlStrongFillColorDisabled}" />
+
+  <!-- 两端的行按钮：和 subtle 按钮同一套底 -->
+  <SolidColorBrush x:Key="ScrollBarButtonBackground" Color="Transparent" />
+  <SolidColorBrush x:Key="ScrollBarButtonBackgroundPointerOver" Color="{DynamicResource SubtleFillColorSecondary}" />
+  <SolidColorBrush x:Key="ScrollBarButtonBackgroundPressed" Color="{DynamicResource SubtleFillColorTertiary}" />
+  <SolidColorBrush x:Key="ScrollBarButtonBackgroundDisabled" Color="Transparent" />
+  <SolidColorBrush x:Key="ScrollBarButtonBorderBrush" Color="Transparent" />
+  <SolidColorBrush x:Key="ScrollBarButtonBorderBrushPointerOver" Color="Transparent" />
+  <SolidColorBrush x:Key="ScrollBarButtonBorderBrushPressed" Color="Transparent" />
+  <SolidColorBrush x:Key="ScrollBarButtonBorderBrushDisabled" Color="Transparent" />
+  <SolidColorBrush x:Key="ScrollBarButtonArrowForeground" Color="{DynamicResource TextFillColorSecondary}" />
+  <SolidColorBrush x:Key="ScrollBarButtonArrowForegroundPointerOver" Color="{DynamicResource TextFillColorPrimary}" />
+  <SolidColorBrush x:Key="ScrollBarButtonArrowForegroundPressed" Color="{DynamicResource TextFillColorSecondary}" />
+  <SolidColorBrush x:Key="ScrollBarButtonArrowForegroundDisabled" Color="{DynamicResource TextFillColorDisabled}" />
+
+</ResourceDictionary>

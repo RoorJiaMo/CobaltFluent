@@ -1,0 +1,258 @@
+<!-- TextBox，连同上方字段名和下方报错文字那两支样式。
+     变体 Classes：multiline（= textarea，AcceptsReturn 打开）
+
+     这个控件的重点全在底边：
+       rest   1px ControlStrongStrokeColorDefaultBrush —— 比其余三边重一档，
+              输入框底边比普通控件更明显，用来把"可输入"和"只是个框"区分开
+       :focus 2px AccentFillColorDefaultBrush
+       :error 2px SystemFillColorCriticalBrush
+     底边是模板里一条独立的 Border（PART_UnderlineElement），不是把四边描边凑成渐变：
+     只有独立一条时，1px→2px 的厚度切换才干净，也才能让三种状态各自换色不互相干扰。
+     厚度从 1 变 2 时下内边距同步减 1（见下面那组 Thickness），否则文字会跳一像素。
+
+     NumberBox / AutoSuggestBox 这类"框里塞东西"的控件 BasedOn 这一支，
+     模板里的 InnerLeftContent / InnerRightContent 两个位置是留给它们的，不要删。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- 这四个值必须成对改：底边 1px 时下内边距 6，底边 2px 时下内边距 5，
+       加起来永远是 7，聚焦/报错时文字才不会向上跳一像素。
+       正因为要成对，这里没有绑 ControlPadding —— 绑了的话全局改内边距会拆散这一对。 -->
+  <Thickness x:Key="TextBoxPadding">11,5,11,6</Thickness>
+  <Thickness x:Key="TextBoxPaddingThickUnderline">11,5,11,5</Thickness>
+  <Thickness x:Key="TextBoxMultilinePadding">11,8,11,8</Thickness>
+  <Thickness x:Key="TextBoxMultilinePaddingThickUnderline">11,8,11,7</Thickness>
+
+  <!-- 右键菜单。本库重做了模板，不接管这一项的话剪切/复制/粘贴就没了。 -->
+  <MenuFlyout x:Key="TextBoxContextFlyout">
+    <MenuItem Header="{DynamicResource StringTextFlyoutCutText}"
+              Command="{Binding $parent[TextBox].Cut}"
+              IsEnabled="{Binding $parent[TextBox].CanCut}"
+              InputGesture="{x:Static TextBox.CutGesture}" />
+    <MenuItem Header="{DynamicResource StringTextFlyoutCopyText}"
+              Command="{Binding $parent[TextBox].Copy}"
+              IsEnabled="{Binding $parent[TextBox].CanCopy}"
+              InputGesture="{x:Static TextBox.CopyGesture}" />
+    <MenuItem Header="{DynamicResource StringTextFlyoutPasteText}"
+              Command="{Binding $parent[TextBox].Paste}"
+              IsEnabled="{Binding $parent[TextBox].CanPaste}"
+              InputGesture="{x:Static TextBox.PasteGesture}" />
+  </MenuFlyout>
+
+  <ControlTheme x:Key="{x:Type TextBox}" TargetType="TextBox">
+    <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="CaretBrush" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="SelectionBrush" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+    <Setter Property="SelectionForegroundBrush" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
+    <!-- 三边常规描边；底边那一条在模板里单独画 -->
+    <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource ControlBorderThickness}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <Setter Property="Padding" Value="{StaticResource TextBoxPadding}" />
+    <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
+    <Setter Property="MinWidth" Value="{DynamicResource ControlMinWidth}" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <!-- 聚焦靠底边那 2px accent 表示，再套一圈聚焦框会和底边打架，所以这里显式清空。
+         这是全库唯一不挂 FluentFocusAdorner 的可聚焦控件。 -->
+    <Setter Property="FocusAdorner" Value="{x:Null}" />
+    <Setter Property="ContextFlyout" Value="{StaticResource TextBoxContextFlyout}" />
+    <Setter Property="ScrollViewer.IsScrollChainingEnabled" Value="True" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="TextBox">
+        <DataValidationErrors>
+          <Panel>
+            <Border x:Name="PART_BorderElement"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="{TemplateBinding CornerRadius}"
+                    MinWidth="{TemplateBinding MinWidth}"
+                    MinHeight="{TemplateBinding MinHeight}" />
+
+            <!-- 独立底边。整块铺满、只画下边，跟着 CornerRadius 走圆角，
+                 盖在 PART_BorderElement 的下边之上。换状态只改这一个元素的
+                 BorderThickness + BorderBrush，其余三边纹丝不动。 -->
+            <Border x:Name="PART_UnderlineElement"
+                    BorderBrush="{DynamicResource ControlStrongStrokeColorDefaultBrush}"
+                    BorderThickness="0,0,0,1"
+                    CornerRadius="{TemplateBinding CornerRadius}"
+                    IsHitTestVisible="False" />
+
+            <Border Margin="{TemplateBinding BorderThickness}">
+              <Grid ColumnDefinitions="Auto,*,Auto">
+                <!-- NumberBox / AutoSuggestBox 的框内按钮挂这两个位置 -->
+                <ContentPresenter Grid.Column="0"
+                                  Content="{TemplateBinding InnerLeftContent}"
+                                  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+                <DockPanel x:Name="PART_InnerDockPanel"
+                           Grid.Column="1"
+                           Margin="{TemplateBinding Padding}">
+                  <TextBlock x:Name="PART_FloatingWatermark"
+                             DockPanel.Dock="Top"
+                             IsVisible="False"
+                             Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"
+                             FontSize="{DynamicResource CaptionFontSize}"
+                             LineHeight="{DynamicResource CaptionLineHeight}"
+                             Text="{TemplateBinding Watermark}" />
+                  <ScrollViewer x:Name="PART_ScrollViewer"
+                                HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
+                                VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}"
+                                IsScrollChainingEnabled="{TemplateBinding (ScrollViewer.IsScrollChainingEnabled)}"
+                                AllowAutoHide="{TemplateBinding (ScrollViewer.AllowAutoHide)}"
+                                BringIntoViewOnFocusChange="{TemplateBinding (ScrollViewer.BringIntoViewOnFocusChange)}">
+                    <Panel>
+                      <!-- 占位符：tertiary。不用 opacity 压灰，那样在深色主题下会发糊 -->
+                      <TextBlock x:Name="PART_Watermark"
+                                 Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                                 Text="{TemplateBinding Watermark}"
+                                 TextAlignment="{TemplateBinding TextAlignment}"
+                                 TextWrapping="{TemplateBinding TextWrapping}"
+                                 HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                 VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+                        <TextBlock.IsVisible>
+                          <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding ElementName="PART_TextPresenter" Path="PreeditText"
+                                     Converter="{x:Static StringConverters.IsNullOrEmpty}" />
+                            <Binding RelativeSource="{RelativeSource TemplatedParent}" Path="Text"
+                                     Converter="{x:Static StringConverters.IsNullOrEmpty}" />
+                          </MultiBinding>
+                        </TextBlock.IsVisible>
+                      </TextBlock>
+                      <TextPresenter x:Name="PART_TextPresenter"
+                                     Text="{TemplateBinding Text, Mode=TwoWay}"
+                                     CaretBlinkInterval="{TemplateBinding CaretBlinkInterval}"
+                                     CaretIndex="{TemplateBinding CaretIndex}"
+                                     SelectionStart="{TemplateBinding SelectionStart}"
+                                     SelectionEnd="{TemplateBinding SelectionEnd}"
+                                     TextAlignment="{TemplateBinding TextAlignment}"
+                                     TextWrapping="{TemplateBinding TextWrapping}"
+                                     LineHeight="{TemplateBinding LineHeight}"
+                                     LetterSpacing="{TemplateBinding LetterSpacing}"
+                                     PasswordChar="{TemplateBinding PasswordChar}"
+                                     RevealPassword="{TemplateBinding RevealPassword}"
+                                     SelectionBrush="{TemplateBinding SelectionBrush}"
+                                     SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
+                                     CaretBrush="{TemplateBinding CaretBrush}"
+                                     HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                     VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+                    </Panel>
+                    <ScrollViewer.Styles>
+                      <Style Selector="ScrollContentPresenter#PART_ContentPresenter">
+                        <Setter Property="Cursor" Value="IBeam" />
+                      </Style>
+                    </ScrollViewer.Styles>
+                  </ScrollViewer>
+                </DockPanel>
+                <ContentPresenter Grid.Column="2"
+                                  Content="{TemplateBinding InnerRightContent}"
+                                  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+              </Grid>
+            </Border>
+          </Panel>
+        </DataValidationErrors>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- 只过渡底色。底边厚度不过渡：厚度动画会把文字挤得抖 -->
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="0:0:0.083" />
+      </Transitions>
+    </Setter>
+
+    <Style Selector="^[UseFloatingWatermark=true]:not(:empty) /template/ TextBlock#PART_FloatingWatermark">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+
+    <Style Selector="^:pointerover">
+      <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+    </Style>
+
+    <!-- 聚焦：底边加粗成 2px accent，背景换成 input-active（比 rest 亮，示意"可以打字了"），
+         下内边距同时减 1px 抵消加粗。三边描边保持不变。 -->
+    <Style Selector="^:focus">
+      <Setter Property="Background" Value="{DynamicResource ControlFillColorInputActiveBrush}" />
+      <Setter Property="Padding" Value="{StaticResource TextBoxPaddingThickUnderline}" />
+
+      <Style Selector="^ /template/ Border#PART_UnderlineElement">
+        <Setter Property="BorderThickness" Value="0,0,0,2" />
+        <Setter Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+      </Style>
+    </Style>
+
+    <!-- 禁用：只动背景、文字色和底边颜色，三边描边不动。
+         底边厚度也不动 —— 报错的框被禁用时仍然是 2px，内边距才对得上。 -->
+    <Style Selector="^:disabled">
+      <Setter Property="Background" Value="{DynamicResource ControlFillColorDisabledBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+
+      <Style Selector="^ /template/ Border#PART_UnderlineElement">
+        <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+      </Style>
+      <Style Selector="^ /template/ TextBlock#PART_Watermark">
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+      </Style>
+      <Style Selector="^ /template/ TextBlock#PART_FloatingWatermark">
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+      </Style>
+    </Style>
+
+    <!-- 校验失败。:error 写在 :focus 和 :disabled 两条后面，同权重靠顺序取胜，
+         所以这里也排最后 —— 聚焦着、甚至被禁用时，都要看得出这个框是错的。 -->
+    <Style Selector="^:error">
+      <Setter Property="Padding" Value="{StaticResource TextBoxPaddingThickUnderline}" />
+
+      <Style Selector="^ /template/ Border#PART_UnderlineElement">
+        <Setter Property="BorderThickness" Value="0,0,0,2" />
+        <Setter Property="BorderBrush" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+      </Style>
+    </Style>
+
+    <!-- multiline —— 多行输入。挂 class 就等于打开 AcceptsReturn，
+         几何则挂在 AcceptsReturn 上，代码里直接 AcceptsReturn="True" 的框也能拿到同一套。
+         排在最后：多行的内边距要盖掉上面 :focus / :error 那两条单行的值。 -->
+    <Style Selector="^.multiline">
+      <Setter Property="AcceptsReturn" Value="True" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style Selector="^[AcceptsReturn=True]">
+      <Setter Property="MinHeight" Value="96" />
+      <Setter Property="Padding" Value="{StaticResource TextBoxMultilinePadding}" />
+      <Setter Property="VerticalContentAlignment" Value="Top" />
+      <!-- 不做手动拖拽改高，能滚就行 -->
+      <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+    </Style>
+
+    <Style Selector="^[AcceptsReturn=True]:focus">
+      <Setter Property="Padding" Value="{StaticResource TextBoxMultilinePaddingThickUnderline}" />
+    </Style>
+
+    <Style Selector="^[AcceptsReturn=True]:error">
+      <Setter Property="Padding" Value="{StaticResource TextBoxMultilinePaddingThickUnderline}" />
+    </Style>
+  </ControlTheme>
+
+  <!-- .TextBoxHeader —— 输入框上方的字段名，是给 TextBlock 用的
+       keyed ControlTheme：Theme="{StaticResource TextBoxHeaderStyle}"。
+       下边距 8（Space2）。 -->
+  <ControlTheme x:Key="TextBoxHeaderStyle" TargetType="TextBlock"
+                BasedOn="{StaticResource BodyTextBlockStyle}">
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="Margin" Value="0,0,0,8" />
+  </ControlTheme>
+
+  <!-- .TextBoxError —— 校验提示，caption 字号 + critical 色，上边距 4（Space1）。
+       长句要换行，量程说明经常比框宽。 -->
+  <ControlTheme x:Key="TextBoxErrorStyle" TargetType="TextBlock"
+                BasedOn="{StaticResource CaptionTextBlockStyle}">
+    <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+    <Setter Property="Margin" Value="0,4,0,0" />
+    <Setter Property="TextWrapping" Value="Wrap" />
+  </ControlTheme>
+
+</ResourceDictionary>

@@ -1,0 +1,60 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             x:Class="Cobalt.Fluent.Gallery.Pages.CheckBoxPage">
+
+  <StackPanel HorizontalAlignment="Left">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="CheckBox" />
+      <Border Classes="tag"><TextBlock Text="2 · 基础输入" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead"
+               Text="20×20，4px 圆角。三态：未选 / 已选 / 不确定。勾和短横都画成矢量路径，不依赖图标字体——嵌入式 Linux 上没有 Segoe Fluent Icons。" />
+
+    <TextBlock Classes="sub" Text="unchecked" />
+    <g:SpecMatrix>
+      <g:SpecMatrix.Sample>
+        <DataTemplate><CheckBox Content="启用记录" /></DataTemplate>
+      </g:SpecMatrix.Sample>
+    </g:SpecMatrix>
+
+    <TextBlock Classes="sub" Text=":checked" />
+    <g:SpecMatrix States="checked,pointerover,pressed,disabled,focus">
+      <g:SpecMatrix.Sample>
+        <DataTemplate><CheckBox Content="启用记录" IsChecked="True" /></DataTemplate>
+      </g:SpecMatrix.Sample>
+    </g:SpecMatrix>
+
+    <TextBlock Classes="sub" Text=":indeterminate — 「部分通道已选」" />
+    <g:SpecMatrix States="rest,pointerover,disabled">
+      <g:SpecMatrix.Sample>
+        <DataTemplate>
+          <CheckBox Content="全部通道" IsThreeState="True" IsChecked="{x:Null}" />
+        </DataTemplate>
+      </g:SpecMatrix.Sample>
+    </g:SpecMatrix>
+
+    <TextBlock Classes="sub" Text="试玩 — 三态循环" />
+    <Border Classes="play">
+      <StackPanel Spacing="12">
+        <CheckBox x:Name="Parent" Content="全部通道" IsThreeState="True" />
+        <StackPanel Margin="28,0,0,0" Spacing="8">
+          <CheckBox x:Name="Ch1" Content="通道 1 · 温度" IsChecked="True" />
+          <CheckBox x:Name="Ch2" Content="通道 2 · 压力" />
+          <CheckBox x:Name="Ch3" Content="通道 3 · 搅拌" />
+        </StackPanel>
+        <TextBlock Classes="note" MaxWidth="700"
+                   Text="表头 CheckBox 三态联动：部分选中 → :indeterminate，全选 → :checked，全不选 → unchecked。反过来点表头会把整组一起切。" />
+      </StackPanel>
+    </Border>
+
+    <g:MapBlock Note="IsThreeState=True 才有 :indeterminate。工业界面里「部分通道已选」的场景经常需要它。">
+      <g:MapRow Key="控件" Value="CheckBox" />
+      <g:MapRow Key="选择器" Value="CheckBox:checked · CheckBox:indeterminate · CheckBox:unchecked" />
+      <g:MapRow Key="资源键" Value="ControlAltFillColorSecondary/Tertiary/QuarternaryBrush（框底）· ControlStrongStrokeColorDefaultBrush（框边）· AccentFillColorDefaultBrush（选中）· TextOnAccentFillColorPrimaryBrush（勾）" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

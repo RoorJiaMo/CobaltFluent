@@ -1,0 +1,338 @@
+{
+  "文字": {
+    "TextFillColorPrimary": {
+      "light": "#E4000000",
+      "dark": "#FFFFFFFF"
+    },
+    "TextFillColorSecondary": {
+      "light": "#9E000000",
+      "dark": "#C5FFFFFF"
+    },
+    "TextFillColorTertiary": {
+      "light": "#72000000",
+      "dark": "#87FFFFFF"
+    },
+    "TextFillColorDisabled": {
+      "light": "#5C000000",
+      "dark": "#5DFFFFFF"
+    },
+    "TextOnAccentFillColorPrimary": {
+      "light": "#FFFFFFFF",
+      "dark": "#FF000000"
+    },
+    "TextOnAccentFillColorSecondary": {
+      "light": "#B2FFFFFF",
+      "dark": "#80000000"
+    },
+    "AccentTextFillColorPrimary": {
+      "light": "#FF003E92",
+      "dark": "#FF99EBFF"
+    }
+  },
+  "表面与层": {
+    "SolidBackgroundFillColorBase": {
+      "light": "#FFF3F3F3",
+      "dark": "#FF202020"
+    },
+    "SolidBackgroundFillColorSecondary": {
+      "light": "#FFEEEEEE",
+      "dark": "#FF1C1C1C"
+    },
+    "SolidBackgroundFillColorTertiary": {
+      "light": "#FFF9F9F9",
+      "dark": "#FF282828"
+    },
+    "SolidBackgroundFillColorQuarternary": {
+      "light": "#FFFFFFFF",
+      "dark": "#FF2C2C2C"
+    },
+    "LayerFillColorDefault": {
+      "light": "#80FFFFFF",
+      "dark": "#4C3A3A3A"
+    },
+    "LayerFillColorAlt": {
+      "light": "#FFFFFFFF",
+      "dark": "#0DFFFFFF"
+    },
+    "CardBackgroundFillColorDefault": {
+      "light": "#B2FFFFFF",
+      "dark": "#0DFFFFFF"
+    },
+    "CardBackgroundFillColorSecondary": {
+      "light": "#80F6F6F6",
+      "dark": "#08FFFFFF"
+    },
+    "SmokeFillColorDefault": {
+      "light": "#4C000000",
+      "dark": "#4C000000"
+    },
+    "AcrylicBackgroundFillColorDefault": {
+      "light": "#D9FCFCFC",
+      "dark": "#D92C2C2C"
+    }
+  },
+  "控件填充": {
+    "ControlFillColorDefault": {
+      "light": "#B2FFFFFF",
+      "dark": "#0FFFFFFF"
+    },
+    "ControlFillColorSecondary": {
+      "light": "#80F9F9F9",
+      "dark": "#15FFFFFF"
+    },
+    "ControlFillColorTertiary": {
+      "light": "#4CF9F9F9",
+      "dark": "#08FFFFFF"
+    },
+    "ControlFillColorDisabled": {
+      "light": "#4CF9F9F9",
+      "dark": "#0BFFFFFF"
+    },
+    "ControlFillColorInputActive": {
+      "light": "#FFFFFFFF",
+      "dark": "#B21E1E1E"
+    },
+    "ControlStrongFillColorDefault": {
+      "light": "#72000000",
+      "dark": "#8BFFFFFF"
+    },
+    "ControlStrongFillColorDisabled": {
+      "light": "#51000000",
+      "dark": "#3FFFFFFF"
+    },
+    "ControlSolidFillColorDefault": {
+      "light": "#FFFFFFFF",
+      "dark": "#FF454545"
+    },
+    "ControlAltFillColorSecondary": {
+      "light": "#06000000",
+      "dark": "#19000000"
+    },
+    "ControlAltFillColorTertiary": {
+      "light": "#0F000000",
+      "dark": "#0BFFFFFF"
+    },
+    "ControlAltFillColorQuarternary": {
+      "light": "#18000000",
+      "dark": "#12FFFFFF"
+    }
+  },
+  "Subtle": {
+    "SubtleFillColorSecondary": {
+      "light": "#09000000",
+      "dark": "#0FFFFFFF"
+    },
+    "SubtleFillColorTertiary": {
+      "light": "#06000000",
+      "dark": "#0AFFFFFF"
+    }
+  },
+  "强调": {
+    "AccentFillColorDefault": {
+      "light": "#FF0067C0",
+      "dark": "#FF4CC2FF"
+    },
+    "AccentFillColorSecondary": {
+      "light": "#E60067C0",
+      "dark": "#E64CC2FF"
+    },
+    "AccentFillColorTertiary": {
+      "light": "#CC0067C0",
+      "dark": "#CC4CC2FF"
+    },
+    "AccentFillColorDisabled": {
+      "light": "#37000000",
+      "dark": "#28FFFFFF"
+    }
+  },
+  "描边": {
+    "ControlStrokeColorDefault": {
+      "light": "#0F000000",
+      "dark": "#12FFFFFF"
+    },
+    "ControlStrokeColorSecondary": {
+      "light": "#29000000",
+      "dark": "#18FFFFFF"
+    },
+    "ControlStrokeColorOnAccentDefault": {
+      "light": "#14FFFFFF",
+      "dark": "#14FFFFFF"
+    },
+    "ControlStrokeColorOnAccentSecondary": {
+      "light": "#66000000",
+      "dark": "#23000000"
+    },
+    "ControlStrongStrokeColorDefault": {
+      "light": "#72000000",
+      "dark": "#8BFFFFFF"
+    },
+    "CardStrokeColorDefault": {
+      "light": "#0F000000",
+      "dark": "#19000000"
+    },
+    "SurfaceStrokeColorDefault": {
+      "light": "#66757575",
+      "dark": "#66757575"
+    },
+    "SurfaceStrokeColorFlyout": {
+      "light": "#0F000000",
+      "dark": "#33000000"
+    },
+    "DividerStrokeColorDefault": {
+      "light": "#0F000000",
+      "dark": "#15FFFFFF"
+    },
+    "FocusStrokeColorOuter": {
+      "light": "#E4000000",
+      "dark": "#FFFFFFFF"
+    },
+    "FocusStrokeColorInner": {
+      "light": "#B2FFFFFF",
+      "dark": "#B2000000"
+    }
+  },
+  "状态": {
+    "SystemFillColorSuccess": {
+      "light": "#FF0F7B0F",
+      "dark": "#FF6CCB5F"
+    },
+    "SystemFillColorCaution": {
+      "light": "#FF9D5D00",
+      "dark": "#FFFCE100"
+    },
+    "SystemFillColorCritical": {
+      "light": "#FFC42B1C",
+      "dark": "#FFFF99A4"
+    },
+    "SystemFillColorNeutral": {
+      "light": "#FF8A8A8A",
+      "dark": "#FF9D9D9D"
+    },
+    "SystemFillColorSuccessBackground": {
+      "light": "#FFDFF6DD",
+      "dark": "#FF393D1B"
+    },
+    "SystemFillColorCautionBackground": {
+      "light": "#FFFFF4CE",
+      "dark": "#FF433519"
+    },
+    "SystemFillColorCriticalBackground": {
+      "light": "#FFFDE7E9",
+      "dark": "#FF442726"
+    },
+    "SystemFillColorAttentionBackground": {
+      "light": "#80F6F6F6",
+      "dark": "#08FFFFFF"
+    }
+  },
+  "图表色板": {
+    "ChartSeries1": {
+      "light": "#FF0078D4",
+      "dark": "#FF60CDFF"
+    },
+    "ChartSeries2": {
+      "light": "#FFCA5010",
+      "dark": "#FFFF8C42"
+    },
+    "ChartSeries3": {
+      "light": "#FF038387",
+      "dark": "#FF38D6D6"
+    },
+    "ChartSeries4": {
+      "light": "#FF8764B8",
+      "dark": "#FFC3A6FF"
+    },
+    "ChartSeries5": {
+      "light": "#FFC239B3",
+      "dark": "#FFF07CE0"
+    },
+    "ChartSeries6": {
+      "light": "#FF986F0B",
+      "dark": "#FFE3B23C"
+    },
+    "ChartSeries7": {
+      "light": "#FF4F6BED",
+      "dark": "#FF9AAEFF"
+    },
+    "ChartSeries8": {
+      "light": "#FF4A6572",
+      "dark": "#FF93B0BF"
+    },
+    "ChartGridLine": {
+      "light": "#0F000000",
+      "dark": "#15FFFFFF"
+    },
+    "ChartAxisLine": {
+      "light": "#72000000",
+      "dark": "#87FFFFFF"
+    },
+    "ChartBand": {
+      "light": "#09000000",
+      "dark": "#0DFFFFFF"
+    }
+  },
+  "安全色": {
+    "SafetyRed": {
+      "light": "#FFC42B1C",
+      "dark": "#FFE81123"
+    },
+    "SafetyRedHigh": {
+      "light": "#FFE81123",
+      "dark": "#FFFF4343"
+    },
+    "SafetyYellow": {
+      "light": "#FFFFB900",
+      "dark": "#FFFFB900"
+    },
+    "TextOnSafetyFillColorPrimary": {
+      "light": "#FFFFFFFF",
+      "dark": "#FFFFFFFF"
+    },
+    "SafetyOverlayFillColorDefault": {
+      "light": "#29FFFFFF",
+      "dark": "#29FFFFFF"
+    },
+    "SafetyOverlayFillColorSecondary": {
+      "light": "#42FFFFFF",
+      "dark": "#42FFFFFF"
+    },
+    "SafetyOverlayStrokeColorDefault": {
+      "light": "#3DFFFFFF",
+      "dark": "#3DFFFFFF"
+    },
+    "SafetyOverlayShadeColorDefault": {
+      "light": "#3D000000",
+      "dark": "#3D000000"
+    }
+  },
+  "强调色梯（Win11 的 accent palette）": {
+    "SystemAccentColor": {
+      "light": "#FF0078D4",
+      "dark": "#FF0078D4"
+    },
+    "SystemAccentColorLight1": {
+      "light": "#FF0091F8",
+      "dark": "#FF0091F8"
+    },
+    "SystemAccentColorLight2": {
+      "light": "#FF4CC2FF",
+      "dark": "#FF4CC2FF"
+    },
+    "SystemAccentColorLight3": {
+      "light": "#FF99EBFF",
+      "dark": "#FF99EBFF"
+    },
+    "SystemAccentColorDark1": {
+      "light": "#FF0067C0",
+      "dark": "#FF0067C0"
+    },
+    "SystemAccentColorDark2": {
+      "light": "#FF003E92",
+      "dark": "#FF003E92"
+    },
+    "SystemAccentColorDark3": {
+      "light": "#FF001A68",
+      "dark": "#FF001A68"
+    }
+  }
+}

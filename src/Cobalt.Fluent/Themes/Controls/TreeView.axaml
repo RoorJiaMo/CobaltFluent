@@ -1,0 +1,269 @@
+<!-- TreeView / TreeViewItem。
+
+     和 ListBox 的三处差别：
+       项高 32（ListBox 是 40，树要更密）· 每级缩进 16 · 最左一个 24×24 的展开箭头。
+
+     两处必须动 Template 的地方：
+       1) 选中指示条 —— 3×16 贴左边垂直居中，和 ListBoxItem / NavigationViewItem /
+          ComboBoxItem 共用 Metrics/Shared 里那组键。
+          指示条压在 PART_LayoutRoot 的左边缘上、**不吃缩进**：缩进是内边距，
+          行盒仍然从最左起，所以深层节点的指示条也贴在整行最左。
+       2) 缩进 —— 由模板拿 TreeViewItem.Level 过 MarginMultiplierConverter 算，
+          任意深度自动成立，不靠一层一个写死的类。
+          缩进落在 PART_Header 上而不是 PART_LayoutRoot 上 —— 底色和指示条要铺满整行。
+
+     箭头走 fc:SymbolIcon 的 ChevronRight—— 不用图标字体是因为嵌入式设备上不能假设有 Segoe Fluent Icons，
+     不自己画 Path 是因为全库 chevron 必须共用同一支，否则和 ComboBox / Expander 的对不齐。
+     展开时转 90°，83ms（ControlFasterAnimationDuration），缓动 0.33,0,0.67,1。
+     只动 transform，不动布局。
+
+     叶子节点的箭头是「占位但不显示」—— Opacity=0 而不是 IsVisible=False。
+     IsVisible=False 会让那 24px 塌掉，同级文字就对不齐了。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:converters="using:Avalonia.Controls.Converters"
+                    xmlns:fc="using:Cobalt.Fluent.Controls">
+
+  <!-- 每级缩进 16，逐级累加 -->
+  <x:Double x:Key="TreeViewItemIndent">16</x:Double>
+  <!-- 箭头方框 24×24 在最左，字形本体 8px -->
+  <x:Double x:Key="TreeViewItemChevronSize">24</x:Double>
+  <x:Double x:Key="TreeViewItemChevronGlyphSize">8</x:Double>
+
+  <converters:MarginMultiplierConverter x:Key="TreeViewItemIndentConverter"
+                                        Indent="{StaticResource TreeViewItemIndent}"
+                                        Left="True" />
+
+  <!-- 展开箭头。自己不带底色也不带 hover —— 它只管颜色和旋转，
+       整行的 hover 底由 PART_LayoutRoot 负责，箭头再叠一层会出现「格子里套格子」。
+       Focusable=False：焦点归整行，箭头不单独进 Tab 序。 -->
+  <ControlTheme x:Key="TreeViewItemChevronToggleButton" TargetType="ToggleButton">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="Width" Value="{DynamicResource TreeViewItemChevronSize}" />
+    <Setter Property="Height" Value="{DynamicResource TreeViewItemChevronSize}" />
+    <Setter Property="MinWidth" Value="0" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="Focusable" Value="False" />
+    <Setter Property="Cursor" Value="Arrow" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="ToggleButton">
+        <Border x:Name="PART_Root"
+                Background="{TemplateBinding Background}"
+                Width="{TemplateBinding Width}"
+                Height="{TemplateBinding Height}">
+          <!-- 全库 chevron 共用 fc:SymbolIcon 这一支，字形本体 8px。 -->
+          <fc:SymbolIcon x:Name="PART_Glyph"
+                         Symbol="ChevronRight"
+                         FontSize="{DynamicResource TreeViewItemChevronGlyphSize}"
+                         Foreground="{TemplateBinding Foreground}"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center"
+                         RenderTransformOrigin="50%,50%">
+            <fc:SymbolIcon.Transitions>
+              <Transitions>
+                <!-- 只过渡 transform：83ms / 0.33,0,0.67,1 -->
+                <TransformOperationsTransition Property="RenderTransform"
+                                               Duration="{StaticResource ControlFasterAnimationDuration}"
+                                               Easing="0.33,0,0.67,1" />
+              </Transitions>
+            </fc:SymbolIcon.Transitions>
+          </fc:SymbolIcon>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- 起手角度写成 Style 而不是模板里的字面值：字面值是 LocalValue，优先级压过 Style，
+         下面那条 :checked 就转不动了（和 Expander 的 chevron 同一个坑）。 -->
+    <Style Selector="^ /template/ fc|SymbolIcon#PART_Glyph">
+      <Setter Property="RenderTransform" Value="none" />
+    </Style>
+
+    <!-- 展开时箭头转 90°。
+         Avalonia 11.3 的 TreeViewItem 没有 :expanded 伪类（只有 :empty / :selected 那几个），
+         所以展开态从这只 ToggleButton 的 IsChecked 走 —— 它和 IsExpanded 是 TwoWay 绑的，
+         两者永远同步。 -->
+    <Style Selector="^:checked /template/ fc|SymbolIcon#PART_Glyph">
+      <Setter Property="RenderTransform" Value="rotate(90deg)" />
+    </Style>
+  </ControlTheme>
+
+  <!-- TreeView —— 只有 4 的内边距。
+       容器本身不带底色不带描边：要「一棵树一张卡」，在使用处套一只 fc:Card
+       或覆盖 Background / BorderThickness 即可，不在这里预设。 -->
+  <ControlTheme x:Key="{x:Type TreeView}" TargetType="TreeView">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <!-- 内边距 4。Metrics 里 Space1 是 x:Double，Thickness 位上转不过去，写字面量 -->
+    <Setter Property="Padding" Value="4" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <!-- 横向不滚：整行底色和选中指示条要铺满可视宽度，横滚会让它们参差不齐 -->
+    <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+    <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+    <Setter Property="ScrollViewer.IsScrollChainingEnabled" Value="True" />
+    <Setter Property="ScrollViewer.IsScrollInertiaEnabled" Value="True" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="TreeView">
+        <Border x:Name="PART_Root"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}">
+          <ScrollViewer x:Name="PART_ScrollViewer"
+                        HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
+                        VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}"
+                        IsScrollChainingEnabled="{TemplateBinding (ScrollViewer.IsScrollChainingEnabled)}"
+                        IsScrollInertiaEnabled="{TemplateBinding (ScrollViewer.IsScrollInertiaEnabled)}"
+                        IsDeferredScrollingEnabled="{TemplateBinding (ScrollViewer.IsDeferredScrollingEnabled)}"
+                        AllowAutoHide="{TemplateBinding (ScrollViewer.AllowAutoHide)}"
+                        BringIntoViewOnFocusChange="{TemplateBinding (ScrollViewer.BringIntoViewOnFocusChange)}">
+            <!-- 容器的 Padding 落在这里：内置模板就是拿它当 ItemsPresenter 的 Margin -->
+            <ItemsPresenter x:Name="PART_ItemsPresenter"
+                            ItemsPanel="{TemplateBinding ItemsPanel}"
+                            Margin="{TemplateBinding Padding}" />
+          </ScrollViewer>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^:disabled">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+    </Style>
+  </ControlTheme>
+
+  <!-- TreeViewItem —— 32 高、4px 圆角、右边留 12、箭头和内容之间留 8，
+       hover / selected 同一档 subtle-hover，选中时左边多一根 3×16 强调色指示条。 -->
+  <ControlTheme x:Key="{x:Type TreeViewItem}" TargetType="TreeViewItem">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <!-- 左 8 是箭头到内容的间距，右 12 是行尾留白 -->
+    <Setter Property="Padding" Value="8,0,12,0" />
+    <!-- 行高 32。写 MinHeight 而不是 Height，节点带两行副标题时不会被裁 -->
+    <Setter Property="MinHeight" Value="{DynamicResource TreeViewItemHeight}" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <!-- 设备树里全是「通道 1 / 工位 12 / DI-03」这类带编号的节点名，等宽才不会逐行横移 -->
+    <Setter Property="FontFeatures" Value="{StaticResource TabularNumbers}" />
+    <!-- 不变手型：树节点是内容不是链接 -->
+    <Setter Property="Cursor" Value="Arrow" />
+    <Setter Property="FocusAdorner" Value="{StaticResource FluentFocusAdorner}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="TreeViewItem">
+        <StackPanel>
+          <!-- IsTemplateFocusTarget：聚焦框只圈这一行。不写的话展开后
+               焦点框会把整棵子树一起圈进去（StackPanel 才是控件的根）。 -->
+          <Border x:Name="PART_LayoutRoot"
+                  Focusable="True"
+                  TemplatedControl.IsTemplateFocusTarget="True"
+                  Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  CornerRadius="{TemplateBinding CornerRadius}"
+                  MinHeight="{TemplateBinding MinHeight}">
+            <!-- 只过渡颜色，不过渡位移。底色状态都落在这只 Border 上（见下面的选择器），
+                 所以过渡也必须挂在这里，挂在 TreeViewItem 上不会生效。 -->
+            <Border.Transitions>
+              <Transitions>
+                <BrushTransition Property="Background" Duration="{StaticResource ControlFasterAnimationDuration}" />
+              </Transitions>
+            </Border.Transitions>
+            <Panel>
+              <!-- 选中指示条。
+                   在 PART_Header 外面，所以不跟着缩进走。默认隐藏，由 ^:selected 打开。 -->
+              <Rectangle x:Name="PART_SelectionIndicator"
+                         Width="{DynamicResource SelectionIndicatorWidth}"
+                         Height="{DynamicResource SelectionIndicatorHeight}"
+                         RadiusX="{DynamicResource SelectionIndicatorRadius}"
+                         RadiusY="{DynamicResource SelectionIndicatorRadius}"
+                         Fill="{DynamicResource AccentFillColorDefaultBrush}"
+                         HorizontalAlignment="Left"
+                         VerticalAlignment="Center"
+                         IsHitTestVisible="False"
+                         IsVisible="False" />
+
+              <!-- 每级 16 的缩进就在这只 Margin 上。Level 是 TreeViewItem 自己算的，
+                   不需要使用方标类。 -->
+              <Grid x:Name="PART_Header"
+                    ColumnDefinitions="Auto,*"
+                    Margin="{TemplateBinding Level, Mode=OneWay, Converter={StaticResource TreeViewItemIndentConverter}}">
+                <Panel x:Name="PART_ExpandCollapseChevronContainer"
+                       Grid.Column="0"
+                       Width="{DynamicResource TreeViewItemChevronSize}"
+                       Height="{DynamicResource TreeViewItemChevronSize}"
+                       VerticalAlignment="Center">
+                  <ToggleButton x:Name="PART_ExpandCollapseChevron"
+                                Theme="{StaticResource TreeViewItemChevronToggleButton}"
+                                IsChecked="{TemplateBinding IsExpanded, Mode=TwoWay}" />
+                </Panel>
+
+                <!-- TreeViewItem 是 HeaderedItemsControl，没有 ContentControl 那两个
+                     Horizontal/VerticalContentAlignment，对齐只能写在这只 presenter 上。
+                     行内容垂直居中就是这里的 Center。 -->
+                <ContentPresenter x:Name="PART_HeaderPresenter"
+                                  Grid.Column="1"
+                                  Focusable="False"
+                                  Content="{TemplateBinding Header}"
+                                  ContentTemplate="{TemplateBinding HeaderTemplate}"
+                                  Foreground="{TemplateBinding Foreground}"
+                                  Padding="{TemplateBinding Padding}"
+                                  HorizontalContentAlignment="Left"
+                                  VerticalContentAlignment="Center" />
+              </Grid>
+            </Panel>
+          </Border>
+
+          <ItemsPresenter x:Name="PART_ItemsPresenter"
+                          IsVisible="{TemplateBinding IsExpanded}"
+                          ItemsPanel="{TemplateBinding ItemsPanel}" />
+        </StackPanel>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- 选中项不吃 hover 底，否则指示条那行会闪。
+         悬停必须看 PART_LayoutRoot 而不是 TreeViewItem 自己：子节点是父节点的可视后代，
+         鼠标停在深层节点上时，它上面每一级祖先的 :pointerover 都是 true，
+         写成 ^:pointerover 会整条祖先链一起亮。Avalonia 内置模板也是这么绕的。 -->
+    <Style Selector="^:not(:selected) /template/ Border#PART_LayoutRoot:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+    </Style>
+
+    <!-- 选中和 hover 同一档 subtle-hover，靠指示条区分 -->
+    <Style Selector="^:selected /template/ Border#PART_LayoutRoot">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+    </Style>
+    <Style Selector="^:selected /template/ Rectangle#PART_SelectionIndicator">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+
+    <Style Selector="^:disabled">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+      <Style Selector="^ /template/ Rectangle#PART_SelectionIndicator">
+        <Setter Property="Fill" Value="{DynamicResource AccentFillColorDisabledBrush}" />
+      </Style>
+      <Style Selector="^ /template/ ToggleButton#PART_ExpandCollapseChevron">
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+      </Style>
+    </Style>
+
+    <!-- 叶子节点的箭头隐形但占位。
+         :empty 是 Avalonia 给「没有子节点」的伪类。用 Opacity 而不是 IsVisible：
+         IsVisible=False 那 24px 会塌掉，叶子和同级的枝节点文字就对不齐了。 -->
+    <Style Selector="^:empty /template/ ToggleButton#PART_ExpandCollapseChevron">
+      <Setter Property="Opacity" Value="0" />
+      <Setter Property="IsHitTestVisible" Value="False" />
+    </Style>
+  </ControlTheme>
+
+</ResourceDictionary>

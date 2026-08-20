@@ -1,0 +1,183 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             xmlns:fc="using:Cobalt.Fluent.Controls"
+             x:Class="Cobalt.Fluent.Gallery.Pages.FoundationsPage">
+
+  <StackPanel HorizontalAlignment="Left" MaxWidth="860">
+
+    <StackPanel.Styles>
+      <!-- 这一节全是文字，条目多。标题一行、正文一行，比挤成一段好扫。 -->
+      <Style Selector="TextBlock.rule-title">
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Margin" Value="0,0,0,2" />
+      </Style>
+      <Style Selector="TextBlock.rule">
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+      </Style>
+      <!-- 伪类表两列都是代码，等宽才对得齐 -->
+      <Style Selector="TextBlock.cell">
+        <Setter Property="FontFamily" Value="{DynamicResource MonospaceFontFamily}" />
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+      </Style>
+      <Style Selector="TextBlock.cell-head">
+        <Setter Property="FontSize" Value="12" />
+        <Setter Property="FontWeight" Value="SemiBold" />
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+      </Style>
+    </StackPanel.Styles>
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="设计基线" />
+      <Border Classes="tag"><TextBlock Text="总则" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead"
+               Text="全库共用的几条硬规则。它们不是风格偏好，是让 57 个控件摆在同一屏上还能读得出层次的前提——单看一个控件，怎么画都说得通；十几个凑在一起，只有一套一致的层、圆角、阴影和字重才不会互相打架。后面每一节的规格都建立在这四条之上。" />
+
+    <TextBlock Classes="sub" Text="画面只有两层 — base layer / content layer" />
+    <Border Classes="panel" HorizontalAlignment="Stretch">
+      <StackPanel Spacing="14">
+        <StackPanel>
+          <TextBlock Classes="rule-title" Text="base layer — 窗口底" />
+          <TextBlock Classes="rule" Text="SolidBackgroundFillColorBaseBrush 的实色底。导航面板、CommandBar、DataGridToolbar、Pagination 都住在这一层——它们是框架不是内容，不要套进卡片里。" />
+        </StackPanel>
+        <StackPanel>
+          <TextBlock Classes="rule-title" Text="content layer — 内容区" />
+          <TextBlock Classes="rule" Text="半透明的 LayerFillColorDefaultBrush + 1px 描边，靠向窗口内侧的那个角切 8px 圆角。数据、表格、表单在这一层。" />
+        </StackPanel>
+        <StackPanel>
+          <TextBlock Classes="rule-title" Text="Card 不是第三层" />
+          <TextBlock Classes="rule" Text="Card 是 content layer 内部的分区：4px 圆角、半透明底 + 1px 描边、不加阴影。想再叠一层的时候，通常是信息该拆页面了。" />
+        </StackPanel>
+        <StackPanel>
+          <TextBlock Classes="rule-title" Text="弹出层浮在两层之上" />
+          <TextBlock Classes="rule" Text="ToolTip / Flyout / MenuFlyout / ContentDialog / TeachingTip 不参与这两层的排布，它们靠阴影表达「浮起来」，也是整个库里唯一带阴影的东西。" />
+        </StackPanel>
+      </StackPanel>
+    </Border>
+    <TextBlock Classes="note"
+               Text="层级错了最典型的症状是把 CommandBar 塞进 Card：工具栏跟着内容一起半透明，底下的表格反而显得比工具条更「实」。" />
+
+    <TextBlock Classes="sub" Text="圆角只有 8 / 4 / 0 三个值" />
+    <Border Classes="panel" HorizontalAlignment="Stretch">
+      <StackPanel Spacing="14">
+        <StackPanel>
+          <TextBlock Classes="rule-title" Text="8 — OverlayCornerRadius" />
+          <TextBlock Classes="rule" Text="窗口、ContentDialog、Flyout、MenuFlyout、ComboBox 和日期控件展开的面板。" />
+        </StackPanel>
+        <StackPanel>
+          <TextBlock Classes="rule-title" Text="4 — ControlCornerRadius" />
+          <TextBlock Classes="rule" Text="按钮、输入框、列表项、进度条、Card。ToolTip 也是 4——它是唯一走控件圆角的弹出层，尺寸太小，8 会显得过圆。" />
+        </StackPanel>
+        <StackPanel>
+          <TextBlock Classes="rule-title" Text="0 — 相接处" />
+          <TextBlock Classes="rule" Text="SplitButton 左半 4,0,0,4、右半 0,4,4,0，中间一条 1px 分隔；SettingsGroup 成组时只有首尾圆角，中间项圆角会让整组看起来散掉。" />
+        </StackPanel>
+      </StackPanel>
+    </Border>
+    <TextBlock Classes="note"
+               Text="相接处用 ControlCornerRadiusLeft / Right / Top / Bottom 这几个写死的键，不要拿 ControlCornerRadius 绑——绑了的话改全局圆角时接缝会裂开。唯一不走 8/4/0 的是日历格：36×36 配 CornerRadius 18，正圆。" />
+
+    <TextBlock Classes="sub" Text="阴影只给悬浮层" />
+    <Border Classes="panel" HorizontalAlignment="Stretch">
+      <StackPanel Spacing="14">
+        <StackPanel>
+          <TextBlock Classes="rule-title" Text="三档，对应三种浮起高度" />
+          <TextBlock Classes="rule" Text="ToolTip 0 4 8；Flyout / MenuFlyout / 下拉面板 0 8 16；ContentDialog 0 32 64，另加 Smoke 遮罩。" />
+        </StackPanel>
+        <StackPanel>
+          <TextBlock Classes="rule-title" Text="页面内元素一律靠描边" />
+          <TextBlock Classes="rule" Text="Card、Expander、SettingsCard、展示面板都不加阴影。用阴影区分同一层里的两个方块是 Material 的做法，Fluent 靠的是描边和填充深浅。" />
+        </StackPanel>
+        <StackPanel>
+          <TextBlock Classes="rule-title" Text="亚克力和描边成对" />
+          <TextBlock Classes="rule" Text="Flyout 用 SurfaceStrokeColorFlyoutBrush，常驻面板用 SurfaceStrokeColorDefaultBrush，混用视觉会错。嵌入式 Linux / Mali GPU 上亚克力要关掉换实色，描边保持不变。" />
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <TextBlock Classes="sub" Text="字重只有 400 / 600" />
+    <Border Classes="panel" HorizontalAlignment="Stretch">
+      <StackPanel Spacing="14">
+        <StackPanel>
+          <TextBlock Classes="rule-title" Text="Regular 400 — 默认正文" />
+          <TextBlock Classes="rule" Text="绝大多数 UI 文字，包括 Body Large 和 Title Large。" />
+        </StackPanel>
+        <StackPanel>
+          <TextBlock Classes="rule-title" Text="Semibold 600 — 强调" />
+          <TextBlock Classes="rule" Text="表头、卡片小标题、Subtitle 和 Title。强调用 Semibold，不用 Bold（700），也不用斜体——中文没有真正的斜体，合成出来的在小字号下糊成一团。" />
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <TextBlock Classes="sub" Text="状态伪类 — 全库共用这一套" />
+    <Border Classes="panel" HorizontalAlignment="Stretch">
+      <Grid ColumnDefinitions="260,*" RowSpacing="7" ColumnSpacing="16"
+            RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+
+        <TextBlock Grid.Row="0" Grid.Column="0" Classes="cell-head" Text="伪类" />
+        <TextBlock Grid.Row="0" Grid.Column="1" Classes="cell-head" Text="谁来打，什么时候" />
+
+        <TextBlock Grid.Row="1" Grid.Column="0" Classes="cell" Text=":pointerover" />
+        <TextBlock Grid.Row="1" Grid.Column="1" Classes="cell" Text="Avalonia 内置 — 指针悬停" />
+
+        <TextBlock Grid.Row="2" Grid.Column="0" Classes="cell" Text=":pressed" />
+        <TextBlock Grid.Row="2" Grid.Column="1" Classes="cell" Text="Avalonia 内置 — 按住不放" />
+
+        <TextBlock Grid.Row="3" Grid.Column="0" Classes="cell" Text=":disabled" />
+        <TextBlock Grid.Row="3" Grid.Column="1" Classes="cell" Text="Avalonia 内置 — IsEnabled=False，沿视觉树往下传" />
+
+        <TextBlock Grid.Row="4" Grid.Column="0" Classes="cell" Text=":focus-visible" />
+        <TextBlock Grid.Row="4" Grid.Column="1" Classes="cell" Text="Avalonia 内置 — 键盘走到的焦点才画框，鼠标点的不画" />
+
+        <TextBlock Grid.Row="5" Grid.Column="0" Classes="cell" Text=":checked / :indeterminate" />
+        <TextBlock Grid.Row="5" Grid.Column="1" Classes="cell" Text="Avalonia 内置 — ToggleButton 家族的 IsChecked" />
+
+        <TextBlock Grid.Row="6" Grid.Column="0" Classes="cell" Text=":selected / :expanded" />
+        <TextBlock Grid.Row="6" Grid.Column="1" Classes="cell" Text="Avalonia 内置 — 列表项选中 / Expander 展开" />
+
+        <TextBlock Grid.Row="7" Grid.Column="0" Classes="cell" Text=":error" />
+        <TextBlock Grid.Row="7" Grid.Column="1" Classes="cell" Text="本库 — 校验不通过，压过 :pointerover 但让位给 :disabled" />
+
+        <TextBlock Grid.Row="8" Grid.Column="0" Classes="cell" Text=":dirty · :jogging · :engaged" />
+        <TextBlock Grid.Row="8" Grid.Column="1" Classes="cell" Text="本库第 7 组 — 在属性变化里 PseudoClasses.Set(&quot;:dirty&quot;, v)" />
+
+        <TextBlock Grid.Row="9" Grid.Column="0" Classes="cell" Text=":rangestart · :inrange · :rangeend" />
+        <TextBlock Grid.Row="9" Grid.Column="1" Classes="cell" Text="本库 — RangeCalendar 按选中区间的首尾补出来" />
+      </Grid>
+    </Border>
+    <TextBlock Classes="note"
+               Text="内置伪类不要另起炉灶：Avalonia 已经给了 :pointerover，就不要再自己维护一个 IsHovered 属性——两套状态迟早会对不上。反过来，第 7 组那些语义（写入未确认、正在点动、已使能）内置没有，必须自己 Set，并且在类上用 [PseudoClasses] 标出来，否则下一个人只能翻实现才知道有哪些态。" />
+
+    <TextBlock Classes="sub" Text="变量层 / 控件层 — 分开才换得动皮" />
+    <Border Classes="panel" HorizontalAlignment="Stretch">
+      <StackPanel Spacing="14">
+        <StackPanel>
+          <TextBlock Classes="rule-title" Text="变量层 — Themes/Tokens.axaml" />
+          <TextBlock Classes="rule" Text="只有颜色、没有控件。79 个键各配明暗两档，落在 ResourceDictionary.ThemeDictionaries 的 Light / Dark 两块里。这个文件是 tools/gen_tokens.py 从 tools/palette.json 生成的，不要手改。" />
+        </StackPanel>
+        <StackPanel>
+          <TextBlock Classes="rule-title" Text="控件层 — Themes/Controls/*.axaml" />
+          <TextBlock Classes="rule" Text="只引用变量、不出现任何 hex。唯一的例外是弹出层的 BoxShadow——它的语法收颜色不收画刷，而那两层黑是固定不透明度、不随主题变的。" />
+        </StackPanel>
+        <StackPanel>
+          <TextBlock Classes="rule-title" Text="分层是为了换皮时控件层一行不改" />
+          <TextBlock Classes="rule" Text="换主题色、做高对比度、给不同产品线定制外观，全都只动变量层。控件层里一旦出现裸色值，这条路就断了——所以那是本库唯一一条自动化检查盯着的硬规则。" />
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <g:MapBlock Note="这四条规则在每一节里都会再撞见一次：圆角看 SplitButton 和 SettingsGroup 的接缝，阴影看第 6 组的三档高度，层看 CommandBar 该放哪儿，字重看排版那一节的七档字阶。第 7 组还额外压了一条——安全色不跟随主题，急停和 alarm 级报警用 SafetyRedBrush，不要用 SystemFillColorCriticalBrush（后者深色下是浅粉）。">
+      <g:MapRow Key="层" Value="SolidBackgroundFillColorBaseBrush（base layer）· LayerFillColorDefaultBrush（content layer）· CardBackgroundFillColorDefaultBrush（Card）· AcrylicBackgroundFillColorDefaultBrush（弹出层）" />
+      <g:MapRow Key="圆角" Value="OverlayCornerRadius=8 · ControlCornerRadius=4 · ControlCornerRadiusLeft/Right/Top/Bottom（相接处，写死不绑）· CalendarDayButtonCornerRadius=18（唯一的正圆）" />
+      <g:MapRow Key="阴影" Value="只在 ToolTip / Flyout / MenuFlyout / ContentDialog / TeachingTip 五个 ControlTheme 里出现；BoxShadow 收颜色不收画刷，所以那里是全库唯一写字面色值的地方" />
+      <g:MapRow Key="字重" Value="Normal(400) · SemiBold(600)，没有 Bold、没有斜体。七档字阶见「排版 Typography」" />
+      <g:MapRow Key="伪类" Value="内置 :pointerover · :pressed · :disabled · :focus-visible · :checked · :selected · :expanded；本库另加 :error 和第 7 组那批，都在类上用 [PseudoClasses] 标出" />
+      <g:MapRow Key="生成物" Value="Themes/Tokens.axaml（tools/gen_tokens.py ← tools/palette.json）· Themes/CobaltFluentTheme.axaml 的合并列表（tools/gen_theme_index.py，编译前自动重建）· docs/CONTROLS.md（tools/gen_api_docs.py）" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

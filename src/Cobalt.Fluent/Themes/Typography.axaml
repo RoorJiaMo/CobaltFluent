@@ -1,0 +1,95 @@
+<!-- 字体栈与字阶。
+     字重只有 400 / 600 两档：无 Bold、无斜体，这是校验过的不变量。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- 嵌入式 Linux 上不能假设系统有 Segoe / 中文字体。
+       部署到 RK3568 这类设备时，把字体作为 avares:// 资源嵌进项目，
+       并在 App.Resources 里覆盖这三个键。 -->
+  <FontFamily x:Key="ContentControlThemeFontFamily">Segoe UI Variable Text, Segoe UI Variable, Segoe UI, Microsoft YaHei UI, PingFang SC, Noto Sans SC, $Default</FontFamily>
+  <FontFamily x:Key="DisplayControlThemeFontFamily">Segoe UI Variable Display, Segoe UI Variable, Segoe UI, Microsoft YaHei UI, $Default</FontFamily>
+  <FontFamily x:Key="MonospaceFontFamily">Cascadia Mono, Consolas, $Default</FontFamily>
+  <!-- 图标字形走 Segoe Fluent Icons 的码位；缺字体时由 Symbols.axaml 的 Path 兜底 -->
+  <FontFamily x:Key="SymbolThemeFontFamily">Segoe Fluent Icons, Segoe MDL2 Assets, $Default</FontFamily>
+
+  <x:Double x:Key="CaptionFontSize">12</x:Double>
+  <x:Double x:Key="BodyFontSize">14</x:Double>
+  <x:Double x:Key="BodyLargeFontSize">18</x:Double>
+  <x:Double x:Key="SubtitleFontSize">20</x:Double>
+  <x:Double x:Key="TitleFontSize">28</x:Double>
+  <x:Double x:Key="TitleLargeFontSize">40</x:Double>
+  <x:Double x:Key="DisplayFontSize">68</x:Double>
+
+  <x:Double x:Key="CaptionLineHeight">16</x:Double>
+  <x:Double x:Key="BodyLineHeight">20</x:Double>
+  <x:Double x:Key="BodyLargeLineHeight">24</x:Double>
+  <x:Double x:Key="SubtitleLineHeight">28</x:Double>
+  <x:Double x:Key="TitleLineHeight">36</x:Double>
+  <x:Double x:Key="TitleLargeLineHeight">52</x:Double>
+  <x:Double x:Key="DisplayLineHeight">92</x:Double>
+
+  <!-- 强调用 SemiBold，不要用 Bold。全库无 700。 -->
+  <FontWeight x:Key="ControlContentThemeFontWeight">Normal</FontWeight>
+  <FontWeight x:Key="ControlStrongFontWeight">SemiBold</FontWeight>
+
+  <!-- 全部读数、数值列、日期数字必须等宽。这在数值刷新的界面里不是可选项：
+       比例数字会让 84.6 → 84.9 整行横移。 -->
+  <FontFeatureCollection x:Key="TabularNumbers">tnum=1</FontFeatureCollection>
+
+  <ControlTheme x:Key="CaptionTextBlockStyle" TargetType="TextBlock">
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource CaptionFontSize}" />
+    <Setter Property="LineHeight" Value="{DynamicResource CaptionLineHeight}" />
+    <Setter Property="FontWeight" Value="Normal" />
+  </ControlTheme>
+
+  <ControlTheme x:Key="BodyTextBlockStyle" TargetType="TextBlock">
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="LineHeight" Value="{DynamicResource BodyLineHeight}" />
+    <Setter Property="FontWeight" Value="Normal" />
+  </ControlTheme>
+
+  <ControlTheme x:Key="BodyStrongTextBlockStyle" TargetType="TextBlock">
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="LineHeight" Value="{DynamicResource BodyLineHeight}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </ControlTheme>
+
+  <ControlTheme x:Key="BodyLargeTextBlockStyle" TargetType="TextBlock">
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyLargeFontSize}" />
+    <Setter Property="LineHeight" Value="{DynamicResource BodyLargeLineHeight}" />
+    <Setter Property="FontWeight" Value="Normal" />
+  </ControlTheme>
+
+  <ControlTheme x:Key="SubtitleTextBlockStyle" TargetType="TextBlock">
+    <Setter Property="FontFamily" Value="{DynamicResource DisplayControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource SubtitleFontSize}" />
+    <Setter Property="LineHeight" Value="{DynamicResource SubtitleLineHeight}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </ControlTheme>
+
+  <ControlTheme x:Key="TitleTextBlockStyle" TargetType="TextBlock">
+    <Setter Property="FontFamily" Value="{DynamicResource DisplayControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource TitleFontSize}" />
+    <Setter Property="LineHeight" Value="{DynamicResource TitleLineHeight}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </ControlTheme>
+
+  <ControlTheme x:Key="TitleLargeTextBlockStyle" TargetType="TextBlock">
+    <Setter Property="FontFamily" Value="{DynamicResource DisplayControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource TitleLargeFontSize}" />
+    <Setter Property="LineHeight" Value="{DynamicResource TitleLargeLineHeight}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </ControlTheme>
+
+  <ControlTheme x:Key="DisplayTextBlockStyle" TargetType="TextBlock">
+    <Setter Property="FontFamily" Value="{DynamicResource DisplayControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource DisplayFontSize}" />
+    <Setter Property="LineHeight" Value="{DynamicResource DisplayLineHeight}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+  </ControlTheme>
+
+</ResourceDictionary>

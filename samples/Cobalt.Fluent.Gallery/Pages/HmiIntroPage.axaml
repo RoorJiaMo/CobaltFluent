@@ -1,0 +1,78 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             x:Class="Cobalt.Fluent.Gallery.Pages.HmiIntroPage">
+
+  <StackPanel HorizontalAlignment="Left" MaxWidth="860">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="HMI 专用控件" />
+      <Border Classes="tag"><TextBlock Text="7 · 自定义" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead"
+               Text="这一组 WinUI / FluentAvalonia 里都不存在，做法和前六组完全不同：前六组是给内置控件改 Setter，这组是从零写 TemplatedControl + 依赖属性 + 自定义伪类。下面每个控件给的是属性面而不是资源键。" />
+
+    <TextBlock Classes="sub" Text="七条硬约束 —— 不是风格偏好" />
+    <Border Classes="panel" HorizontalAlignment="Stretch">
+      <StackPanel Spacing="14">
+        <StackPanel.Styles>
+          <Style Selector="TextBlock.rule">
+            <Setter Property="TextWrapping" Value="Wrap" />
+          </Style>
+          <Style Selector="TextBlock.rule-title">
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Margin" Value="0,0,0,2" />
+          </Style>
+        </StackPanel.Styles>
+
+        <StackPanel>
+          <TextBlock Classes="rule-title" Text="1 · 安全色不跟随主题" />
+          <TextBlock Classes="rule" Text="急停和 Alarm 级报警用 SafetyRedBrush，不用 SystemFillColorCriticalBrush——后者在深色主题下是浅粉 #FF99A4。ISO 13850 要求红钮黄衬。" />
+        </StackPanel>
+
+        <StackPanel>
+          <TextBlock Classes="rule-title" Text="2 · 报警用呼吸不用闪烁" />
+          <TextBlock Classes="rule" Text="1.5 秒一个周期，opacity 1↔.62。高频闪烁引发疲劳，且有光敏性癫痫风险。关掉动画后必须用黄色描边补强，否则 Alarm 和 Warning 就分不出来了。" />
+        </StackPanel>
+
+        <StackPanel>
+          <TextBlock Classes="rule-title" Text="3 · JogButton 必须处理 PointerCaptureLost 和 LostFocus" />
+          <TextBlock Classes="rule" Text="只监听 PointerReleased 不够——按住后把指针拖出按钮，释放事件可能不在这个控件上触发，设备会一直动。再加一个看门狗定时器兜底。" />
+        </StackPanel>
+
+        <StackPanel>
+          <TextBlock Classes="rule-title" Text="4 · 心跳灯由实际通信事件驱动" />
+          <TextBlock Classes="rule" Text="不能用固定周期动画假装。假心跳比没有心跳更危险——通信断了灯还在跳，操作员会以为系统活着。" />
+        </StackPanel>
+
+        <StackPanel>
+          <TextBlock Classes="rule-title" Text="5 · :stale 时读数保留最后已知值" />
+          <TextBlock Classes="rule" Text="只变灰 + 标注时间。换成「—」是错的：通信断了，但设备上的反应还在跑，操作员需要知道断开前的最后一个值。" />
+        </StackPanel>
+
+        <StackPanel>
+          <TextBlock Classes="rule-title" Text="6 · :dirty 要三重提示" />
+          <TextBlock Classes="rule" Text="整行淡黄底 + 输入框底边变色 + 行尾徽章。一屏二十行参数时，只改 2px 边框看不见。" />
+        </StackPanel>
+
+        <StackPanel>
+          <TextBlock Classes="rule-title" Text="7 · 软件急停不能替代硬件急停回路" />
+          <TextBlock Classes="rule" Text="软件路径要过 UI 线程、消息队列、通信链路，任何一环卡住它就不响应。界面上建议同时标注硬件急停的物理位置。" />
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <TextBlock Classes="sub" Text="建议实现顺序" />
+    <TextBlock Classes="lead"
+               Text="Readout → StatusIndicator → ParameterRow → AlarmBanner → DeviceStatusBar → JogButton → EStopButton。前三个是纯显示/输入，最容易验证；后两个涉及安全语义，要配合实际设备联调。" />
+
+    <g:MapBlock Note="这四个控件的交互就是它们的规格，照着静态图实现不出来：ParameterRow（dirty→writing→clean/failed，成功填回读值而非输入值）、JogButton（多个停止触发点 + 看门狗）、EStopButton（触发自锁，必须复位）、TrendChart（trackball 十字线）。">
+      <g:MapRow Key="覆盖" Value="Readout · StatusIndicator · AlarmBanner · ParameterRow · JogButton · EStopButton · DeviceStatusBar（含 Heartbeat / JogGroup / ParameterTable）" />
+      <g:MapRow Key="基类" Value="TemplatedControl（JogButton 和 EStopButton 继承 Button，要用到按压语义）" />
+      <g:MapRow Key="伪类" Value="全部自定义，在属性变化里 PseudoClasses.Set(&quot;:dirty&quot;, v)" />
+      <g:MapRow Key="嵌入式" Value="StatusIndicator.IsPulseEnabled · AlarmBanner.IsBreathingEnabled —— Mali GPU 上一屏十几个并发动画会掉帧，关掉后用静态形状补强" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

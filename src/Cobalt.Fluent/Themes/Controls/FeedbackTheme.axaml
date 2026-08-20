@@ -1,0 +1,214 @@
+<!-- InfoBadge / ProgressRing。
+     这两个 Avalonia 本体没有，是新写的控件。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:shapes="using:Avalonia.Controls.Shapes"
+                    xmlns:fc="using:Cobalt.Fluent.Controls">
+
+  <!-- ==================== InfoBadge ==================== -->
+  <!-- 默认「浅底 + 状态色文字」，明暗两套主题下对比度都成立。 -->
+  <ControlTheme x:Key="{x:Type fc:InfoBadge}" TargetType="fc:InfoBadge">
+    <Setter Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
+    <Setter Property="MinWidth" Value="16" />
+    <Setter Property="Height" Value="16" />
+    <Setter Property="CornerRadius" Value="8" />
+    <Setter Property="Padding" Value="5,0" />
+    <Setter Property="FontSize" Value="11" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:InfoBadge">
+        <Border Background="{TemplateBinding Background}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Padding="{TemplateBinding Padding}"
+                MinWidth="{TemplateBinding MinWidth}"
+                Height="{TemplateBinding Height}">
+          <TextBlock x:Name="PART_Text"
+                     Text="{TemplateBinding Text}"
+                     FontSize="{TemplateBinding FontSize}"
+                     LineHeight="16"
+                     FontFeatures="{StaticResource TabularNumbers}"
+                     Foreground="{TemplateBinding Foreground}"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center" />
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- 浅底 + 状态色文字 -->
+    <Style Selector="^:success">
+      <Setter Property="Background" Value="{DynamicResource SystemFillColorSuccessBackgroundBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource SystemFillColorSuccessBrush}" />
+    </Style>
+    <Style Selector="^:caution">
+      <Setter Property="Background" Value="{DynamicResource SystemFillColorCautionBackgroundBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCautionBrush}" />
+    </Style>
+    <Style Selector="^:critical">
+      <Setter Property="Background" Value="{DynamicResource SystemFillColorCriticalBackgroundBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+    </Style>
+    <Style Selector="^:neutral">
+      <Setter Property="Background" Value="{DynamicResource SystemFillColorAttentionBackgroundBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    </Style>
+
+    <!-- 实底变体。前景复用 TextOnAccentFillColorPrimaryBrush（浅色主题白 / 深色主题黑）——
+         状态色和强调色遵循同一套明暗翻转逻辑，写死白色的话深色主题下会糊。 -->
+    <Style Selector="^:solid">
+      <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
+    </Style>
+    <Style Selector="^:solid:success">
+      <Setter Property="Background" Value="{DynamicResource SystemFillColorSuccessBrush}" />
+    </Style>
+    <Style Selector="^:solid:caution">
+      <Setter Property="Background" Value="{DynamicResource SystemFillColorCautionBrush}" />
+    </Style>
+    <Style Selector="^:solid:critical">
+      <Setter Property="Background" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+    </Style>
+    <Style Selector="^:solid:neutral">
+      <Setter Property="Background" Value="{DynamicResource SystemFillColorNeutralBrush}" />
+    </Style>
+
+    <!-- 圆点变体：4×4，不显示文字 -->
+    <Style Selector="^:dot">
+      <Setter Property="MinWidth" Value="4" />
+      <Setter Property="Width" Value="4" />
+      <Setter Property="Height" Value="4" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="^:dot /template/ TextBlock#PART_Text">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+  </ControlTheme>
+
+  <!-- ==================== InfoBar ==================== -->
+  <!-- 页面内的持久提示条。占布局、不自动消失，靠描边和浅底分层，不加阴影。 -->
+  <ControlTheme x:Key="{x:Type fc:InfoBar}" TargetType="fc:InfoBar">
+    <Setter Property="Background" Value="{DynamicResource SystemFillColorAttentionBackgroundBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <Setter Property="Padding" Value="16,12" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:InfoBar">
+        <Border Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Padding="{TemplateBinding Padding}">
+          <Grid ColumnDefinitions="Auto,*,Auto,Auto">
+
+            <fc:SymbolIcon x:Name="PART_Glyph"
+                           Grid.Column="0"
+                           Symbol="{TemplateBinding Glyph}"
+                           FontSize="16"
+                           Margin="0,2,12,0"
+                           VerticalAlignment="Top"
+                           Foreground="{DynamicResource AccentFillColorDefaultBrush}" />
+
+            <StackPanel Grid.Column="1" Spacing="2" VerticalAlignment="Center">
+              <TextBlock Text="{TemplateBinding Title}"
+                         FontWeight="SemiBold"
+                         TextWrapping="Wrap"
+                         Foreground="{TemplateBinding Foreground}"
+                         IsVisible="{TemplateBinding Title,
+                                     Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+              <TextBlock Text="{TemplateBinding Message}"
+                         TextWrapping="Wrap"
+                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                         IsVisible="{TemplateBinding Message,
+                                     Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            </StackPanel>
+
+            <ContentPresenter Grid.Column="2"
+                              Margin="16,0,0,0"
+                              VerticalAlignment="Center"
+                              Content="{TemplateBinding ActionContent}" />
+
+            <Button x:Name="PART_Close"
+                    Grid.Column="3"
+                    Classes="subtle icon"
+                    Margin="8,0,0,0"
+                    VerticalAlignment="Top"
+                    IsVisible="{TemplateBinding IsClosable}">
+              <fc:SymbolIcon Symbol="Cancel" FontSize="10" />
+            </Button>
+          </Grid>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^:success">
+      <Setter Property="Background" Value="{DynamicResource SystemFillColorSuccessBackgroundBrush}" />
+      <Style Selector="^ /template/ fc|SymbolIcon#PART_Glyph">
+        <Setter Property="Foreground" Value="{DynamicResource SystemFillColorSuccessBrush}" />
+      </Style>
+    </Style>
+    <Style Selector="^:warning">
+      <Setter Property="Background" Value="{DynamicResource SystemFillColorCautionBackgroundBrush}" />
+      <Style Selector="^ /template/ fc|SymbolIcon#PART_Glyph">
+        <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCautionBrush}" />
+      </Style>
+    </Style>
+    <Style Selector="^:error">
+      <Setter Property="Background" Value="{DynamicResource SystemFillColorCriticalBackgroundBrush}" />
+      <Style Selector="^ /template/ fc|SymbolIcon#PART_Glyph">
+        <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+      </Style>
+    </Style>
+  </ControlTheme>
+
+  <!-- ==================== ProgressRing ==================== -->
+  <!-- 嵌入式提醒：这是常驻动画，Mali 上一直转是持续开销。
+       长时间加载建议改用 ProgressBar 的 indeterminate（只动 transform，代价低得多）。 -->
+  <ControlTheme x:Key="{x:Type fc:ProgressRing}" TargetType="fc:ProgressRing">
+    <Setter Property="Width" Value="32" />
+    <Setter Property="Height" Value="32" />
+    <Setter Property="Foreground" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+    <Setter Property="Background" Value="{DynamicResource ControlAltFillColorSecondaryBrush}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:ProgressRing">
+        <Panel>
+          <!-- 底环 -->
+          <shapes:Ellipse Stroke="{TemplateBinding Background}"
+                          StrokeThickness="{TemplateBinding EffectiveThickness}"
+                          Margin="{TemplateBinding EffectiveThickness,
+                                   Converter={x:Static fc:SymbolConverters.HalfThickness}}" />
+          <!-- 值弧 -->
+          <shapes:Arc x:Name="PART_Arc"
+                      Stroke="{TemplateBinding Foreground}"
+                      StrokeThickness="{TemplateBinding EffectiveThickness}"
+                      StrokeLineCap="Round"
+                      StartAngle="-90"
+                      SweepAngle="{TemplateBinding SweepAngle}"
+                      Margin="{TemplateBinding EffectiveThickness,
+                               Converter={x:Static fc:SymbolConverters.HalfThickness}}"
+                      RenderTransformOrigin="50%,50%">
+            <!-- 关键帧动画只能动 Transform 的子属性（RotateTransform.Angle），
+                 不能整个动 RenderTransform —— 那条路只有 Transition 走得通。 -->
+            <shapes:Arc.RenderTransform>
+              <RotateTransform />
+            </shapes:Arc.RenderTransform>
+          </shapes:Arc>
+        </Panel>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- 不确定：固定 90° 弧，1 秒转一圈 -->
+    <Style Selector="^:indeterminate /template/ shapes|Arc#PART_Arc">
+      <Setter Property="SweepAngle" Value="90" />
+      <Style.Animations>
+        <Animation Duration="0:0:1" IterationCount="Infinite">
+          <KeyFrame Cue="0%"><Setter Property="RotateTransform.Angle" Value="0" /></KeyFrame>
+          <KeyFrame Cue="100%"><Setter Property="RotateTransform.Angle" Value="360" /></KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+  </ControlTheme>
+
+</ResourceDictionary>

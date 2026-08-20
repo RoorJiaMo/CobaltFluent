@@ -1,0 +1,60 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             x:Class="Cobalt.Fluent.Gallery.Pages.SliderPage">
+
+  <StackPanel HorizontalAlignment="Left">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="Slider" />
+      <Border Classes="tag"><TextBlock Text="2 · 基础输入" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead"
+               Text="轨道 4px，拇指 20×20 圆形，内点 12×12。内点跟着状态缩放：悬停 14、按下 10。工业界面里 Slider 通常要配一个 NumberBox 做精确输入——纯拖拽调不到精确值，操作员会烦。" />
+
+    <TextBlock Classes="sub" Text="状态矩阵" />
+    <g:SpecMatrix>
+      <g:SpecMatrix.Sample>
+        <DataTemplate><Slider Width="200" Minimum="0" Maximum="100" Value="45" /></DataTemplate>
+      </g:SpecMatrix.Sample>
+    </g:SpecMatrix>
+
+    <TextBlock Classes="sub" Text="带刻度" />
+    <Border Classes="panel">
+      <StackPanel Spacing="8">
+        <Slider Width="280" Minimum="0" Maximum="100" Value="60"
+                TickFrequency="25" TickPlacement="BottomRight" IsSnapToTickEnabled="True" />
+        <TextBlock Classes="note" Text="TickFrequency=25 · IsSnapToTickEnabled=True" />
+      </StackPanel>
+    </Border>
+
+    <TextBlock Classes="sub" Text="竖向" />
+    <Border Classes="panel">
+      <Slider Orientation="Vertical" Height="160" Minimum="0" Maximum="100" Value="70" />
+    </Border>
+
+    <TextBlock Classes="sub" Text="试玩 — Slider 配 NumberBox" />
+    <Border Classes="play">
+      <StackPanel Spacing="12">
+        <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+          <Slider x:Name="Live" Width="260" Minimum="0" Maximum="100" Value="45" />
+          <NumericUpDown x:Name="LiveNumber" Width="130" Minimum="0" Maximum="100" Value="45"
+                         FormatString="F0" VerticalAlignment="Center" />
+          <TextBlock Text="%" VerticalAlignment="Center"
+                     Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+        </StackPanel>
+        <TextBlock Classes="note" MaxWidth="700"
+                   Text="两边双向联动。悬停拇指看内点变大，按住看它缩小——83ms 的差别只能靠手感判断。" />
+      </StackPanel>
+    </Border>
+
+    <g:MapBlock Note="工业界面里 Slider 通常要配一个 NumberBox 做精确输入——纯拖拽调不到精确值。">
+      <g:MapRow Key="控件" Value="Slider（横竖两向）" />
+      <g:MapRow Key="属性" Value="TickFrequency · TickPlacement · IsSnapToTickEnabled · Minimum / Maximum" />
+      <g:MapRow Key="资源键" Value="ControlStrongFillColorDefaultBrush（未填充轨道）· AccentFillColorDefaultBrush（已填充 / 内点）· ControlSolidFillColorDefaultBrush（拇指底）" />
+      <g:MapRow Key="内点尺寸" Value="rest 12 · :pointerover 14 · :pressed 10" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

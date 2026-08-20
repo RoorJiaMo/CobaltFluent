@@ -1,0 +1,105 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             xmlns:fc="using:Cobalt.Fluent.Controls"
+             x:Class="Cobalt.Fluent.Gallery.Pages.ContentDialogPage">
+
+  <UserControl.Resources>
+    <!-- 试玩用的两个实例放资源里：ShowAsync 会把对话框挂到 OverlayLayer 上，
+         它在页面视觉树里就不能再有父级，否则挂不上去。 -->
+    <fc:ContentDialog x:Key="DiscardDialog"
+                      Title="放弃未保存的更改？"
+                      PrimaryButtonText="保存并关闭"
+                      SecondaryButtonText="放弃更改"
+                      CloseButtonText="取消"
+                      DefaultButton="Primary">
+      <TextBlock TextWrapping="Wrap"
+                 Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                 Text="配方 Recipe-042 有 3 处参数被修改但尚未保存。关闭后这些更改将丢失。" />
+    </fc:ContentDialog>
+
+    <!-- 删除是不可逆的，所以 DefaultButton 指向 Close：回车落在「取消」上，
+         手快按一下不会把配方删掉。 -->
+    <fc:ContentDialog x:Key="DeleteDialog"
+                      Title="删除配方 Recipe-042？"
+                      PrimaryButtonText="删除"
+                      CloseButtonText="取消"
+                      DefaultButton="Close"
+                      IsPrimaryDestructive="True">
+      <TextBlock TextWrapping="Wrap"
+                 Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                 Text="该配方已被 3 条排产记录引用，删除后这些记录会失去配方来源，且不可撤销。" />
+    </fc:ContentDialog>
+  </UserControl.Resources>
+
+  <StackPanel HorizontalAlignment="Left">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="ContentDialog" />
+      <Border Classes="tag"><TextBlock Text="6 · 弹出" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead"
+               Text="8px 圆角 + 实色底（不是亚克力）+ 深阴影 + Smoke 遮罩。页脚按钮等宽撑满——这是 Win11 对话框最明显的特征，和 Web 惯例的右对齐相反。" />
+
+    <TextBlock Classes="sub" Text="结构 — Smoke 遮罩压住下层，对话框居中" />
+    <Border Classes="panel">
+      <Panel Width="700" Height="300" ClipToBounds="True">
+        <TextBlock Margin="4" VerticalAlignment="Top"
+                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                   Text="（下层内容被 Smoke 遮住）" />
+        <Border Background="{DynamicResource SmokeFillColorDefaultBrush}" />
+        <!-- 静态样张：不调 ShowAsync，就地渲染一份看规格 -->
+        <fc:ContentDialog Width="460"
+                          HorizontalAlignment="Center" VerticalAlignment="Center"
+                          Title="放弃未保存的更改？"
+                          PrimaryButtonText="保存并关闭"
+                          SecondaryButtonText="放弃更改"
+                          CloseButtonText="取消">
+          <TextBlock TextWrapping="Wrap"
+                     Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                     Text="配方 Recipe-042 有 3 处参数被修改但尚未保存。关闭后这些更改将丢失。" />
+        </fc:ContentDialog>
+      </Panel>
+    </Border>
+    <TextBlock Classes="note" MaxWidth="700"
+               Text="最多三个按钮（Primary / Secondary / Close）。accent 只给安全的那个——这里是「保存并关闭」，不是「放弃更改」。" />
+
+    <TextBlock Classes="sub" Text="危险主操作 — 主按钮走 critical，不走 accent" />
+    <Border Classes="panel">
+      <fc:ContentDialog Width="460"
+                        Title="删除配方 Recipe-042？"
+                        PrimaryButtonText="删除"
+                        CloseButtonText="取消"
+                        DefaultButton="Close"
+                        IsPrimaryDestructive="True">
+        <TextBlock TextWrapping="Wrap"
+                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                   Text="该配方已被 3 条排产记录引用，删除后这些记录会失去配方来源，且不可撤销。" />
+      </fc:ContentDialog>
+    </Border>
+    <TextBlock Classes="note" MaxWidth="700"
+               Text="IsPrimaryDestructive=True 时主按钮换成 critical 红：删除不该长得像「推荐操作」。同时把 DefaultButton 挪到 Close，回车落在取消上——不可逆的操作不配当默认键。" />
+
+    <TextBlock Classes="sub" Text="试玩 — 两种确认" />
+    <Border Classes="play">
+      <StackPanel Spacing="12">
+        <StackPanel Orientation="Horizontal" Spacing="12">
+          <Button x:Name="OpenDiscard" Content="放弃未保存的更改" />
+          <Button x:Name="OpenDelete" Content="删除配方" />
+        </StackPanel>
+        <TextBlock x:Name="PlayLog" Classes="note" MaxWidth="700" />
+        <TextBlock Classes="note" MaxWidth="700"
+                   Text="Esc 等于按关闭按钮，回车按 DefaultButton。点遮罩不关：模态框不做轻关闭，否则「确认停机」这类对话框一划就没了。注意页脚三个按钮等宽撑满。" />
+      </StackPanel>
+    </Border>
+
+    <g:MapBlock Note="await dialog.ShowAsync(owner) 返回 ContentDialogResult（None / Primary / Secondary），天然适合 MVVM 的 await 流程。owner 给视觉树上任意一个元素即可，只用来找所在窗口的 OverlayLayer。">
+      <g:MapRow Key="类型" Value="ContentDialog : ContentControl（Avalonia 本体没有，本库自带）" />
+      <g:MapRow Key="属性" Value="Title · PrimaryButtonText · SecondaryButtonText · CloseButtonText · DefaultButton={None,Primary,Secondary,Close}（默认 Primary）· IsPrimaryDestructive" />
+      <g:MapRow Key="方法" Value="ShowAsync(Visual owner) : Task&lt;ContentDialogResult&gt; · Hide(result)" />
+      <g:MapRow Key="资源键" Value="SolidBackgroundFillColorBaseBrush（实色底）· SolidBackgroundFillColorSecondaryBrush + CardStrokeColorDefaultBrush（页脚分隔）· SmokeFillColorDefaultBrush（遮罩）· SystemFillColorCriticalBrush（危险主操作）" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

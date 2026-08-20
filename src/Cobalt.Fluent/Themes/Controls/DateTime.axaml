@@ -1,0 +1,1336 @@
+<!-- Calendar / CalendarItem / CalendarButton / CalendarDayButton /
+     CalendarDatePicker / TimePicker / DatePicker —— 日期与时间。
+
+     这个文件里有两套规格，别混：
+       收起态（CalendarDatePicker / TimePicker）走**控件**规格 ——
+         32 高、4px 圆角、ControlElevationBorderBrush（底边深一档）、control-fill 底
+       展开面板（月历 / 三列滚轮）走**弹出层**规格 ——
+         8px 圆角 + 亚克力底 + surface-stroke-flyout 描边 + flyout 阴影
+     阴影只挂在 Popup 里那一层：单独摆在页面上的 Calendar 只有描边、没有阴影，
+     和「页面内元素一律靠描边」这条不变量对齐。
+
+     日历格：36×36、**正圆**（CornerRadius 18，全库唯一不走 8/4/0 的地方）。
+       today    = 1px accent 内描边
+       selected = accent 实底 + text-on-accent，并把 today 那圈描边收掉
+       adjacent = 相邻月，text-tertiary（Avalonia 叫 :inactive）
+
+     TimePicker / DatePicker 收起态是分段按钮，**不高亮任何段** ——
+     分段高亮只在展开、且正在编辑该列时出现。
+     段间那根 1px 竖线走 divider-stroke，上下各留 4。
+
+     BoxShadow 是本文件唯一出现字面色值的地方：BoxShadow 语法收的是颜色不是画刷，
+     而 shadow-flyout 的两层黑是固定不透明度、不随主题变的。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:fc="using:Cobalt.Fluent.Controls">
+
+  <!-- 日历格 36×36，格间 2px（Margin 1 各出一半），圆角取一半 = 正圆 -->
+  <x:Double x:Key="CalendarDayButtonSize">36</x:Double>
+  <CornerRadius x:Key="CalendarDayButtonCornerRadius">18</CornerRadius>
+  <!-- 面板内边距 8。写成 Thickness 而不是复用 Space2，
+       是因为 Padding 收的是 Thickness，喂 x:Double 转不过去。 -->
+  <Thickness x:Key="CalendarViewPadding">8</Thickness>
+  <!-- 星期名那行 28 高。RowDefinition 收 GridLength -->
+  <GridLength x:Key="CalendarDayTitleRowHeight">28</GridLength>
+  <!-- 7 列 × (36 + 2) = 266；加 CalendarItem 的 8 内边距和 1 描边，整块 ≈ 300 -->
+  <x:Double x:Key="CalendarViewContentWidth">266</x:Double>
+  <!-- 28（星期名行）+ 6 × 38（六周）。年视图取同一高度，切换视图时面板不跳 -->
+  <x:Double x:Key="CalendarViewContentHeight">256</x:Double>
+  <!-- 年 / 十年视图的格子：月名年份是文字不是数字，走矩形 4px，不跟日历格走圆 -->
+  <x:Double x:Key="CalendarButtonMinHeight">40</x:Double>
+
+  <!-- 三列滚轮：条目 40 高，中央选择带同高 -->
+  <x:Double x:Key="DateTimePickerItemHeight">40</x:Double>
+  <Thickness x:Key="DateTimePickerItemPadding">0,3,0,6</Thickness>
+  <x:Double x:Key="DateTimePickerAcceptDismissHeight">41</x:Double>
+  <x:Double x:Key="DateTimePickerColumnButtonHeight">22</x:Double>
+  <!-- 收起态最小宽 140 -->
+  <x:Double x:Key="DateTimePickerMinWidth">140</x:Double>
+  <x:Double x:Key="DateTimePickerMaxWidth">456</x:Double>
+  <!-- 每一段的内边距 8,5,8,6 -->
+  <Thickness x:Key="DateTimePickerSegmentPadding">8,5,8,6</Thickness>
+  <!-- 段间竖线上下各缩 4 -->
+  <Thickness x:Key="DateTimePickerSeparatorMargin">0,4</Thickness>
+
+  <!-- ================= 滚轮面板里的零件 ================= -->
+
+  <!-- 一列里的一个条目。选中项（= 落在中央选择带里的那个）走 text-on-accent，
+       底色由带子出，条目自己保持透明。 -->
+  <ControlTheme x:Key="DateTimePickerItem" TargetType="ListBoxItem">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <Setter Property="Padding" Value="{StaticResource DateTimePickerItemPadding}" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <!-- 时分秒是读数，必须等宽，否则滚动时整列会横移 -->
+    <Setter Property="FontFeatures" Value="{StaticResource TabularNumbers}" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Cursor" Value="Arrow" />
+    <Setter Property="FocusAdorner" Value="{StaticResource FluentFocusAdorner}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="ListBoxItem">
+        <ContentPresenter x:Name="PART_ContentPresenter"
+                          Background="{TemplateBinding Background}"
+                          CornerRadius="{TemplateBinding CornerRadius}"
+                          Padding="{TemplateBinding Padding}"
+                          Content="{TemplateBinding Content}"
+                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+    </Style>
+    <Style Selector="^:pressed">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorTertiaryBrush}" />
+    </Style>
+    <!-- 正在编辑该列 = 落在选择带里。带子是 accent 实底，所以字翻成 text-on-accent -->
+    <Style Selector="^:selected">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
+    </Style>
+    <Style Selector="^:disabled">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+    </Style>
+  </ControlTheme>
+
+  <!-- 列顶 / 列底的翻页钮。平时不显示，指针进到那一列才浮出来（IsVisible 在模板里
+       绑到所在 Panel 的 IsPointerOver —— 用绑定而不是后代选择器，
+       ControlTheme 里不允许写后代选择器）。 -->
+  <ControlTheme x:Key="DateTimePickerColumnUpButton" TargetType="RepeatButton">
+    <Setter Property="Background" Value="{DynamicResource ControlSolidFillColorDefaultBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="0" />
+    <Setter Property="Height" Value="{StaticResource DateTimePickerColumnButtonHeight}" />
+    <Setter Property="VerticalAlignment" Value="Top" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="Focusable" Value="False" />
+    <Setter Property="FocusAdorner" Value="{x:Null}" />
+    <Setter Property="Cursor" Value="Arrow" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="RepeatButton">
+        <Border x:Name="PART_Root"
+                Background="{TemplateBinding Background}"
+                CornerRadius="{TemplateBinding CornerRadius}">
+          <fc:SymbolIcon Symbol="ChevronUp"
+                         FontSize="8"
+                         Foreground="{TemplateBinding Foreground}"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center" />
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^:pointerover /template/ Border#PART_Root">
+      <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+    </Style>
+    <Style Selector="^:pressed /template/ Border#PART_Root">
+      <Setter Property="Background" Value="{DynamicResource ControlFillColorTertiaryBrush}" />
+    </Style>
+  </ControlTheme>
+
+  <ControlTheme x:Key="DateTimePickerColumnDownButton" TargetType="RepeatButton"
+                BasedOn="{StaticResource DateTimePickerColumnUpButton}">
+    <Setter Property="VerticalAlignment" Value="Bottom" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="RepeatButton">
+        <Border x:Name="PART_Root"
+                Background="{TemplateBinding Background}"
+                CornerRadius="{TemplateBinding CornerRadius}">
+          <fc:SymbolIcon Symbol="ChevronDown"
+                         FontSize="8"
+                         Foreground="{TemplateBinding Foreground}"
+                         HorizontalAlignment="Center"
+                         VerticalAlignment="Center" />
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <!-- 面板底部那对 ✓ / ✕。CornerRadius 写死成只圆外侧下角，
+       和面板的 8px 对齐；写死而不绑 OverlayCornerRadius 的理由同 SplitButton 的接缝。 -->
+  <ControlTheme x:Key="DateTimePickerAcceptDismissButton" TargetType="Button">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="MinWidth" Value="0" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Cursor" Value="Arrow" />
+    <Setter Property="FocusAdorner" Value="{StaticResource FluentFocusAdorner}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="Button">
+        <ContentPresenter x:Name="PART_ContentPresenter"
+                          Background="{TemplateBinding Background}"
+                          CornerRadius="{TemplateBinding CornerRadius}"
+                          Padding="{TemplateBinding Padding}"
+                          Content="{TemplateBinding Content}"
+                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+    </Style>
+    <Style Selector="^:pressed">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorTertiaryBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    </Style>
+    <Style Selector="^:disabled">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+    </Style>
+  </ControlTheme>
+
+  <!-- ================= 收起态分段按钮 ================= -->
+
+  <!-- TimePicker / DatePicker 收起态那只按钮。底色描边圆角全部从外面 TemplateBinding 进来，
+       状态色由外层 ControlTheme 改（改的是这只 Button 的属性，不是它模板里的元素）。 -->
+  <ControlTheme x:Key="DateTimePickerFlyoutButton" TargetType="Button">
+    <Setter Property="MinWidth" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Stretch" />
+    <Setter Property="Cursor" Value="Arrow" />
+    <!-- 聚焦框挂在外面那只 TimePicker / DatePicker 上，这里再挂一圈会画两道 -->
+    <Setter Property="FocusAdorner" Value="{x:Null}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="Button">
+        <ContentPresenter x:Name="PART_ContentPresenter"
+                          Background="{TemplateBinding Background}"
+                          BorderBrush="{TemplateBinding BorderBrush}"
+                          BorderThickness="{TemplateBinding BorderThickness}"
+                          CornerRadius="{TemplateBinding CornerRadius}"
+                          Content="{TemplateBinding Content}"
+                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <!-- CalendarDatePicker 右侧那枚日历图标。整只控件一起换底色，所以这枚自己永远透明。 -->
+  <ControlTheme x:Key="CalendarDatePickerIconButton" TargetType="Button">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="MinWidth" Value="0" />
+    <Setter Property="Padding" Value="0" />
+    <!-- 图标左边留 8，右边留 11 -->
+    <Setter Property="Margin" Value="8,0,11,0" />
+    <Setter Property="Cursor" Value="Arrow" />
+    <Setter Property="FocusAdorner" Value="{x:Null}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="Button">
+        <!-- 日历图标 14px，text-secondary -->
+        <fc:SymbolIcon x:Name="PART_Icon"
+                       Symbol="Calendar"
+                       FontSize="14"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center" />
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^:disabled /template/ fc|SymbolIcon#PART_Icon">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+    </Style>
+  </ControlTheme>
+
+  <!-- CalendarDatePicker 框里那只输入框。刻意不 BasedOn 本库的 TextBox：
+       那支的 :focus 会把底色换成 input-active、把底边加粗成 2px accent，
+       叠在外面 PART_Root 那圈描边上就是双线。这里只留「能打字」需要的部件：
+       PART_ScrollViewer / PART_TextPresenter 是 TextBox 代码里按名字找的，不能少。
+       占位符走 text-tertiary。 -->
+  <ControlTheme x:Key="CalendarDatePickerTextBox" TargetType="TextBox">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="CaretBrush" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="SelectionBrush" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+    <Setter Property="SelectionForegroundBrush" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="MinWidth" Value="0" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="FontFeatures" Value="{StaticResource TabularNumbers}" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <!-- 聚焦框挂在外面那只 CalendarDatePicker 上 -->
+    <Setter Property="FocusAdorner" Value="{x:Null}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="TextBox">
+        <DataValidationErrors>
+          <DockPanel Margin="{TemplateBinding Padding}">
+            <TextBlock x:Name="PART_FloatingWatermark"
+                       DockPanel.Dock="Top"
+                       IsVisible="False"
+                       Foreground="{DynamicResource AccentTextFillColorPrimaryBrush}"
+                       FontSize="{DynamicResource CaptionFontSize}"
+                       LineHeight="{DynamicResource CaptionLineHeight}"
+                       Text="{TemplateBinding Watermark}" />
+            <ScrollViewer x:Name="PART_ScrollViewer"
+                          HorizontalScrollBarVisibility="Hidden"
+                          VerticalScrollBarVisibility="Disabled">
+              <Panel>
+                <TextBlock x:Name="PART_Watermark"
+                           Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                           Text="{TemplateBinding Watermark}"
+                           TextWrapping="NoWrap"
+                           HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                           VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                           IsVisible="{Binding Text, RelativeSource={RelativeSource TemplatedParent},
+                                               Converter={x:Static StringConverters.IsNullOrEmpty}}" />
+                <TextPresenter x:Name="PART_TextPresenter"
+                               Text="{TemplateBinding Text, Mode=TwoWay}"
+                               CaretBlinkInterval="{TemplateBinding CaretBlinkInterval}"
+                               CaretIndex="{TemplateBinding CaretIndex}"
+                               SelectionStart="{TemplateBinding SelectionStart}"
+                               SelectionEnd="{TemplateBinding SelectionEnd}"
+                               TextAlignment="{TemplateBinding TextAlignment}"
+                               LineHeight="{TemplateBinding LineHeight}"
+                               LetterSpacing="{TemplateBinding LetterSpacing}"
+                               PasswordChar="{TemplateBinding PasswordChar}"
+                               RevealPassword="{TemplateBinding RevealPassword}"
+                               SelectionBrush="{TemplateBinding SelectionBrush}"
+                               SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
+                               CaretBrush="{TemplateBinding CaretBrush}"
+                               HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                               VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+              </Panel>
+              <ScrollViewer.Styles>
+                <Style Selector="ScrollContentPresenter#PART_ContentPresenter">
+                  <Setter Property="Cursor" Value="IBeam" />
+                </Style>
+              </ScrollViewer.Styles>
+            </ScrollViewer>
+          </DockPanel>
+        </DataValidationErrors>
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^[UseFloatingWatermark=true]:not(:empty) /template/ TextBlock#PART_FloatingWatermark">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+
+    <Style Selector="^:disabled">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+      <Style Selector="^ /template/ TextBlock#PART_Watermark">
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+      </Style>
+      <Style Selector="^ /template/ TextBlock#PART_FloatingWatermark">
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+      </Style>
+    </Style>
+  </ControlTheme>
+
+  <!-- ================= CalendarView（月历面板） ================= -->
+
+  <!-- 月历面板：亚克力底 + surface-stroke-flyout + 8px 圆角 + 内边距 8。
+       阴影不在这里 —— 见文件头。 -->
+  <ControlTheme x:Key="{x:Type Calendar}" TargetType="Calendar">
+    <Setter Property="Background" Value="{DynamicResource AcrylicBackgroundFillColorDefaultBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SurfaceStrokeColorFlyoutBrush}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource ControlBorderThickness}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource OverlayCornerRadius}" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="VerticalAlignment" Value="Top" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="Calendar">
+        <StackPanel x:Name="PART_Root" ClipToBounds="False">
+          <CalendarItem x:Name="PART_CalendarItem"
+                        Background="{TemplateBinding Background}"
+                        BorderBrush="{TemplateBinding BorderBrush}"
+                        BorderThickness="{TemplateBinding BorderThickness}"
+                        CornerRadius="{TemplateBinding CornerRadius}" />
+        </StackPanel>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type CalendarItem}" TargetType="CalendarItem">
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource OverlayCornerRadius}" />
+    <Setter Property="Padding" Value="{StaticResource CalendarViewPadding}" />
+    <!-- 星期名：caption 字号 + text-secondary -->
+    <Setter Property="DayTitleTemplate">
+      <Template x:DataType="x:String">
+        <TextBlock Text="{Binding}"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontSize="{DynamicResource CaptionFontSize}"
+                   LineHeight="{DynamicResource CaptionLineHeight}"
+                   FontWeight="Normal"
+                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+      </Template>
+    </Setter>
+    <Setter Property="Template">
+      <ControlTemplate TargetType="CalendarItem">
+        <Border x:Name="PART_Root"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Padding="{TemplateBinding Padding}">
+          <Grid RowDefinitions="Auto,*" MinWidth="{StaticResource CalendarViewContentWidth}">
+
+            <!-- 标题行：月份标题吃满剩余宽度，右边两枚上/下翻页钮。
+                 左右再各缩 8，底下留 8。 -->
+            <Grid x:Name="PART_Header"
+                  Grid.Row="0"
+                  Margin="8,0,8,8"
+                  ColumnDefinitions="*,Auto,Auto">
+              <!-- 这三枚直接复用 Button.axaml 的 subtle / icon 变体（展柜里也是
+                   class="Button subtle icon"），不另起一套按钮外观。 -->
+              <Button x:Name="PART_HeaderButton"
+                      Grid.Column="0"
+                      Classes="subtle"
+                      MinWidth="0"
+                      Padding="8,0"
+                      FontWeight="SemiBold"
+                      HorizontalAlignment="Stretch"
+                      HorizontalContentAlignment="Left"
+                      Foreground="{TemplateBinding Foreground}" />
+              <!-- 标题和两枚翻页钮之间各留 4 -->
+              <Button x:Name="PART_PreviousButton"
+                      Grid.Column="1"
+                      Margin="4,0,0,0"
+                      Classes="subtle icon">
+                <fc:SymbolIcon Symbol="ChevronUp"
+                               FontSize="10"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+              </Button>
+              <Button x:Name="PART_NextButton"
+                      Grid.Column="2"
+                      Margin="4,0,0,0"
+                      Classes="subtle icon">
+                <fc:SymbolIcon Symbol="ChevronDown"
+                               FontSize="10"
+                               Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+              </Button>
+            </Grid>
+
+            <!-- 月视图：第 0 行是星期名（28 高），下面六行是日期格。
+                 这两个 Grid 必须留空 —— CalendarItem 自己往里塞 CalendarDayButton /
+                 CalendarButton，塞之前假定里面没有别的孩子。 -->
+            <Grid x:Name="PART_MonthView"
+                  Grid.Row="1"
+                  IsVisible="False"
+                  MinHeight="{StaticResource CalendarViewContentHeight}">
+              <Grid.RowDefinitions>
+                <RowDefinition Height="{StaticResource CalendarDayTitleRowHeight}" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+              </Grid.RowDefinitions>
+              <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+              </Grid.ColumnDefinitions>
+            </Grid>
+
+            <Grid x:Name="PART_YearView"
+                  Grid.Row="1"
+                  IsVisible="False"
+                  MinHeight="{StaticResource CalendarViewContentHeight}"
+                  RowDefinitions="*,*,*"
+                  ColumnDefinitions="*,*,*,*" />
+          </Grid>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <!-- 日期格：36 高、正圆、等宽数字。 -->
+  <ControlTheme x:Key="{x:Type CalendarDayButton}" TargetType="CalendarDayButton">
+    <Setter Property="ClickMode" Value="Release" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="{StaticResource CalendarDayButtonCornerRadius}" />
+    <Setter Property="MinWidth" Value="{StaticResource CalendarDayButtonSize}" />
+    <Setter Property="MinHeight" Value="{StaticResource CalendarDayButtonSize}" />
+    <!-- 格间 2px —— 每格各出一半 -->
+    <Setter Property="Margin" Value="1" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <!-- 日期数字必须等宽，否则月历网格里的两位数对不齐 -->
+    <Setter Property="FontFeatures" Value="{StaticResource TabularNumbers}" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Cursor" Value="Arrow" />
+    <!-- 圆格子配圆聚焦框 -->
+    <Setter Property="FocusAdorner" Value="{StaticResource FluentFocusAdornerRound}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="CalendarDayButton">
+        <Border x:Name="PART_Root"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}">
+          <ContentPresenter x:Name="PART_ContentPresenter"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            Padding="{TemplateBinding Padding}"
+                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="0:0:0.083" />
+      </Transitions>
+    </Setter>
+
+    <Style Selector="^:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+    </Style>
+    <Style Selector="^:pressed">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorTertiaryBrush}" />
+    </Style>
+
+    <!-- 相邻月 -->
+    <Style Selector="^:inactive">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}" />
+    </Style>
+
+    <!-- 今天：1px accent 内描边。
+         写在 :selected 前面，同时命中时选中相赢。 -->
+    <Style Selector="^:today">
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+
+    <!-- 选中：accent 实底 + text-on-accent，并把 today 那圈收掉 -->
+    <Style Selector="^:selected">
+      <Setter Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
+      <Setter Property="BorderThickness" Value="0" />
+
+      <Style Selector="^:pointerover">
+        <Setter Property="Background" Value="{DynamicResource AccentFillColorSecondaryBrush}" />
+      </Style>
+      <Style Selector="^:pressed">
+        <Setter Property="Background" Value="{DynamicResource AccentFillColorTertiaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorSecondaryBrush}" />
+      </Style>
+    </Style>
+
+    <!-- 禁选日（BlackoutDates）和整体禁用都走 text-disabled -->
+    <Style Selector="^:blackout">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+    </Style>
+    <Style Selector="^:disabled">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+    </Style>
+  
+    <!-- 区间选择：中间段方角连成一条，首尾各圆一边。
+         Avalonia 的 Calendar 在 SingleRange 下把区间里每一天都标成 :selected，
+         渲染出来是一串互不相连的圆点；这三个伪类由 fc:RangeCalendar 补上。 -->
+    <Style Selector="^:inrange">
+      <Setter Property="CornerRadius" Value="0" />
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    </Style>
+    <Style Selector="^:rangestart">
+      <Setter Property="CornerRadius" Value="18,0,0,18" />
+    </Style>
+    <Style Selector="^:rangeend">
+      <Setter Property="CornerRadius" Value="0,18,18,0" />
+    </Style>
+
+  </ControlTheme>
+
+  <!-- 年 / 十年视图的格子（月名、年份）：同一套状态色，
+       但形状是矩形 4px —— 里面是文字不是一两位数字。 -->
+  <ControlTheme x:Key="{x:Type CalendarButton}" TargetType="CalendarButton">
+    <Setter Property="ClickMode" Value="Release" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <Setter Property="MinHeight" Value="{StaticResource CalendarButtonMinHeight}" />
+    <Setter Property="Margin" Value="1" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="FontFeatures" Value="{StaticResource TabularNumbers}" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Cursor" Value="Arrow" />
+    <Setter Property="FocusAdorner" Value="{StaticResource FluentFocusAdorner}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="CalendarButton">
+        <Border x:Name="PART_Root"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}">
+          <ContentPresenter x:Name="PART_ContentPresenter"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            Padding="{TemplateBinding Padding}"
+                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="0:0:0.083" />
+      </Transitions>
+    </Setter>
+
+    <Style Selector="^:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+    </Style>
+    <Style Selector="^:pressed">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorTertiaryBrush}" />
+    </Style>
+    <Style Selector="^:inactive">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}" />
+    </Style>
+    <Style Selector="^:selected">
+      <Setter Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
+
+      <Style Selector="^:pointerover">
+        <Setter Property="Background" Value="{DynamicResource AccentFillColorSecondaryBrush}" />
+      </Style>
+      <Style Selector="^:pressed">
+        <Setter Property="Background" Value="{DynamicResource AccentFillColorTertiaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorSecondaryBrush}" />
+      </Style>
+    </Style>
+    <Style Selector="^:blackout">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+    </Style>
+    <Style Selector="^:disabled">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+    </Style>
+  </ControlTheme>
+
+  <!-- ================= CalendarDatePicker（收起态 + 月历弹出） ================= -->
+
+  <ControlTheme x:Key="{x:Type CalendarDatePicker}" TargetType="CalendarDatePicker">
+    <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <!-- 描边 1px control-stroke-default，底边深一档到 control-stroke-secondary ——
+         就是这支渐变描边。收起态走控件规格，必须有。 -->
+    <Setter Property="BorderBrush" Value="{DynamicResource ControlElevationBorderBrush}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource ControlBorderThickness}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <!-- 内边距 11,5,11,6；右边那 11 由图标按钮的 Margin 出，所以这里右边留 0 -->
+    <Setter Property="Padding" Value="11,5,0,6" />
+    <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
+    <Setter Property="MinWidth" Value="{StaticResource DateTimePickerMinWidth}" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <!-- 日期数字等宽 -->
+    <Setter Property="FontFeatures" Value="{StaticResource TabularNumbers}" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="HorizontalContentAlignment" Value="Left" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Cursor" Value="Arrow" />
+    <Setter Property="FocusAdorner" Value="{StaticResource FluentFocusAdorner}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="CalendarDatePicker">
+        <DataValidationErrors>
+          <Grid ColumnDefinitions="*,Auto">
+
+            <Border x:Name="PART_Root"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="2"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="{TemplateBinding CornerRadius}" />
+
+            <!-- 外框由 PART_Root 画，所以里面这只输入框走一支自带的裸模板：
+                 显式指定 Theme，本库 TextBox 那支就完全不参与，
+                 也就不会有它的 :focus / :pointerover 把底色和 2px 底边顶回来。 -->
+            <TextBox x:Name="PART_TextBox"
+                     Grid.Column="0"
+                     Theme="{StaticResource CalendarDatePickerTextBox}"
+                     Padding="{TemplateBinding Padding}"
+                     Foreground="{TemplateBinding Foreground}"
+                     Watermark="{TemplateBinding Watermark}"
+                     UseFloatingWatermark="{TemplateBinding UseFloatingWatermark}"
+                     HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                     VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+
+            <Button x:Name="PART_Button"
+                    Grid.Column="1"
+                    Theme="{StaticResource CalendarDatePickerIconButton}"
+                    Focusable="False" />
+
+            <!-- 展开面板 —— 从这里往下是弹出层规格，和上面那只框不是一套。
+                 亚克力底 + surface-stroke-flyout + 8px 圆角 + flyout 阴影。
+                 底和描边必须和阴影画在同一层：Border 的 Background 和 BorderBrush 同时为空时，
+                 整块（连同 BoxShadow）根本不进绘制，阴影就丢了。所以这一层出底 + 描边 + 阴影，
+                 里面那只 Calendar 相应把自己的底和描边关掉，免得叠成双框。
+                 单独摆在页面里的 Calendar 不走这条路径，仍然只有描边没有阴影。 -->
+            <Popup x:Name="PART_Popup"
+                   WindowManagerAddShadowHint="False"
+                   PlacementTarget="PART_Root"
+                   Placement="BottomEdgeAlignedLeft"
+                   IsLightDismissEnabled="True"
+                   InheritsTransform="True">
+              <Border x:Name="PART_PopupShadow"
+                      Background="{DynamicResource AcrylicBackgroundFillColorDefaultBrush}"
+                      BorderBrush="{DynamicResource SurfaceStrokeColorFlyoutBrush}"
+                      BorderThickness="1"
+                      CornerRadius="{DynamicResource OverlayCornerRadius}"
+                      BoxShadow="0 8 16 0 #24000000, 0 0 2 0 #1F000000">
+                <Calendar x:Name="PART_Calendar"
+                          Background="Transparent"
+                          BorderThickness="0"
+                          FirstDayOfWeek="{TemplateBinding FirstDayOfWeek}"
+                          IsTodayHighlighted="{TemplateBinding IsTodayHighlighted}"
+                          SelectedDate="{Binding SelectedDate, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}"
+                          DisplayDate="{TemplateBinding DisplayDate}"
+                          DisplayDateStart="{TemplateBinding DisplayDateStart}"
+                          DisplayDateEnd="{TemplateBinding DisplayDateEnd}" />
+              </Border>
+            </Popup>
+          </Grid>
+        </DataValidationErrors>
+      </ControlTemplate>
+    </Setter>
+
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="0:0:0.083" />
+      </Transitions>
+    </Setter>
+
+    <Style Selector="^:pointerover">
+      <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+    </Style>
+
+    <Style Selector="^:pressed">
+      <Setter Property="Background" Value="{DynamicResource ControlFillColorTertiaryBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    </Style>
+
+    <Style Selector="^:disabled">
+      <Setter Property="Background" Value="{DynamicResource ControlFillColorDisabledBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+      <!-- 底边渐变拍平成实色 control-stroke-default -->
+      <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+    </Style>
+
+    <Style Selector="^:error /template/ Border#PART_Root">
+      <Setter Property="BorderBrush" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+    </Style>
+  </ControlTheme>
+
+  <!-- ================= TimePicker ================= -->
+
+  <ControlTheme x:Key="{x:Type TimePicker}" TargetType="TimePicker">
+    <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ControlElevationBorderBrush}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource ControlBorderThickness}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <!-- 整只控件不留内边距 —— 全在各段自己身上 -->
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
+    <Setter Property="MinWidth" Value="{StaticResource DateTimePickerMinWidth}" />
+    <Setter Property="MaxWidth" Value="{StaticResource DateTimePickerMaxWidth}" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="FontFeatures" Value="{StaticResource TabularNumbers}" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Cursor" Value="Arrow" />
+    <Setter Property="FocusAdorner" Value="{StaticResource FluentFocusAdorner}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="TimePicker">
+        <DataValidationErrors>
+          <Grid x:Name="LayoutRoot">
+            <!-- Classes.open 绑 Popup.IsOpen。
+                 Avalonia 的 TimePicker 没有「展开」伪类，用类绑定代替。 -->
+            <Button x:Name="PART_FlyoutButton"
+                    Theme="{StaticResource DateTimePickerFlyoutButton}"
+                    Classes.open="{Binding #PART_Popup.IsOpen}"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="{TemplateBinding CornerRadius}"
+                    Foreground="{TemplateBinding Foreground}"
+                    MinHeight="{TemplateBinding MinHeight}"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch">
+              <!-- 列宽由 TimePicker 自己在代码里设，这里不写 ColumnDefinitions -->
+              <Grid x:Name="PART_FlyoutButtonContentGrid">
+                <Border x:Name="PART_FirstPickerHost"
+                        Grid.Column="0"
+                        CornerRadius="{StaticResource ControlCornerRadiusLeft}"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch">
+                  <TextBlock x:Name="PART_HourTextBlock"
+                             Text="{DynamicResource StringTimePickerHourText}"
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center"
+                             Padding="{StaticResource DateTimePickerSegmentPadding}" />
+                </Border>
+
+                <!-- 段间竖线：1px divider-stroke，上下各留 4 -->
+                <Rectangle x:Name="PART_FirstColumnDivider"
+                           Grid.Column="1"
+                           Width="1"
+                           Margin="{StaticResource DateTimePickerSeparatorMargin}"
+                           HorizontalAlignment="Center"
+                           Fill="{DynamicResource DividerStrokeColorDefaultBrush}" />
+
+                <Border x:Name="PART_SecondPickerHost"
+                        Grid.Column="2"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch">
+                  <TextBlock x:Name="PART_MinuteTextBlock"
+                             Text="{DynamicResource StringTimePickerMinuteText}"
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center"
+                             Padding="{StaticResource DateTimePickerSegmentPadding}" />
+                </Border>
+
+                <Rectangle x:Name="PART_SecondColumnDivider"
+                           Grid.Column="3"
+                           Width="1"
+                           Margin="{StaticResource DateTimePickerSeparatorMargin}"
+                           HorizontalAlignment="Center"
+                           Fill="{DynamicResource DividerStrokeColorDefaultBrush}" />
+
+                <Border x:Name="PART_ThirdPickerHost"
+                        Grid.Column="4"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch">
+                  <TextBlock x:Name="PART_SecondTextBlock"
+                             Text="{DynamicResource StringTimePickerSecondText}"
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center"
+                             Padding="{StaticResource DateTimePickerSegmentPadding}" />
+                </Border>
+
+                <Rectangle x:Name="PART_ThirdColumnDivider"
+                           Grid.Column="5"
+                           Width="1"
+                           Margin="{StaticResource DateTimePickerSeparatorMargin}"
+                           HorizontalAlignment="Center"
+                           Fill="{DynamicResource DividerStrokeColorDefaultBrush}" />
+
+                <Border x:Name="PART_FourthPickerHost"
+                        Grid.Column="6"
+                        CornerRadius="{StaticResource ControlCornerRadiusRight}"
+                        HorizontalAlignment="Stretch"
+                        VerticalAlignment="Stretch">
+                  <TextBlock x:Name="PART_PeriodTextBlock"
+                             HorizontalAlignment="Center"
+                             VerticalAlignment="Center"
+                             Padding="{StaticResource DateTimePickerSegmentPadding}" />
+                </Border>
+              </Grid>
+            </Button>
+
+            <Popup x:Name="PART_Popup"
+                   WindowManagerAddShadowHint="False"
+                   IsLightDismissEnabled="True"
+                   PlacementTarget="{TemplateBinding}"
+                   Placement="Bottom">
+              <TimePickerPresenter x:Name="PART_PickerPresenter" />
+            </Popup>
+          </Grid>
+        </DataValidationErrors>
+      </ControlTemplate>
+    </Setter>
+
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="0:0:0.083" />
+      </Transitions>
+    </Setter>
+
+    <Style Selector="^:pointerover">
+      <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+    </Style>
+
+    <!-- 收起态的按下相。:pressed 是 Button 才有的伪类，TimePicker 自己
+         不是 Button（写 ^:pressed 永远匹配不上，也不会报编译错），所以按在
+         PART_FlyoutButton 上取，和下面 .open 那条同一层。 -->
+    <Style Selector="^ /template/ Button#PART_FlyoutButton:pressed">
+      <Setter Property="Background" Value="{DynamicResource ControlFillColorTertiaryBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    </Style>
+
+    <!-- 面板开着的时候收起态保持按下相，看得出是它开的 -->
+    <Style Selector="^ /template/ Button#PART_FlyoutButton.open">
+      <Setter Property="Background" Value="{DynamicResource ControlFillColorTertiaryBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    </Style>
+
+    <Style Selector="^:disabled">
+      <Setter Property="Background" Value="{DynamicResource ControlFillColorDisabledBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+      <Style Selector="^ /template/ Rectangle">
+        <Setter Property="Fill" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+      </Style>
+    </Style>
+
+    <!-- 没选时间 = 占位符 -->
+    <Style Selector="^:hasnotime /template/ TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}" />
+    </Style>
+
+    <Style Selector="^:error /template/ Button#PART_FlyoutButton">
+      <Setter Property="BorderBrush" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+    </Style>
+  </ControlTheme>
+
+  <!-- 三列滚轮面板。弹出层规格：亚克力 + surface-stroke-flyout + 8px + flyout 阴影。 -->
+  <ControlTheme x:Key="{x:Type TimePickerPresenter}" TargetType="TimePickerPresenter">
+    <Setter Property="Width" Value="242" />
+    <Setter Property="MinWidth" Value="242" />
+    <Setter Property="MaxHeight" Value="398" />
+    <Setter Property="Background" Value="{DynamicResource AcrylicBackgroundFillColorDefaultBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SurfaceStrokeColorFlyoutBrush}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource ControlBorderThickness}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource OverlayCornerRadius}" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="TimePickerPresenter">
+        <Border x:Name="PART_Root"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                MaxHeight="398"
+                BoxShadow="0 8 16 0 #24000000, 0 0 2 0 #1F000000">
+          <Grid x:Name="ContentPanel" RowDefinitions="*,Auto">
+            <Grid x:Name="PART_PickerContainer">
+              <Grid.Styles>
+                <Style Selector="DateTimePickerPanel > ListBoxItem">
+                  <Setter Property="Theme" Value="{StaticResource DateTimePickerItem}" />
+                </Style>
+              </Grid.Styles>
+
+              <Panel x:Name="PART_HourHost" Grid.Column="0">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                              VerticalScrollBarVisibility="Hidden">
+                  <DateTimePickerPanel x:Name="PART_HourSelector"
+                                       PanelType="Hour"
+                                       ShouldLoop="True"
+                                       ItemHeight="{StaticResource DateTimePickerItemHeight}" />
+                </ScrollViewer>
+                <RepeatButton x:Name="PART_HourUpButton"
+                              Theme="{StaticResource DateTimePickerColumnUpButton}"
+                              IsVisible="{Binding #PART_HourHost.IsPointerOver}" />
+                <RepeatButton x:Name="PART_HourDownButton"
+                              Theme="{StaticResource DateTimePickerColumnDownButton}"
+                              IsVisible="{Binding #PART_HourHost.IsPointerOver}" />
+              </Panel>
+
+              <Panel x:Name="PART_MinuteHost" Grid.Column="2">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                              VerticalScrollBarVisibility="Hidden">
+                  <DateTimePickerPanel x:Name="PART_MinuteSelector"
+                                       PanelType="Minute"
+                                       ShouldLoop="True"
+                                       ItemHeight="{StaticResource DateTimePickerItemHeight}" />
+                </ScrollViewer>
+                <RepeatButton x:Name="PART_MinuteUpButton"
+                              Theme="{StaticResource DateTimePickerColumnUpButton}"
+                              IsVisible="{Binding #PART_MinuteHost.IsPointerOver}" />
+                <RepeatButton x:Name="PART_MinuteDownButton"
+                              Theme="{StaticResource DateTimePickerColumnDownButton}"
+                              IsVisible="{Binding #PART_MinuteHost.IsPointerOver}" />
+              </Panel>
+
+              <Panel x:Name="PART_SecondHost" Grid.Column="4">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                              VerticalScrollBarVisibility="Hidden">
+                  <DateTimePickerPanel x:Name="PART_SecondSelector"
+                                       PanelType="Second"
+                                       ShouldLoop="True"
+                                       ItemHeight="{StaticResource DateTimePickerItemHeight}" />
+                </ScrollViewer>
+                <RepeatButton x:Name="PART_SecondUpButton"
+                              Theme="{StaticResource DateTimePickerColumnUpButton}"
+                              IsVisible="{Binding #PART_SecondHost.IsPointerOver}" />
+                <RepeatButton x:Name="PART_SecondDownButton"
+                              Theme="{StaticResource DateTimePickerColumnDownButton}"
+                              IsVisible="{Binding #PART_SecondHost.IsPointerOver}" />
+              </Panel>
+
+              <Panel x:Name="PART_PeriodHost" Grid.Column="6">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                              VerticalScrollBarVisibility="Hidden">
+                  <DateTimePickerPanel x:Name="PART_PeriodSelector"
+                                       PanelType="TimePeriod"
+                                       ShouldLoop="False"
+                                       ItemHeight="{StaticResource DateTimePickerItemHeight}" />
+                </ScrollViewer>
+                <RepeatButton x:Name="PART_PeriodUpButton"
+                              Theme="{StaticResource DateTimePickerColumnUpButton}"
+                              IsVisible="{Binding #PART_PeriodHost.IsPointerOver}" />
+                <RepeatButton x:Name="PART_PeriodDownButton"
+                              Theme="{StaticResource DateTimePickerColumnDownButton}"
+                              IsVisible="{Binding #PART_PeriodHost.IsPointerOver}" />
+              </Panel>
+
+              <!-- 中央选择带：accent 实底。
+                   条目落进带子里就翻成 text-on-accent（见 DateTimePickerItem 的 :selected）。 -->
+              <Rectangle x:Name="HighlightRect"
+                         ZIndex="-1"
+                         IsHitTestVisible="False"
+                         Grid.Column="0"
+                         Grid.ColumnSpan="7"
+                         VerticalAlignment="Center"
+                         Height="{StaticResource DateTimePickerItemHeight}"
+                         RadiusX="4"
+                         RadiusY="4"
+                         Fill="{DynamicResource AccentFillColorDefaultBrush}" />
+
+              <Rectangle x:Name="PART_FirstSpacer"
+                         Grid.Column="1"
+                         Width="1"
+                         HorizontalAlignment="Center"
+                         Fill="{DynamicResource DividerStrokeColorDefaultBrush}" />
+              <Rectangle x:Name="PART_SecondSpacer"
+                         Grid.Column="3"
+                         Width="1"
+                         HorizontalAlignment="Center"
+                         Fill="{DynamicResource DividerStrokeColorDefaultBrush}" />
+              <Rectangle x:Name="PART_ThirdSpacer"
+                         Grid.Column="5"
+                         Width="1"
+                         HorizontalAlignment="Center"
+                         Fill="{DynamicResource DividerStrokeColorDefaultBrush}" />
+            </Grid>
+
+            <Grid x:Name="AcceptDismissGrid" Grid.Row="1" ColumnDefinitions="*,*">
+              <Rectangle Grid.ColumnSpan="2"
+                         Height="1"
+                         VerticalAlignment="Top"
+                         Fill="{DynamicResource DividerStrokeColorDefaultBrush}" />
+              <Button x:Name="PART_AcceptButton"
+                      Grid.Column="0"
+                      Theme="{StaticResource DateTimePickerAcceptDismissButton}"
+                      CornerRadius="0,0,0,8"
+                      Height="{StaticResource DateTimePickerAcceptDismissHeight}"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch">
+                <fc:SymbolIcon Symbol="CheckMark" FontSize="16" />
+              </Button>
+              <Button x:Name="PART_DismissButton"
+                      Grid.Column="1"
+                      Theme="{StaticResource DateTimePickerAcceptDismissButton}"
+                      CornerRadius="0,0,8,0"
+                      Height="{StaticResource DateTimePickerAcceptDismissHeight}"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch">
+                <fc:SymbolIcon Symbol="Cancel" FontSize="16" />
+              </Button>
+            </Grid>
+          </Grid>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <!-- ================= DatePicker ================= -->
+
+  <!-- DatePicker 和 CalendarDatePicker / TimePicker 走同一套：
+       收起态控件规格 + 分段 + 段间 1px 分隔，收起态同样不高亮任何段。 -->
+  <ControlTheme x:Key="{x:Type DatePicker}" TargetType="DatePicker">
+    <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ControlElevationBorderBrush}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource ControlBorderThickness}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
+    <!-- 比别的收起态那 140 宽：三段是「日 / 月 / 年」，中间是月名不是两位数字，140 会把月名截掉 -->
+    <Setter Property="MinWidth" Value="200" />
+    <Setter Property="MaxWidth" Value="{StaticResource DateTimePickerMaxWidth}" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="FontFeatures" Value="{StaticResource TabularNumbers}" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Cursor" Value="Arrow" />
+    <Setter Property="FocusAdorner" Value="{StaticResource FluentFocusAdorner}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="DatePicker">
+        <DataValidationErrors>
+          <Grid x:Name="LayoutRoot">
+            <Button x:Name="PART_FlyoutButton"
+                    Theme="{StaticResource DateTimePickerFlyoutButton}"
+                    Classes.open="{Binding #PART_Popup.IsOpen}"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="{TemplateBinding CornerRadius}"
+                    Foreground="{TemplateBinding Foreground}"
+                    MinHeight="{TemplateBinding MinHeight}"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Stretch"
+                    TemplatedControl.IsTemplateFocusTarget="True">
+              <Grid x:Name="PART_ButtonContentGrid" ColumnDefinitions="78*,Auto,132*,Auto,78*">
+                <TextBlock x:Name="PART_DayTextBlock"
+                           Grid.Column="0"
+                           Text="{DynamicResource StringDatePickerDayText}"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Padding="{StaticResource DateTimePickerSegmentPadding}" />
+                <TextBlock x:Name="PART_MonthTextBlock"
+                           Grid.Column="2"
+                           Text="{DynamicResource StringDatePickerMonthText}"
+                           TextAlignment="Left"
+                           VerticalAlignment="Center"
+                           Padding="{StaticResource DateTimePickerSegmentPadding}" />
+                <TextBlock x:Name="PART_YearTextBlock"
+                           Grid.Column="4"
+                           Text="{DynamicResource StringDatePickerYearText}"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Padding="{StaticResource DateTimePickerSegmentPadding}" />
+                <Rectangle x:Name="PART_FirstSpacer"
+                           Grid.Column="1"
+                           Width="1"
+                           Margin="{StaticResource DateTimePickerSeparatorMargin}"
+                           HorizontalAlignment="Center"
+                           Fill="{DynamicResource DividerStrokeColorDefaultBrush}" />
+                <Rectangle x:Name="PART_SecondSpacer"
+                           Grid.Column="3"
+                           Width="1"
+                           Margin="{StaticResource DateTimePickerSeparatorMargin}"
+                           HorizontalAlignment="Center"
+                           Fill="{DynamicResource DividerStrokeColorDefaultBrush}" />
+              </Grid>
+            </Button>
+
+            <Popup x:Name="PART_Popup"
+                   WindowManagerAddShadowHint="False"
+                   IsLightDismissEnabled="True"
+                   PlacementTarget="{TemplateBinding}"
+                   Placement="Bottom">
+              <DatePickerPresenter x:Name="PART_PickerPresenter" />
+            </Popup>
+          </Grid>
+        </DataValidationErrors>
+      </ControlTemplate>
+    </Setter>
+
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="0:0:0.083" />
+      </Transitions>
+    </Setter>
+
+    <Style Selector="^:pointerover">
+      <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+    </Style>
+
+    <!-- 同 TimePicker：DatePicker 不是 Button，按下相取在 PART_FlyoutButton 上 -->
+    <Style Selector="^ /template/ Button#PART_FlyoutButton:pressed">
+      <Setter Property="Background" Value="{DynamicResource ControlFillColorTertiaryBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    </Style>
+
+    <Style Selector="^ /template/ Button#PART_FlyoutButton.open">
+      <Setter Property="Background" Value="{DynamicResource ControlFillColorTertiaryBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    </Style>
+
+    <Style Selector="^:disabled">
+      <Setter Property="Background" Value="{DynamicResource ControlFillColorDisabledBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+      <Style Selector="^ /template/ Rectangle">
+        <Setter Property="Fill" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+      </Style>
+    </Style>
+
+    <Style Selector="^:hasnodate /template/ TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}" />
+    </Style>
+
+    <Style Selector="^:error /template/ Button#PART_FlyoutButton">
+      <Setter Property="BorderBrush" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+    </Style>
+  </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type DatePickerPresenter}" TargetType="DatePickerPresenter">
+    <Setter Property="Width" Value="296" />
+    <Setter Property="MinWidth" Value="296" />
+    <Setter Property="MaxHeight" Value="398" />
+    <Setter Property="Background" Value="{DynamicResource AcrylicBackgroundFillColorDefaultBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SurfaceStrokeColorFlyoutBrush}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource ControlBorderThickness}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource OverlayCornerRadius}" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="DatePickerPresenter">
+        <Border x:Name="PART_Root"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                MaxHeight="398"
+                BoxShadow="0 8 16 0 #24000000, 0 0 2 0 #1F000000">
+          <Grid x:Name="ContentRoot" RowDefinitions="*,Auto">
+            <Grid x:Name="PART_PickerContainer">
+              <Grid.Styles>
+                <Style Selector="DateTimePickerPanel > ListBoxItem">
+                  <Setter Property="Theme" Value="{StaticResource DateTimePickerItem}" />
+                </Style>
+              </Grid.Styles>
+
+              <Panel x:Name="PART_MonthHost">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                              VerticalScrollBarVisibility="Hidden">
+                  <DateTimePickerPanel x:Name="PART_MonthSelector"
+                                       PanelType="Month"
+                                       ShouldLoop="True"
+                                       ItemHeight="{StaticResource DateTimePickerItemHeight}" />
+                </ScrollViewer>
+                <RepeatButton x:Name="PART_MonthUpButton"
+                              Theme="{StaticResource DateTimePickerColumnUpButton}"
+                              IsVisible="{Binding #PART_MonthHost.IsPointerOver}" />
+                <RepeatButton x:Name="PART_MonthDownButton"
+                              Theme="{StaticResource DateTimePickerColumnDownButton}"
+                              IsVisible="{Binding #PART_MonthHost.IsPointerOver}" />
+              </Panel>
+
+              <Panel x:Name="PART_DayHost">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                              VerticalScrollBarVisibility="Hidden">
+                  <DateTimePickerPanel x:Name="PART_DaySelector"
+                                       PanelType="Day"
+                                       ShouldLoop="True"
+                                       ItemHeight="{StaticResource DateTimePickerItemHeight}" />
+                </ScrollViewer>
+                <RepeatButton x:Name="PART_DayUpButton"
+                              Theme="{StaticResource DateTimePickerColumnUpButton}"
+                              IsVisible="{Binding #PART_DayHost.IsPointerOver}" />
+                <RepeatButton x:Name="PART_DayDownButton"
+                              Theme="{StaticResource DateTimePickerColumnDownButton}"
+                              IsVisible="{Binding #PART_DayHost.IsPointerOver}" />
+              </Panel>
+
+              <Panel x:Name="PART_YearHost">
+                <ScrollViewer HorizontalScrollBarVisibility="Disabled"
+                              VerticalScrollBarVisibility="Hidden">
+                  <DateTimePickerPanel x:Name="PART_YearSelector"
+                                       PanelType="Year"
+                                       ShouldLoop="False"
+                                       ItemHeight="{StaticResource DateTimePickerItemHeight}" />
+                </ScrollViewer>
+                <RepeatButton x:Name="PART_YearUpButton"
+                              Theme="{StaticResource DateTimePickerColumnUpButton}"
+                              IsVisible="{Binding #PART_YearHost.IsPointerOver}" />
+                <RepeatButton x:Name="PART_YearDownButton"
+                              Theme="{StaticResource DateTimePickerColumnDownButton}"
+                              IsVisible="{Binding #PART_YearHost.IsPointerOver}" />
+              </Panel>
+
+              <Rectangle x:Name="HighlightRect"
+                         ZIndex="-1"
+                         IsHitTestVisible="False"
+                         Grid.Column="0"
+                         Grid.ColumnSpan="5"
+                         VerticalAlignment="Center"
+                         Height="{StaticResource DateTimePickerItemHeight}"
+                         RadiusX="4"
+                         RadiusY="4"
+                         Fill="{DynamicResource AccentFillColorDefaultBrush}" />
+
+              <Rectangle x:Name="PART_FirstSpacer"
+                         Grid.Column="1"
+                         Width="1"
+                         HorizontalAlignment="Center"
+                         Fill="{DynamicResource DividerStrokeColorDefaultBrush}" />
+              <Rectangle x:Name="PART_SecondSpacer"
+                         Grid.Column="3"
+                         Width="1"
+                         HorizontalAlignment="Center"
+                         Fill="{DynamicResource DividerStrokeColorDefaultBrush}" />
+            </Grid>
+
+            <Grid x:Name="AcceptDismissGrid" Grid.Row="1" ColumnDefinitions="*,*">
+              <Rectangle Grid.ColumnSpan="2"
+                         Height="1"
+                         VerticalAlignment="Top"
+                         Fill="{DynamicResource DividerStrokeColorDefaultBrush}" />
+              <Button x:Name="PART_AcceptButton"
+                      Grid.Column="0"
+                      Theme="{StaticResource DateTimePickerAcceptDismissButton}"
+                      CornerRadius="0,0,0,8"
+                      Height="{StaticResource DateTimePickerAcceptDismissHeight}"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch">
+                <fc:SymbolIcon Symbol="CheckMark" FontSize="16" />
+              </Button>
+              <Button x:Name="PART_DismissButton"
+                      Grid.Column="1"
+                      Theme="{StaticResource DateTimePickerAcceptDismissButton}"
+                      CornerRadius="0,0,8,0"
+                      Height="{StaticResource DateTimePickerAcceptDismissHeight}"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Stretch">
+                <fc:SymbolIcon Symbol="Cancel" FontSize="16" />
+              </Button>
+            </Grid>
+          </Grid>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <!-- 区间选择：中间段方角连成一条，首尾各圆一边。
+       Avalonia 的 Calendar 在 SingleRange 下把区间里每一天都标成 :selected，
+       渲染出来是一串互不相连的圆点；这三个伪类由 fc:RangeCalendar 补上。 -->
+  <ControlTheme x:Key="{x:Type fc:RangeCalendar}" TargetType="fc:RangeCalendar"
+                BasedOn="{StaticResource {x:Type Calendar}}" />
+
+</ResourceDictionary>

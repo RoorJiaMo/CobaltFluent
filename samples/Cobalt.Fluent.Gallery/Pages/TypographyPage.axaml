@@ -1,0 +1,186 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             xmlns:fc="using:Cobalt.Fluent.Controls"
+             x:Class="Cobalt.Fluent.Gallery.Pages.TypographyPage">
+
+  <StackPanel HorizontalAlignment="Left">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="排版 Typography" />
+      <Border Classes="tag"><TextBlock Text="总则" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead"
+               Text="字重只用 Regular(400) 和 Semibold(600)。强调用 Semibold，不用 Bold；不用斜体。" />
+
+    <!-- 七档全部挂 ControlTheme，页面里不散写 FontSize/LineHeight：
+         字阶要改（比如 10 寸屏整体放大）时只动 Typography.axaml 一处，
+         散写的那些永远漏改，最后就是一屏三种正文号。 -->
+    <TextBlock Classes="sub" Text="字阶 — 七档" />
+    <Border Classes="panel">
+      <Grid ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="14">
+
+        <TextBlock Grid.Row="0" Grid.Column="0" Theme="{StaticResource CaptionTextBlockStyle}"
+                   Text="Caption · 12/16 · 辅助说明、时间戳、单位" />
+        <TextBlock Grid.Row="0" Grid.Column="1" Classes="note" Margin="32,0,0,0" VerticalAlignment="Bottom"
+                   Text="12 / 16 · Regular · CaptionTextBlockStyle" />
+
+        <TextBlock Grid.Row="1" Grid.Column="0" Theme="{StaticResource BodyTextBlockStyle}"
+                   Text="Body · 14/20 · 默认正文，绝大多数 UI 文字" />
+        <TextBlock Grid.Row="1" Grid.Column="1" Classes="note" Margin="32,0,0,0" VerticalAlignment="Bottom"
+                   Text="14 / 20 · Regular · BodyTextBlockStyle" />
+
+        <TextBlock Grid.Row="2" Grid.Column="0" Theme="{StaticResource BodyStrongTextBlockStyle}"
+                   Text="Body Strong · 14/20 Semibold · 表头、卡片小标题" />
+        <TextBlock Grid.Row="2" Grid.Column="1" Classes="note" Margin="32,0,0,0" VerticalAlignment="Bottom"
+                   Text="14 / 20 · Semibold · BodyStrongTextBlockStyle" />
+
+        <TextBlock Grid.Row="3" Grid.Column="0" Theme="{StaticResource BodyLargeTextBlockStyle}"
+                   Text="Body Large · 18/24 · 引导性正文" />
+        <TextBlock Grid.Row="3" Grid.Column="1" Classes="note" Margin="32,0,0,0" VerticalAlignment="Bottom"
+                   Text="18 / 24 · Regular · BodyLargeTextBlockStyle" />
+
+        <TextBlock Grid.Row="4" Grid.Column="0" Theme="{StaticResource SubtitleTextBlockStyle}"
+                   Text="Subtitle · 20/28 Semibold" />
+        <TextBlock Grid.Row="4" Grid.Column="1" Classes="note" Margin="32,0,0,0" VerticalAlignment="Bottom"
+                   Text="20 / 28 · Semibold · SubtitleTextBlockStyle" />
+
+        <TextBlock Grid.Row="5" Grid.Column="0" Theme="{StaticResource TitleTextBlockStyle}"
+                   Text="Title · 28/36 Semibold" />
+        <TextBlock Grid.Row="5" Grid.Column="1" Classes="note" Margin="32,0,0,0" VerticalAlignment="Bottom"
+                   Text="28 / 36 · Semibold · TitleTextBlockStyle" />
+
+        <TextBlock Grid.Row="6" Grid.Column="0" Theme="{StaticResource TitleLargeTextBlockStyle}"
+                   Text="Title Large · 40/52" />
+        <TextBlock Grid.Row="6" Grid.Column="1" Classes="note" Margin="32,0,0,0" VerticalAlignment="Bottom"
+                   Text="40 / 52 · Semibold · TitleLargeTextBlockStyle" />
+
+      </Grid>
+    </Border>
+    <TextBlock Classes="note" MaxWidth="760"
+               Text="Caption / Body / Body Strong / Body Large 走 ContentControlThemeFontFamily（Segoe UI Variable Text），Subtitle 往上走 DisplayControlThemeFontFamily（Variable Display）——大字号换 Display 字面才不会显得松垮。库里还有一档 DisplayTextBlockStyle（68/92），只给全屏数字大屏用，常规界面里排不下。" />
+
+    <!-- 前景色是「同一段文字压几档」，不是换颜色。四档之外不要再自定义灰， -->
+    <!-- 一旦出现第五档，屏上就分不出哪个是禁用哪个是次要了。 -->
+    <TextBlock Classes="sub" Text="前景色 — 四档，浅色主题下是黑色叠不同 alpha" />
+    <Border Classes="panel">
+      <Grid ColumnDefinitions="Auto,Auto" RowDefinitions="Auto,Auto,Auto,Auto" RowSpacing="10">
+
+        <TextBlock Grid.Row="0" Grid.Column="0" Theme="{StaticResource BodyTextBlockStyle}"
+                   Foreground="{DynamicResource TextFillColorPrimaryBrush}"
+                   Text="Primary · 腔体温度 85.5 °C" />
+        <TextBlock Grid.Row="0" Grid.Column="1" Classes="note" Margin="32,0,0,0" VerticalAlignment="Center"
+                   Text="TextFillColorPrimaryBrush · #E4 (89%) · 正文与读数" />
+
+        <TextBlock Grid.Row="1" Grid.Column="0" Theme="{StaticResource BodyTextBlockStyle}"
+                   Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                   Text="Secondary · 目标 85.0 °C，容差 ±1.0" />
+        <TextBlock Grid.Row="1" Grid.Column="1" Classes="note" Margin="32,0,0,0" VerticalAlignment="Center"
+                   Text="TextFillColorSecondaryBrush · #9E (62%) · 说明段、小节标题" />
+
+        <TextBlock Grid.Row="2" Grid.Column="0" Theme="{StaticResource BodyTextBlockStyle}"
+                   Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                   Text="Tertiary · 最后更新 14:02:31" />
+        <TextBlock Grid.Row="2" Grid.Column="1" Classes="note" Margin="32,0,0,0" VerticalAlignment="Center"
+                   Text="TextFillColorTertiaryBrush · #72 (45%) · 元信息、单位、水印" />
+
+        <TextBlock Grid.Row="3" Grid.Column="0" Theme="{StaticResource BodyTextBlockStyle}"
+                   Foreground="{DynamicResource TextFillColorDisabledBrush}"
+                   Text="Disabled · 手动模式下不可改" />
+        <TextBlock Grid.Row="3" Grid.Column="1" Classes="note" Margin="32,0,0,0" VerticalAlignment="Center"
+                   Text="TextFillColorDisabledBrush · #5C (36%) · 只给禁用态" />
+
+      </Grid>
+    </Border>
+    <TextBlock Classes="note" MaxWidth="760"
+               Text="Disabled 和 Tertiary 只差 9%，但含义完全不同：Tertiary 是「能读、不重要」，Disabled 是「这块现在不能动」。拿 Tertiary 当禁用用，操作员会去点；拿 Disabled 当次要说明用，操作员会以为控件坏了。深色主题下这四档换成白色叠 alpha，键名不变。" />
+
+    <!-- 等宽数字。这一节不是排版偏好问题，是「屏幕会不会抖」的问题。 -->
+    <TextBlock Classes="sub" Text="等宽数字 — 读数必须开" />
+    <Border Classes="panel">
+      <StackPanel Spacing="18">
+
+        <StackPanel Spacing="6">
+          <TextBlock Classes="note" Margin="0" Text="FontFeatures=&quot;{StaticResource TabularNumbers}&quot; — 每个数字占同宽，右边缘对齐" />
+          <StackPanel Orientation="Horizontal" Spacing="0">
+            <TextBlock Theme="{StaticResource BodyLargeTextBlockStyle}"
+                       FontFeatures="{StaticResource TabularNumbers}" Text="1111.11" />
+            <Border Width="1" Margin="8,0" Background="{DynamicResource AccentFillColorDefaultBrush}" />
+            <TextBlock Theme="{StaticResource BodyLargeTextBlockStyle}"
+                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" Text="bar" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal" Spacing="0">
+            <TextBlock Theme="{StaticResource BodyLargeTextBlockStyle}"
+                       FontFeatures="{StaticResource TabularNumbers}" Text="8888.88" />
+            <Border Width="1" Margin="8,0" Background="{DynamicResource AccentFillColorDefaultBrush}" />
+            <TextBlock Theme="{StaticResource BodyLargeTextBlockStyle}"
+                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" Text="bar" />
+          </StackPanel>
+        </StackPanel>
+
+        <StackPanel Spacing="6">
+          <TextBlock Classes="note" Margin="0" Text="不开 — 比例数字，1 比 8 窄一截，两条蓝线错开" />
+          <StackPanel Orientation="Horizontal" Spacing="0">
+            <TextBlock Theme="{StaticResource BodyLargeTextBlockStyle}" Text="1111.11" />
+            <Border Width="1" Margin="8,0" Background="{DynamicResource AccentFillColorDefaultBrush}" />
+            <TextBlock Theme="{StaticResource BodyLargeTextBlockStyle}"
+                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" Text="bar" />
+          </StackPanel>
+          <StackPanel Orientation="Horizontal" Spacing="0">
+            <TextBlock Theme="{StaticResource BodyLargeTextBlockStyle}" Text="8888.88" />
+            <Border Width="1" Margin="8,0" Background="{DynamicResource AccentFillColorDefaultBrush}" />
+            <TextBlock Theme="{StaticResource BodyLargeTextBlockStyle}"
+                       Foreground="{DynamicResource TextFillColorTertiaryBrush}" Text="bar" />
+          </StackPanel>
+        </StackPanel>
+
+      </StackPanel>
+    </Border>
+    <TextBlock Classes="note" MaxWidth="760"
+               Text="静态截图上这点差别看着无所谓，一旦数值每秒刷新就是另一回事：比例数字下 84.6 → 84.9 会让整行横移，一屏二十个读数就是一片抖动，操作员盯十分钟就头晕。所有读数、数值列、日期时间一律开 tnum。" />
+
+    <TextBlock Classes="sub" Text="试玩 — 让数字跳起来" />
+    <Border Classes="play">
+      <StackPanel Spacing="16">
+        <StackPanel Orientation="Horizontal" Spacing="48">
+
+          <StackPanel Spacing="8">
+            <TextBlock Classes="note" Margin="0" Text="tnum=1" />
+            <StackPanel Orientation="Horizontal" Spacing="0">
+              <TextBlock x:Name="TabularLive" Theme="{StaticResource TitleTextBlockStyle}"
+                         FontFeatures="{StaticResource TabularNumbers}" Text="5000" />
+              <Border Width="1" Margin="10,0" Background="{DynamicResource AccentFillColorDefaultBrush}" />
+              <TextBlock Theme="{StaticResource BodyTextBlockStyle}" VerticalAlignment="Bottom" Margin="0,0,0,6"
+                         Foreground="{DynamicResource TextFillColorTertiaryBrush}" Text="rpm" />
+            </StackPanel>
+          </StackPanel>
+
+          <StackPanel Spacing="8">
+            <TextBlock Classes="note" Margin="0" Text="不开" />
+            <StackPanel Orientation="Horizontal" Spacing="0">
+              <TextBlock x:Name="ProportionalLive" Theme="{StaticResource TitleTextBlockStyle}" Text="5000" />
+              <Border Width="1" Margin="10,0" Background="{DynamicResource AccentFillColorDefaultBrush}" />
+              <TextBlock Theme="{StaticResource BodyTextBlockStyle}" VerticalAlignment="Bottom" Margin="0,0,0,6"
+                         Foreground="{DynamicResource TextFillColorTertiaryBrush}" Text="rpm" />
+            </StackPanel>
+          </StackPanel>
+
+          <Button x:Name="ToggleRefresh" Content="暂停刷新" VerticalAlignment="Center" />
+
+        </StackPanel>
+        <TextBlock Classes="note" MaxWidth="700"
+                   Text="两边永远是同一个值，位数也永远是四位——右边那条蓝线还是在抖，抖的只是字形宽度。盯着「rpm」看最明显。" />
+      </StackPanel>
+    </Border>
+
+    <g:MapBlock Note="Linux 嵌入式要把中文字体作为 avares:// 资源嵌进项目，不能假设系统有。字重只有 400 / 600 两档是校验过的不变量：主题里没有 Bold，也没有斜体，遇到「再粗一点」的需求换字阶，不要换字重。">
+      <g:MapRow Key="资源键" Value="CaptionTextBlockStyle · BodyTextBlockStyle · BodyStrongTextBlockStyle · BodyLargeTextBlockStyle · SubtitleTextBlockStyle · TitleTextBlockStyle · TitleLargeTextBlockStyle · DisplayTextBlockStyle" />
+      <g:MapRow Key="Avalonia" Value="TextBlock Theme=&quot;{StaticResource TitleTextBlockStyle}&quot;" />
+      <g:MapRow Key="字体栈" Value="Segoe UI Variable Text → Segoe UI → Microsoft YaHei UI（ContentControlThemeFontFamily）· 大字号走 DisplayControlThemeFontFamily" />
+      <g:MapRow Key="前景色" Value="TextFillColorPrimary/Secondary/Tertiary/DisabledBrush" />
+      <g:MapRow Key="等宽数字" Value="FontFeatures=&quot;{StaticResource TabularNumbers}&quot;（tnum=1，Avalonia 11.1+）" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

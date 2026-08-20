@@ -1,0 +1,52 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <RootNamespace>Cobalt.Fluent</RootNamespace>
+    <AssemblyName>Cobalt.Fluent</AssemblyName>
+    <PackageId>Cobalt.Fluent</PackageId>
+    <Description>Windows 11 Fluent 控件库 for Avalonia —— 桌面基准 32px，含工业 HMI 专用控件。</Description>
+    <IncludeBuildOutput>true</IncludeBuildOutput>
+
+    <!-- NuGet 包元数据。发包前把下面三处的 owner/repo 换成实际地址。 -->
+    <Version>0.1.0</Version>
+    <Authors>RoorJiaMo</Authors>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/RoorJiaMo/CobaltFluent</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/RoorJiaMo/CobaltFluent</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>avalonia;fluent;windows11;controls;theme;hmi;industrial</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <!-- 打包时把源码行号映射进 symbol 包，使用方能直接单步进本库 -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="../../README.md" Pack="true" PackagePath="/" Visible="false" />
+    <None Include="../../LICENSE" Pack="true" PackagePath="/" Visible="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
+    <PackageReference Include="Avalonia.Controls.DataGrid" Version="$(AvaloniaDataGridVersion)" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets/**" />
+  </ItemGroup>
+
+  <!-- Themes/Controls 下新增一个文件却忘了重建合并列表，是这套结构最容易踩的坑：
+       编译照样通过，控件却静默地退回 Avalonia 内置主题，很难发现。
+       所以在这里自动重建。只在本仓库源码树里生效（脚本存在才跑），
+       消费方拿到的是 NuGet 包，不需要 Python。 -->
+  <Target Name="RegenerateThemeIndex" BeforeTargets="BeforeBuild"
+          Condition="Exists('$(MSBuildProjectDirectory)/../../tools/gen_theme_index.py') AND '$(SkipThemeIndexRegen)' != 'true'">
+    <Exec Command="python3 &quot;$(MSBuildProjectDirectory)/../../tools/gen_theme_index.py&quot;"
+          WorkingDirectory="$(MSBuildProjectDirectory)/../.."
+          ContinueOnError="true"
+          StandardOutputImportance="low" />
+  </Target>
+
+</Project>

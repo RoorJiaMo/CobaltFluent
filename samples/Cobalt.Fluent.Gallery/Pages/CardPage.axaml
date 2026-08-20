@@ -1,0 +1,141 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             xmlns:fc="using:Cobalt.Fluent.Controls"
+             x:Class="Cobalt.Fluent.Gallery.Pages.CardPage">
+
+  <UserControl.Styles>
+    <!-- 试玩区里「当前选中」的描边。选中态不是 Card 的职责——它没有 :selected，
+         也不该有：卡片选没选中是列表的事，控件只提供一块底和一圈边。 -->
+    <Style Selector="fc|Card.picked">
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+    </Style>
+  </UserControl.Styles>
+
+  <StackPanel Spacing="0" HorizontalAlignment="Left">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="Card" />
+      <Border Classes="tag"><TextBlock Text="3 · 容器" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead"
+               Text="4px 圆角（页面内元素，不是 8px），半透明底 + 1px 描边，不加阴影。Card 是 content layer 内部的分区，不是第三层。" />
+
+    <TextBlock Classes="sub" Text="静态卡片 — 三格长一个样，这是对的" />
+    <g:SpecMatrix States="rest,pointerover,pressed">
+      <g:SpecMatrix.Sample>
+        <DataTemplate>
+          <fc:Card Width="220">
+            <StackPanel Spacing="4">
+              <TextBlock Theme="{StaticResource BodyStrongTextBlockStyle}" Text="反应器 R1" />
+              <TextBlock Theme="{StaticResource CaptionTextBlockStyle}"
+                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                         Text="当前 85.4 °C · 目标 85.0 °C" />
+            </StackPanel>
+          </fc:Card>
+        </DataTemplate>
+      </g:SpecMatrix.Sample>
+    </g:SpecMatrix>
+    <TextBlock Classes="note"
+               Text="伪类是硬加上去的，底色照样纹丝不动——ControlTheme 里那两条状态规则前面都挂了 :clickable。给点不动的东西加悬停反馈，操作员会反复去点它，然后报「卡了」。" />
+
+    <TextBlock Classes="sub" Text="IsClickable=True — 打开才响应指针" />
+    <g:SpecMatrix States="rest,pointerover,pressed">
+      <g:SpecMatrix.Sample>
+        <DataTemplate>
+          <fc:Card Width="220" IsClickable="True">
+            <StackPanel Spacing="4">
+              <TextBlock Theme="{StaticResource BodyStrongTextBlockStyle}" Text="反应器 R2" />
+              <TextBlock Theme="{StaticResource CaptionTextBlockStyle}"
+                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                         Text="当前 24.1 °C · 待机" />
+            </StackPanel>
+          </fc:Card>
+        </DataTemplate>
+      </g:SpecMatrix.Sample>
+    </g:SpecMatrix>
+    <TextBlock Classes="note"
+               Text="悬停那一档底色只差 8% 不到的半透明白，高对比度主题下这点差别直接归零。所以能点的卡片必须靠那圈 1px 描边说话，别把「能不能点」全押在背景色上。" />
+
+    <TextBlock Classes="sub" Text="成组 — content layer 内部的分区" />
+    <Border Classes="panel">
+      <StackPanel Orientation="Horizontal" Spacing="12">
+        <fc:Card Width="200">
+          <StackPanel Spacing="4">
+            <TextBlock Theme="{StaticResource BodyStrongTextBlockStyle}" Text="反应器 R1" />
+            <TextBlock Theme="{StaticResource CaptionTextBlockStyle}"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                       Text="当前 85.4 °C · 目标 85.0 °C" />
+          </StackPanel>
+        </fc:Card>
+        <fc:Card Width="200">
+          <StackPanel Spacing="4">
+            <TextBlock Theme="{StaticResource BodyStrongTextBlockStyle}" Text="反应器 R2" />
+            <TextBlock Theme="{StaticResource CaptionTextBlockStyle}"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                       Text="当前 24.1 °C · 待机" />
+          </StackPanel>
+        </fc:Card>
+        <fc:Card Width="200">
+          <StackPanel Spacing="4">
+            <TextBlock Theme="{StaticResource BodyStrongTextBlockStyle}" Text="反应器 R3" />
+            <TextBlock Theme="{StaticResource CaptionTextBlockStyle}"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                       Text="当前 —— · 未连接" />
+          </StackPanel>
+        </fc:Card>
+      </StackPanel>
+    </Border>
+    <TextBlock Classes="note"
+               Text="卡片坐在 content layer 上，用描边和半透明底切分区，不再往上叠一层阴影——阴影只留给真正浮起来的 ToolTip / Flyout / ContentDialog。页面内元素也加阴影，一屏就成了一堆飘着的纸片。" />
+
+    <TextBlock Classes="sub" Text="试玩 — 拨掉 IsClickable，反馈跟着消失" />
+    <Border Classes="play">
+      <StackPanel Spacing="16">
+        <StackPanel Orientation="Horizontal" Spacing="12">
+          <fc:Card x:Name="PlayR1" Width="180" IsClickable="True" Tag="反应器 R1">
+            <StackPanel Spacing="4">
+              <TextBlock Theme="{StaticResource BodyStrongTextBlockStyle}" Text="反应器 R1" />
+              <TextBlock Theme="{StaticResource CaptionTextBlockStyle}"
+                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                         Text="85.4 °C · 运行" />
+            </StackPanel>
+          </fc:Card>
+          <fc:Card x:Name="PlayR2" Width="180" IsClickable="True" Tag="反应器 R2">
+            <StackPanel Spacing="4">
+              <TextBlock Theme="{StaticResource BodyStrongTextBlockStyle}" Text="反应器 R2" />
+              <TextBlock Theme="{StaticResource CaptionTextBlockStyle}"
+                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                         Text="24.1 °C · 待机" />
+            </StackPanel>
+          </fc:Card>
+          <fc:Card x:Name="PlayR3" Width="180" IsClickable="True" Tag="反应器 R3">
+            <StackPanel Spacing="4">
+              <TextBlock Theme="{StaticResource BodyStrongTextBlockStyle}" Text="反应器 R3" />
+              <TextBlock Theme="{StaticResource CaptionTextBlockStyle}"
+                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                         Text="—— · 未连接" />
+            </StackPanel>
+          </fc:Card>
+        </StackPanel>
+
+        <ToggleSwitch x:Name="ClickableSwitch"
+                      Content="IsClickable"
+                      OnContent="True" OffContent="False"
+                      IsChecked="True" />
+
+        <TextBlock x:Name="PlayLog" Classes="note" Margin="0"
+                   Text="悬停、按下、点一张卡片试试。" />
+      </StackPanel>
+    </Border>
+
+    <g:MapBlock Note="可点击的卡片在高对比度下必须有可见描边，否则操作员看不出能点。别只靠背景色区分。另外 IsClickable 只管视觉反馈，点击行为还是自己接 Tapped——两边不同步就会出现「有反馈点不动」或者「能点没反馈」，这两种操作员都会当成故障报上来。">
+      <g:MapRow Key="控件" Value="fc:Card : ContentControl —— 静态和可点击两种形态合成一个，靠 IsClickable 切" />
+      <g:MapRow Key="属性" Value="IsClickable · Content · Padding=16（默认）" />
+      <g:MapRow Key="伪类" Value=":clickable（IsClickable=True）。状态规则全写成 ^:clickable:pointerover / ^:clickable:pressed，静态卡片天然没有指针反馈" />
+      <g:MapRow Key="资源键" Value="CardBackgroundFillColorDefaultBrush · CardBackgroundFillColorSecondaryBrush（:pointerover）· ControlFillColorTertiaryBrush（:pressed）· CardStrokeColorDefaultBrush · ControlCornerRadius" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

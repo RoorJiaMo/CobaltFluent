@@ -1,0 +1,58 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             x:Class="Cobalt.Fluent.Gallery.Pages.ToggleButtonPage">
+
+  <StackPanel HorizontalAlignment="Left">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="ToggleButton" />
+      <Border Classes="tag"><TextBlock Text="2 · 基础输入" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead"
+               Text="视觉同 Button，选中态换成 accent 填充。用于「保持按下」的开关式命令（如工具栏的网格吸附）。Avalonia 的 :checked 是真伪类，选中态不用自己挂类。" />
+
+    <TextBlock Classes="sub" Text="unchecked" />
+    <g:SpecMatrix>
+      <g:SpecMatrix.Sample>
+        <DataTemplate><ToggleButton Content="自动模式" /></DataTemplate>
+      </g:SpecMatrix.Sample>
+    </g:SpecMatrix>
+
+    <TextBlock Classes="sub" Text=":checked" />
+    <g:SpecMatrix States="checked,pointerover,pressed,disabled,focus">
+      <g:SpecMatrix.Sample>
+        <DataTemplate><ToggleButton Content="自动模式" IsChecked="True" /></DataTemplate>
+      </g:SpecMatrix.Sample>
+    </g:SpecMatrix>
+
+    <TextBlock Classes="sub" Text=":indeterminate — 三态" />
+    <g:SpecMatrix States="rest,pointerover">
+      <g:SpecMatrix.Sample>
+        <DataTemplate>
+          <ToggleButton Content="部分通道已选" IsThreeState="True" IsChecked="{x:Null}" />
+        </DataTemplate>
+      </g:SpecMatrix.Sample>
+    </g:SpecMatrix>
+
+    <TextBlock Classes="sub" Text="试玩" />
+    <Border Classes="play">
+      <StackPanel Spacing="12">
+        <StackPanel Orientation="Horizontal" Spacing="12">
+          <ToggleButton Content="自动模式" />
+          <ToggleButton Content="网格吸附" IsChecked="True" />
+          <ToggleButton Content="三态" IsThreeState="True" />
+        </StackPanel>
+        <TextBlock Classes="note" Text="点击切 :checked。右上角「动效 0.25×」可以慢放看清 83ms 的底色过渡。" />
+      </StackPanel>
+    </Border>
+
+    <g:MapBlock Note="Avalonia 的 :checked 是真伪类，选中态不用自己挂类。IsThreeState=True 才有 :indeterminate。">
+      <g:MapRow Key="控件" Value="ToggleButton" />
+      <g:MapRow Key="选择器" Value="ToggleButton:checked · ToggleButton:checked:pointerover · ToggleButton:indeterminate" />
+      <g:MapRow Key="资源键" Value="AccentFillColorDefaultBrush（checked 背景）· TextOnAccentFillColorPrimaryBrush" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

@@ -1,0 +1,157 @@
+<!-- NavigationView 家族。
+     项高 40（对齐 WinUI）；选中项左侧 3×16 指示条，不是整行变色。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:fc="using:Cobalt.Fluent.Controls">
+
+  <ControlTheme x:Key="{x:Type fc:NavigationView}" TargetType="fc:NavigationView">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:NavigationView">
+        <Grid ColumnDefinitions="Auto,*">
+
+          <!-- 导航面板属于 base layer，不加背景 -->
+          <Grid Grid.Column="0"
+                Width="{TemplateBinding PaneLength}"
+                RowDefinitions="*,Auto"
+                Margin="4,0">
+            <ScrollViewer Grid.Row="0" HorizontalScrollBarVisibility="Disabled">
+              <ItemsControl ItemsSource="{TemplateBinding MenuItems}" />
+            </ScrollViewer>
+            <ItemsControl Grid.Row="1" ItemsSource="{TemplateBinding FooterItems}"
+                          Margin="0,0,0,8" />
+          </Grid>
+
+          <!-- content layer：从右下角贴上来，只圆左上角 —— Win11 设置界面的做法 -->
+          <Border Grid.Column="1"
+                  Background="{DynamicResource LayerFillColorDefaultBrush}"
+                  BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                  BorderThickness="1,1,0,0"
+                  CornerRadius="8,0,0,0">
+            <Grid RowDefinitions="Auto,*">
+              <ContentPresenter Grid.Row="0"
+                                Content="{TemplateBinding Header}"
+                                Margin="24,20,24,8"
+                                IsVisible="{TemplateBinding Header,
+                                            Converter={x:Static ObjectConverters.IsNotNull}}" />
+              <ContentPresenter Grid.Row="1"
+                                Content="{TemplateBinding Content}"
+                                Margin="24,8,24,24" />
+            </Grid>
+          </Border>
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type fc:NavigationViewItem}" TargetType="fc:NavigationViewItem">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="Height" Value="{DynamicResource NavigationViewItemHeight}" />
+    <Setter Property="Margin" Value="0,0,0,4" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <Setter Property="Cursor" Value="Arrow" />
+    <Setter Property="FocusAdorner" Value="{StaticResource FluentFocusAdorner}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:NavigationViewItem">
+        <Panel>
+          <Border x:Name="PART_Root"
+                  Background="{TemplateBinding Background}"
+                  CornerRadius="{TemplateBinding CornerRadius}"
+                  Height="{TemplateBinding Height}"
+                  Padding="12,0">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+              <fc:SymbolIcon Grid.Column="0"
+                             Symbol="{TemplateBinding Icon}"
+                             FontSize="16"
+                             Width="16"
+                             VerticalAlignment="Center"
+                             Foreground="{TemplateBinding Foreground}" />
+              <ContentPresenter x:Name="PART_Label"
+                                Grid.Column="1"
+                                Margin="16,0,0,0"
+                                VerticalAlignment="Center"
+                                Content="{TemplateBinding Content}"
+                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                Foreground="{TemplateBinding Foreground}" />
+              <ContentPresenter x:Name="PART_Badge"
+                                Grid.Column="2"
+                                VerticalAlignment="Center"
+                                Content="{TemplateBinding Badge}" />
+            </Grid>
+          </Border>
+
+          <!-- 选中指示条：3×16，圆角 1.5，贴左边垂直居中。
+               整行变色是 Fluent v1 的做法，Win11 不是这样。 -->
+          <Border x:Name="PART_Indicator"
+                  Width="{DynamicResource SelectionIndicatorWidth}"
+                  Height="{DynamicResource SelectionIndicatorHeight}"
+                  CornerRadius="1.5"
+                  Background="{DynamicResource AccentFillColorDefaultBrush}"
+                  HorizontalAlignment="Left"
+                  VerticalAlignment="Center"
+                  IsVisible="False" />
+        </Panel>
+      </ControlTemplate>
+    </Setter>
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="0:0:0.083" />
+      </Transitions>
+    </Setter>
+
+    <Style Selector="^:pointerover:not(:selected) /template/ Border#PART_Root">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+    </Style>
+    <Style Selector="^:pressed /template/ Border#PART_Root">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorTertiaryBrush}" />
+    </Style>
+    <Style Selector="^:selected">
+      <Style Selector="^ /template/ Border#PART_Root">
+        <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+      </Style>
+      <Style Selector="^ /template/ Border#PART_Indicator">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+    </Style>
+    <Style Selector="^:disabled">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+    </Style>
+
+    <!-- 紧凑模式：只留图标 -->
+    <Style Selector="^:compact">
+      <Style Selector="^ /template/ ContentPresenter#PART_Label">
+        <Setter Property="IsVisible" Value="False" />
+      </Style>
+      <Style Selector="^ /template/ ContentPresenter#PART_Badge">
+        <Setter Property="IsVisible" Value="False" />
+      </Style>
+    </Style>
+  </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type fc:NavigationViewItemHeader}" TargetType="fc:NavigationViewItemHeader">
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    <Setter Property="FontSize" Value="{DynamicResource CaptionFontSize}" />
+    <Setter Property="Margin" Value="12,12,12,4" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:NavigationViewItemHeader">
+        <ContentPresenter Content="{TemplateBinding Content}"
+                          Foreground="{TemplateBinding Foreground}"
+                          FontSize="{TemplateBinding FontSize}" />
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type fc:NavigationViewItemSeparator}" TargetType="fc:NavigationViewItemSeparator">
+    <Setter Property="Height" Value="1" />
+    <Setter Property="Margin" Value="12,4" />
+    <Setter Property="Background" Value="{DynamicResource DividerStrokeColorDefaultBrush}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:NavigationViewItemSeparator">
+        <Border Background="{TemplateBinding Background}" Height="{TemplateBinding Height}" />
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+</ResourceDictionary>

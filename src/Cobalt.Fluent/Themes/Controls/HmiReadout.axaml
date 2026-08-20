@@ -1,0 +1,247 @@
+<!-- Readout / StatusIndicator / Heartbeat —— 第 7 组，读数与状态。
+     这一组 WinUI / FluentAvalonia 里不存在，是新写的 TemplatedControl。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:fc="using:Cobalt.Fluent.Controls">
+
+  <!-- ==================== Readout ==================== -->
+  <ControlTheme x:Key="{x:Type fc:Readout}" TargetType="fc:Readout">
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:Readout">
+        <StackPanel Spacing="2">
+
+          <!-- 标签行。过期标记跟在标签后面，用 caution 色 -->
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <TextBlock x:Name="PART_Label"
+                       Text="{TemplateBinding Label}"
+                       FontSize="{DynamicResource CaptionFontSize}"
+                       LineHeight="{DynamicResource CaptionLineHeight}"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+            <TextBlock x:Name="PART_Stale"
+                       Text="{TemplateBinding StaleText}"
+                       FontSize="{DynamicResource CaptionFontSize}"
+                       LineHeight="{DynamicResource CaptionLineHeight}"
+                       Foreground="{DynamicResource SystemFillColorCautionBrush}"
+                       IsVisible="{TemplateBinding StaleText,
+                                   Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+          </StackPanel>
+
+          <!-- 数值行。基线对齐，等宽数字，按最大位数预留宽度 -->
+          <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Bottom">
+            <TextBlock x:Name="PART_Value"
+                       Text="{TemplateBinding DisplayValue}"
+                       MinWidth="{TemplateBinding ValueMinWidth}"
+                       TextAlignment="Right"
+                       FontFamily="{DynamicResource DisplayControlThemeFontFamily}"
+                       FontWeight="SemiBold"
+                       FontSize="{DynamicResource ReadoutFontSizeMedium}"
+                       LineHeight="44"
+                       FontFeatures="{StaticResource TabularNumbers}"
+                       Foreground="{TemplateBinding Foreground}" />
+            <TextBlock x:Name="PART_Unit"
+                       Text="{TemplateBinding Unit}"
+                       FontSize="16"
+                       FontWeight="Normal"
+                       VerticalAlignment="Bottom"
+                       Margin="0,0,0,6"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+          </StackPanel>
+
+          <!-- 目标值 / 偏差，或过期时的"最后更新 n 秒前" -->
+          <TextBlock x:Name="PART_Status"
+                     Text="{TemplateBinding StatusText}"
+                     FontSize="{DynamicResource CaptionFontSize}"
+                     LineHeight="{DynamicResource CaptionLineHeight}"
+                     FontFeatures="{StaticResource TabularNumbers}"
+                     Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                     IsVisible="{TemplateBinding StatusText,
+                                 Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        </StackPanel>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- 三档字号 -->
+    <Style Selector="^:small /template/ TextBlock#PART_Value">
+      <Setter Property="FontSize" Value="{DynamicResource ReadoutFontSizeSmall}" />
+      <Setter Property="LineHeight" Value="28" />
+    </Style>
+    <Style Selector="^:small /template/ TextBlock#PART_Unit">
+      <Setter Property="FontSize" Value="9.6" />
+      <Setter Property="Margin" Value="0,0,0,3" />
+    </Style>
+
+    <Style Selector="^:large /template/ TextBlock#PART_Value">
+      <Setter Property="FontSize" Value="{DynamicResource ReadoutFontSizeLarge}" />
+      <Setter Property="LineHeight" Value="76" />
+    </Style>
+    <Style Selector="^:large /template/ TextBlock#PART_Unit">
+      <Setter Property="FontSize" Value="28.8" />
+      <Setter Property="Margin" Value="0,0,0,12" />
+    </Style>
+
+    <!-- 偏离容差带 -->
+    <Style Selector="^:deviating /template/ TextBlock#PART_Value">
+      <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCautionBrush}" />
+    </Style>
+
+    <!-- 过期：值变灰但**保留最后已知值**。换成"—"是错的——
+         通信断了，设备上的反应还在跑，操作员需要知道断开前的最后一个值。 -->
+    <Style Selector="^:stale /template/ TextBlock#PART_Value">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}" />
+    </Style>
+
+    <!-- 从未取到值 -->
+    <Style Selector="^:nodata /template/ TextBlock#PART_Value">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+    </Style>
+  </ControlTheme>
+
+  <!-- ==================== StatusIndicator ==================== -->
+  <!-- 三重编码：颜色 + 形状/动效 + 文字。任何一种单独都不够。 -->
+  <ControlTheme x:Key="{x:Type fc:StatusIndicator}" TargetType="fc:StatusIndicator">
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:StatusIndicator">
+        <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+
+          <Panel Width="18" Height="18">
+            <!-- 脉冲环：running 的非颜色信号。只动 transform / opacity。 -->
+            <Border x:Name="PART_Pulse"
+                    Width="10" Height="10"
+                    CornerRadius="1000"
+                    BorderThickness="1"
+                    BorderBrush="{DynamicResource SystemFillColorSuccessBrush}"
+                    Opacity="0"
+                    HorizontalAlignment="Center" VerticalAlignment="Center"
+                    RenderTransformOrigin="50%,50%">
+              <!-- 关键帧动画只能动 Transform 的子属性（ScaleTransform.ScaleX/Y），
+                   不能整个动 RenderTransform —— 那条路只有 Transition 走得通。 -->
+              <Border.RenderTransform>
+                <ScaleTransform ScaleX="0.7" ScaleY="0.7" />
+              </Border.RenderTransform>
+            </Border>
+            <Border x:Name="PART_Dot"
+                    Width="10" Height="10"
+                    CornerRadius="1000"
+                    Background="{DynamicResource SystemFillColorNeutralBrush}"
+                    HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </Panel>
+
+          <fc:SymbolIcon x:Name="PART_Glyph"
+                         Symbol="{TemplateBinding Glyph}"
+                         FontSize="14"
+                         VerticalAlignment="Center"
+                         IsVisible="False" />
+
+          <TextBlock x:Name="PART_Label"
+                     Text="{TemplateBinding Label}"
+                     VerticalAlignment="Center"
+                     Foreground="{TemplateBinding Foreground}"
+                     IsVisible="{TemplateBinding ShowLabel}" />
+        </StackPanel>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- offline：空心圈。「没有信息」和「一切正常」必须长得不一样。 -->
+    <Style Selector="^:offline">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+      <Style Selector="^ /template/ Border#PART_Dot">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="BorderThickness" Value="1.5" />
+        <Setter Property="BorderBrush" Value="{DynamicResource TextFillColorTertiaryBrush}" />
+      </Style>
+    </Style>
+
+    <Style Selector="^:idle /template/ Border#PART_Dot">
+      <Setter Property="Background" Value="{DynamicResource SystemFillColorNeutralBrush}" />
+    </Style>
+
+    <Style Selector="^:running /template/ Border#PART_Dot">
+      <Setter Property="Background" Value="{DynamicResource SystemFillColorSuccessBrush}" />
+    </Style>
+    <Style Selector="^:running /template/ Border#PART_Pulse">
+      <Setter Property="Opacity" Value="0.9" />
+      <Style.Animations>
+        <Animation Duration="0:0:2" IterationCount="Infinite" Easing="CubicEaseOut">
+          <KeyFrame Cue="0%">
+            <Setter Property="Opacity" Value="0.9" />
+            <Setter Property="ScaleTransform.ScaleX" Value="0.7" />
+            <Setter Property="ScaleTransform.ScaleY" Value="0.7" />
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="Opacity" Value="0" />
+            <Setter Property="ScaleTransform.ScaleX" Value="1.7" />
+            <Setter Property="ScaleTransform.ScaleY" Value="1.7" />
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+    <!-- 关掉脉冲动画时留一个静态外环，形状编码不能丢 -->
+    <Style Selector="^:running[IsPulseEnabled=False] /template/ Border#PART_Pulse">
+      <Setter Property="Opacity" Value="0.5" />
+      <Setter Property="ScaleTransform.ScaleX" Value="1.3" />
+      <Setter Property="ScaleTransform.ScaleY" Value="1.3" />
+    </Style>
+
+    <Style Selector="^:warning">
+      <Style Selector="^ /template/ Border#PART_Dot">
+        <Setter Property="Background" Value="{DynamicResource SystemFillColorCautionBrush}" />
+      </Style>
+      <Style Selector="^ /template/ fc|SymbolIcon#PART_Glyph">
+        <Setter Property="IsVisible" Value="True" />
+        <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCautionBrush}" />
+      </Style>
+    </Style>
+
+    <Style Selector="^:fault">
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Style Selector="^ /template/ Border#PART_Dot">
+        <Setter Property="Background" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+      </Style>
+      <Style Selector="^ /template/ fc|SymbolIcon#PART_Glyph">
+        <Setter Property="IsVisible" Value="True" />
+        <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+      </Style>
+      <Style Selector="^ /template/ TextBlock#PART_Label">
+        <Setter Property="FontWeight" Value="SemiBold" />
+      </Style>
+    </Style>
+  </ControlTheme>
+
+  <!-- ==================== Heartbeat ==================== -->
+  <!-- 由实际通信事件驱动。停跳 = 通信断了，比任何文字提示都快。 -->
+  <ControlTheme x:Key="{x:Type fc:Heartbeat}" TargetType="fc:Heartbeat">
+    <Setter Property="Width" Value="8" />
+    <Setter Property="Height" Value="8" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:Heartbeat">
+        <Border x:Name="PART_Dot"
+                CornerRadius="1000"
+                Background="{DynamicResource SystemFillColorSuccessBrush}"
+                Opacity="0.25">
+          <Border.Transitions>
+            <Transitions>
+              <DoubleTransition Property="Opacity" Duration="0:0:0.167" />
+            </Transitions>
+          </Border.Transitions>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^:beating /template/ Border#PART_Dot">
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+
+    <!-- 停跳：红色常亮，不闪。不动的红点比闪烁更容易被当成"坏了" -->
+    <Style Selector="^:stopped /template/ Border#PART_Dot">
+      <Setter Property="Background" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+      <Setter Property="Opacity" Value="1" />
+    </Style>
+  </ControlTheme>
+
+</ResourceDictionary>

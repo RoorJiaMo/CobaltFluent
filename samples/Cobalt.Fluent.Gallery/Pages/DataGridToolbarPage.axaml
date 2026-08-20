@@ -1,0 +1,224 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             xmlns:fc="using:Cobalt.Fluent.Controls"
+             xmlns:p="using:Cobalt.Fluent.Gallery.Pages"
+             x:Class="Cobalt.Fluent.Gallery.Pages.DataGridToolbarPage">
+
+  <StackPanel Spacing="0" HorizontalAlignment="Left">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="Toolbar / Pagination" />
+      <Border Classes="tag"><TextBlock Text="10 · 表格增强" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead"
+               Text="工具栏和分页是表格的标配，但都不属于表格本身——它们在 base layer，表格在 content layer。别把它们套进同一个 Card 里。" />
+
+    <TextBlock Classes="sub" Text="工具条 — 左边动作，右边计数" />
+    <Border Classes="panel" Padding="0" Width="880">
+      <fc:DataGridToolbar CountText="共 1 248 条">
+        <TextBox Width="200" Watermark="搜索批次号">
+          <TextBox.InnerRightContent>
+            <fc:SymbolIcon Symbol="Search" FontSize="12" Margin="0,0,8,0" />
+          </TextBox.InnerRightContent>
+        </TextBox>
+        <Button>
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <fc:SymbolIcon Symbol="Filter" FontSize="12" />
+            <TextBlock Text="筛选" />
+          </StackPanel>
+        </Button>
+        <fc:Chip Content="配方：PES 标准" />
+        <fc:Chip Content="状态：已完成" />
+        <Button Classes="subtle" Content="清除" />
+        <Button>
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <fc:SymbolIcon Symbol="Download" FontSize="12" />
+            <TextBlock Text="导出" />
+          </StackPanel>
+        </Button>
+      </fc:DataGridToolbar>
+    </Border>
+    <TextBlock Classes="note"
+               Text="筛选条件用 Chip 摊在工具条上，不藏进弹层——操作员随时能看到当前视图被过滤成了什么样。藏起来的筛选条件迟早会有人对着一张空表格喊「数据丢了」。" />
+    <TextBlock Classes="note"
+               Text="计数只认右端这一档，其余动作（含导出这种右侧动作）一律进 Items 排在左边。计数的宽度随筛选一直在变，钉在最右才不会推着旁边的按钮左右挪；文字本身走 tabular-nums。" />
+
+    <TextBlock Classes="sub" Text="分页 — 首末页常在，中间断开处折成省略号" />
+    <Border Classes="panel" Padding="0" Width="880">
+      <StackPanel Spacing="0">
+        <fc:Pagination PageCount="3" CurrentPage="1" TotalItems="58" />
+        <fc:Pagination PageCount="63" CurrentPage="1" TotalItems="1248" />
+        <fc:Pagination PageCount="417" CurrentPage="208" TotalItems="1248" />
+      </StackPanel>
+    </Border>
+    <TextBlock Classes="note"
+               Text="页码总数在窗口（SiblingCount×2+5）以内就全铺开，超了才折。当前页落在中间时两头各留一个省略号，首末页任何时候都在——「跳到最后一页」是查历史记录时最常用的一下。" />
+    <TextBlock Classes="note"
+               Text="页码按钮固定 32 宽、等宽数字：翻到两位数、三位数时按钮不会自己变宽，整条分页的位置是钉死的。" />
+
+    <TextBlock Classes="sub" Text="拼在一起 — 三段各是各的，分隔线自己出" />
+    <Border Classes="panel" Padding="0" Width="880">
+      <StackPanel Spacing="0">
+
+        <Border BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}" BorderThickness="0,0,0,1">
+          <fc:DataGridToolbar CountText="共 1 248 条">
+            <fc:Chip Content="配方：PES 标准" />
+            <fc:Chip Content="状态：已完成" />
+            <Button Classes="subtle" Content="清除" />
+          </fc:DataGridToolbar>
+        </Border>
+
+        <!-- Height 写死：DataGrid 是虚拟化控件，套进 StackPanel 拿到的是无限高度，
+             量不出行数会塌成一条。32 表头 + 3×32 行。 -->
+        <DataGrid x:Name="Grid"
+                  x:DataType="p:ToolbarBatch"
+                  Classes="compact"
+                  Height="132"
+                  IsReadOnly="True"
+                  SelectedIndex="0"
+                  CanUserSortColumns="True">
+          <DataGrid.Columns>
+
+            <!-- 表头这只框是三态的，停在 indeterminate：表示「部分行已选」。
+                 三态联动的完整接法在 DataGrid 那页，这里只摆出形状。 -->
+            <DataGridTemplateColumn Width="48">
+              <DataGridTemplateColumn.Header>
+                <CheckBox IsThreeState="True" IsChecked="{x:Null}" />
+              </DataGridTemplateColumn.Header>
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="p:ToolbarBatch">
+                  <CheckBox IsChecked="{Binding IsPicked, Mode=TwoWay}" VerticalAlignment="Center" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+
+            <DataGridTextColumn Header="批次号" Width="180" Binding="{Binding Batch}" />
+            <DataGridTextColumn Header="配方" Width="130" Binding="{Binding Recipe}" CanUserSort="False" />
+
+            <DataGridTextColumn Header="峰值" Width="110" Binding="{Binding PeakText}" CanUserSort="False">
+              <DataGridTextColumn.CellStyleClasses>
+                <x:String>num</x:String>
+              </DataGridTextColumn.CellStyleClasses>
+            </DataGridTextColumn>
+
+            <DataGridTemplateColumn Header="状态" Width="*">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="p:ToolbarBatch">
+                  <fc:InfoBadge Severity="{Binding Severity}"
+                                Text="{Binding Status}"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+
+          </DataGrid.Columns>
+        </DataGrid>
+
+        <Border BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}" BorderThickness="0,1,0,0">
+          <DockPanel>
+            <ComboBox DockPanel.Dock="Right"
+                      MinWidth="112"
+                      Margin="0,0,12,0"
+                      VerticalAlignment="Center"
+                      SelectedIndex="1">
+              <ComboBoxItem Content="每页 20" />
+              <ComboBoxItem Content="每页 50" />
+              <ComboBoxItem Content="每页 100" />
+              <ComboBoxItem Content="每页 200" />
+            </ComboBox>
+            <fc:Pagination PageCount="417" CurrentPage="1" TotalItems="1248" />
+          </DockPanel>
+        </Border>
+
+      </StackPanel>
+    </Border>
+    <TextBlock Classes="note"
+               Text="工具条和分页贴着表格上下沿，中间只有一条 divider-stroke——三段共用一个 Card 的外框，各自不再套框，也不带阴影。" />
+    <TextBlock Classes="note"
+               Text="中断那行整行铺 critical 底色（LoadingRow 里打 row-error），状态列同时有 InfoBadge。颜色和文字双重编码，戴防护镜或色觉障碍时靠文字也读得出来。" />
+    <TextBlock Classes="note"
+               Text="工具条右端和分页左端各有一份计数，实际项目里留一处就够。这里两处都摆着是为了看清各自的位置——分页那份由控件自己按 TotalItems 和页数拼，改不了措辞。" />
+
+    <TextBlock Classes="sub" Text="试玩 — 3 120 条模拟数据，Chip 真筛，分页真翻" />
+    <Border Classes="play" Padding="0" Width="880">
+      <StackPanel Spacing="0">
+
+        <Border BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}" BorderThickness="0,0,0,1">
+          <fc:DataGridToolbar x:Name="PlayToolbar">
+            <fc:Chip x:Name="RecipeChip" Tag="recipe" Content="配方：PES 标准" />
+            <fc:Chip x:Name="StatusChip" Tag="status" Content="状态：已完成" />
+            <fc:Chip x:Name="DaysChip" Tag="days" Content="近 7 天" />
+            <Button x:Name="ClearFilters" Classes="subtle" Content="清除" />
+          </fc:DataGridToolbar>
+        </Border>
+
+        <DataGrid x:Name="PlayGrid"
+                  x:DataType="p:ToolbarBatch"
+                  Classes="compact"
+                  Height="224"
+                  IsReadOnly="True"
+                  CanUserSortColumns="False">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="批次号" Width="200" Binding="{Binding Batch}" />
+            <DataGridTextColumn Header="配方" Width="140" Binding="{Binding Recipe}" />
+
+            <DataGridTextColumn Header="峰值" Width="120" Binding="{Binding PeakText}">
+              <DataGridTextColumn.CellStyleClasses>
+                <x:String>num</x:String>
+              </DataGridTextColumn.CellStyleClasses>
+            </DataGridTextColumn>
+
+            <DataGridTemplateColumn Header="状态" Width="*">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="p:ToolbarBatch">
+                  <fc:InfoBadge Severity="{Binding Severity}"
+                                Text="{Binding Status}"
+                                HorizontalAlignment="Left"
+                                VerticalAlignment="Center" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+          </DataGrid.Columns>
+        </DataGrid>
+
+        <Border BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}" BorderThickness="0,1,0,0">
+          <DockPanel>
+            <ComboBox x:Name="PageSize"
+                      DockPanel.Dock="Right"
+                      MinWidth="112"
+                      Margin="0,0,12,0"
+                      VerticalAlignment="Center"
+                      SelectedIndex="0">
+              <ComboBoxItem Content="每页 20" Tag="20" />
+              <ComboBoxItem Content="每页 50" Tag="50" />
+              <ComboBoxItem Content="每页 100" Tag="100" />
+              <ComboBoxItem Content="每页 200" Tag="200" />
+            </ComboBox>
+            <fc:Pagination x:Name="Pager" CurrentPage="1" />
+          </DockPanel>
+        </Border>
+
+        <TextBlock Classes="note" Margin="16,10,16,0"
+                   Text="点 Chip 上的 × 去掉一个筛选条件：命中数、页数、表格内容一起变，当前页退回第 1 页。留着旧页码是个坑——第 40 页在条件放宽后指的完全不是同一批数据。" />
+        <TextBlock Classes="note" Margin="16,6,16,16"
+                   Text="每页条数改了同样退回第 1 页。这里 3 120 条全在内存里，翻页只是换一段切片；真上了万条就得把页码和筛选条件一起发给服务端，本地只留当前页。" />
+
+      </StackPanel>
+    </Border>
+
+    <TextBlock Classes="note"
+               Text="试玩区的表头故意关掉了排序：客户端分页下点排序只会把当前这 20 条重排一遍，看着像排好了，其实翻到下一页就露馅。排序和分页必须一起做在取数那一侧。" />
+
+    <g:MapBlock Note="数据量大时别做客户端分页——1 248 条还行，上万条要走服务端分页 + 虚拟化。Avalonia DataGrid 默认开启行虚拟化，所以「一页 200 行」本身不慢，慢的是把几万条一次性塞进内存再切片。">
+      <g:MapRow Key="控件" Value="DataGrid（Avalonia.Controls.DataGrid 包）+ fc:DataGridToolbar · fc:Pagination · fc:Chip" />
+      <g:MapRow Key="DataGrid" Value="Classes: compact（32px 行高）· frozen-first（冻结首列）；选择列自己加一列 DataGridTemplateColumn 放 CheckBox" />
+      <g:MapRow Key="冻结列" Value="Avalonia DataGrid 用 FrozenColumnCount；TreeDataGrid 不支持，要换用 DataGrid" />
+      <g:MapRow Key="属性" Value="DataGridToolbar: Items（[Content]，左侧动作）· CountText（右端计数）｜ Pagination: PageCount · CurrentPage（TwoWay）· TotalItems · SiblingCount · InfoText（只读，控件自己拼）" />
+      <g:MapRow Key="Chip" Value="Content · IsClosable · IsAccent · CloseCommand · Closed 事件（点 × 只发事件，删不删由外面决定）" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

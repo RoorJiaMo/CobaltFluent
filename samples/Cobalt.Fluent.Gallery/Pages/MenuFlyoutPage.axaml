@@ -1,0 +1,172 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             xmlns:fc="using:Cobalt.Fluent.Controls"
+             x:Class="Cobalt.Fluent.Gallery.Pages.MenuFlyoutPage">
+
+  <StackPanel HorizontalAlignment="Left">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="MenuFlyout" />
+      <Border Classes="tag"><TextBlock Text="6 · 弹出" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead"
+               Text="面板内边距 0,2,0,2，项最小高 32、内边距 11,8,11,9、外边距 4,2,4,2。这些是 WinUI 的原值，照抄即可。" />
+
+    <TextBlock Classes="sub" Text="面板本体 — 摊平了看" />
+    <Border Classes="panel">
+      <StackPanel Orientation="Horizontal" Spacing="24">
+
+        <!-- 摆真的 MenuFlyoutPresenter，不照着规格另画一张贴上来。
+             菜单平时只在 Popup 里露一瞬，仿一份就成了两套东西：改了 ControlTheme 这里不跟着变。 -->
+        <MenuFlyoutPresenter Width="220" VerticalAlignment="Top">
+          <MenuItem Header="运行" InputGesture="F5">
+            <MenuItem.Icon><fc:SymbolIcon Symbol="Play" /></MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="暂停" InputGesture="F6">
+            <MenuItem.Icon><fc:SymbolIcon Symbol="Pause" /></MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="停止" InputGesture="F7" IsEnabled="False">
+            <MenuItem.Icon><fc:SymbolIcon Symbol="Stop" /></MenuItem.Icon>
+          </MenuItem>
+          <Separator />
+          <MenuItem Header="另存为配方…">
+            <MenuItem.Icon><fc:SymbolIcon Symbol="Save" /></MenuItem.Icon>
+          </MenuItem>
+          <MenuItem Header="导出数据">
+            <MenuItem.Icon><fc:SymbolIcon Symbol="Download" /></MenuItem.Icon>
+            <MenuItem Header="导出 CSV" />
+            <MenuItem Header="导出 Excel" />
+          </MenuItem>
+          <Separator />
+          <MenuItem Header="属性">
+            <MenuItem.Icon><fc:SymbolIcon Symbol="Settings" /></MenuItem.Icon>
+          </MenuItem>
+        </MenuFlyoutPresenter>
+
+        <StackPanel Spacing="0" MaxWidth="320" VerticalAlignment="Center">
+          <TextBlock Classes="note" Margin="0"
+                     Text="图标列固定 16px 宽并始终占位，没有图标的项也要留空——否则同一菜单里的文字会左右错位。快捷键右对齐，用 secondary 色。" />
+          <TextBlock Classes="note"
+                     Text="「导出数据」右端那个箭头是有子项才画的，不是手加的装饰。划过它子菜单就展开，往右贴着父项落。" />
+        </StackPanel>
+
+      </StackPanel>
+    </Border>
+
+    <TextBlock Classes="sub" Text="图标列 — 有没有图标，占的是同一格" />
+    <Border Classes="panel">
+      <StackPanel Orientation="Horizontal" Spacing="24">
+
+        <StackPanel Spacing="8">
+          <MenuFlyoutPresenter Width="200">
+            <MenuItem Header="运行" InputGesture="F5">
+              <MenuItem.Icon><fc:SymbolIcon Symbol="Play" /></MenuItem.Icon>
+            </MenuItem>
+            <MenuItem Header="暂停" InputGesture="F6">
+              <MenuItem.Icon><fc:SymbolIcon Symbol="Pause" /></MenuItem.Icon>
+            </MenuItem>
+            <MenuItem Header="复位计数器" />
+            <MenuItem Header="清零累计量" />
+          </MenuFlyoutPresenter>
+          <TextBlock Classes="note" Margin="0" Text="混着放：后两项没图标，文字照样对齐在第三列上" />
+        </StackPanel>
+
+        <StackPanel Spacing="8">
+          <MenuFlyoutPresenter Width="200">
+            <MenuItem Header="复制" InputGesture="Ctrl+C" />
+            <MenuItem Header="粘贴" InputGesture="Ctrl+V" />
+            <MenuItem Header="删除" InputGesture="Delete" />
+          </MenuFlyoutPresenter>
+          <TextBlock Classes="note" Margin="0" Text="整个菜单都没图标：那一列宽度归零，不白留一条空边" />
+        </StackPanel>
+
+        <TextBlock Classes="note" Margin="0" MaxWidth="260" VerticalAlignment="Center"
+                   Text="这两种对齐都不是手写死的宽度：图标 / 快捷键 / 箭头三列都挂了 SharedSizeGroup，同一个面板里按最宽的那项统一。所以一个菜单里只要有一项带图标，全体都跟着让出这一格。" />
+
+      </StackPanel>
+    </Border>
+
+    <TextBlock Classes="sub" Text="项的状态 — 划过和键盘走到是同一档" />
+    <g:SpecMatrix States="rest,pointerover,selected,disabled">
+      <g:SpecMatrix.Sample>
+        <DataTemplate>
+          <MenuItem Header="另存为配方…" InputGesture="Ctrl+Shift+S">
+            <MenuItem.Icon><fc:SymbolIcon Symbol="Save" /></MenuItem.Icon>
+          </MenuItem>
+        </DataTemplate>
+      </g:SpecMatrix.Sample>
+    </g:SpecMatrix>
+    <TextBlock Classes="note"
+               Text="鼠标划过落 :pointerover，键盘上下走落 :selected，两条给的是同一档 SubtleFillColorSecondary——菜单里「当前在哪一项」只有一个概念，分两种深浅只会让人以为是两回事。禁用项只掉文字色，底不动：加一层灰底会让它看着像被选中。" />
+
+    <TextBlock Classes="sub" Text="试玩 — 按钮触发" />
+    <Border Classes="play">
+      <StackPanel Spacing="12">
+        <DropDownButton x:Name="ActionButton" Content="操作">
+          <DropDownButton.Flyout>
+            <MenuFlyout>
+              <MenuItem Header="运行" InputGesture="F5">
+                <MenuItem.Icon><fc:SymbolIcon Symbol="Play" /></MenuItem.Icon>
+              </MenuItem>
+              <MenuItem Header="暂停" InputGesture="F6">
+                <MenuItem.Icon><fc:SymbolIcon Symbol="Pause" /></MenuItem.Icon>
+              </MenuItem>
+              <Separator />
+              <MenuItem Header="停止" IsEnabled="False">
+                <MenuItem.Icon><fc:SymbolIcon Symbol="Stop" /></MenuItem.Icon>
+              </MenuItem>
+            </MenuFlyout>
+          </DropDownButton.Flyout>
+        </DropDownButton>
+        <TextBlock x:Name="ActionLog" Classes="note" Margin="0" />
+        <TextBlock Classes="note" Margin="0"
+                   Text="点按钮打开，点面板外任意处或按 Esc 关闭——这是 light dismiss，Avalonia 的 Flyout 默认就是这个行为（IsLightDismissEnabled）。菜单项上写的 F5 / F6 只是画在那儿给人看，真要按键生效得另外挂 KeyBinding。" />
+      </StackPanel>
+    </Border>
+
+    <TextBlock Classes="sub" Text="试玩 — 右键菜单" />
+    <Border Classes="play">
+      <StackPanel Spacing="12">
+        <ListBox x:Name="RecipeList" Width="280" Height="148" SelectedIndex="0">
+          <ListBox.ContextMenu>
+            <ContextMenu>
+              <MenuItem Header="运行" InputGesture="F5">
+                <MenuItem.Icon><fc:SymbolIcon Symbol="Play" /></MenuItem.Icon>
+              </MenuItem>
+              <MenuItem Header="另存为配方…">
+                <MenuItem.Icon><fc:SymbolIcon Symbol="Save" /></MenuItem.Icon>
+              </MenuItem>
+              <MenuItem Header="导出数据">
+                <MenuItem.Icon><fc:SymbolIcon Symbol="Download" /></MenuItem.Icon>
+                <MenuItem Header="导出 CSV" />
+                <MenuItem Header="导出 Excel" />
+              </MenuItem>
+              <Separator />
+              <MenuItem Header="删除">
+                <MenuItem.Icon><fc:SymbolIcon Symbol="Cancel" /></MenuItem.Icon>
+              </MenuItem>
+            </ContextMenu>
+          </ListBox.ContextMenu>
+          <ListBoxItem Content="Recipe-041 · 退火" />
+          <ListBoxItem Content="Recipe-042 · 双温区" />
+          <ListBoxItem Content="Recipe-043 · 快速烘干" />
+          <ListBoxItem Content="Recipe-044 · 清洗" />
+        </ListBox>
+        <TextBlock x:Name="ContextLog" Classes="note" Margin="0" />
+        <TextBlock Classes="note" Margin="0"
+                   Text="右键先把那一行选中，再弹菜单——Avalonia 默认右键不改选中项，不补这一下的话菜单里的「删除」删的是上一次左键点的那行，操作对象和视线对不上。触摸屏上还要给长按补同一条路径，不然这些命令在现场根本够不着。" />
+      </StackPanel>
+    </Border>
+
+    <g:MapBlock Note="子菜单的 Popup 上写死 HorizontalOffset=&quot;-4&quot;（对应 WinUI 的 MenuFlyoutSubItemPopupHorizontalOffset），抵掉菜单项那 4px 外距，子菜单才和父项贴合。InputGesture 只负责画字，不绑键；真快捷键挂在窗口的 KeyBindings 上。">
+      <g:MapRow Key="控件" Value="MenuFlyout · MenuFlyoutPresenter · MenuItem · Separator · ContextMenu" />
+      <g:MapRow Key="资源键" Value="MenuFlyoutPresenterPadding=0,2,0,2 · MenuFlyoutItemPadding=11,8,11,9 · MenuFlyoutItemMargin=4,2,4,2 · MenuFlyoutItemMinHeight=32 · OverlayCornerRadius" />
+      <g:MapRow Key="选择器" Value="MenuItem:pointerover · MenuItem:selected（键盘走到）· MenuItem:disabled · MenuItem:icon（有 Icon 才画那一列）· MenuItem:empty（没子项就不画箭头）· MenuItem:separator（Header=&quot;-&quot;）" />
+      <g:MapRow Key="分隔线" Value="Separator · Height=1 · Margin=0,1,0,1 · DividerStrokeColorDefaultBrush（比 SurfaceStroke 淡一档——它分的是同一张面里的两组，不是两张面）" />
+      <g:MapRow Key="挂载" Value="&lt;Button.Flyout&gt;&lt;MenuFlyout/&gt;&lt;/Button.Flyout&gt; · &lt;X.ContextMenu&gt;&lt;ContextMenu/&gt;&lt;/X.ContextMenu&gt; · MenuFlyout.ShowAt(target) · MenuItem.Icon / InputGesture / Click" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

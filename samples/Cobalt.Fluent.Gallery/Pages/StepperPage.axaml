@@ -1,0 +1,152 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             xmlns:fc="using:Cobalt.Fluent.Controls"
+             x:Class="Cobalt.Fluent.Gallery.Pages.StepperPage">
+
+  <StackPanel HorizontalAlignment="Left">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="Stepper / Chip / Toast" />
+      <Border Classes="tag"><TextBlock Text="11 · 常用补充" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead"
+               Text="收尾的一组，但里面有一条硬规矩：Toast 会自动消失。它只配送「操作成功回执」这种可忽略的瞬时消息，报警绝不能用它——操作员错过就错过了，要处置的事情归 InfoBar 和 AlarmBanner。" />
+
+    <TextBlock Classes="sub" Text="Stepper — 多步流程" />
+    <Border Classes="panel">
+      <fc:Stepper CurrentIndex="2" Width="620">
+        <fc:StepperItem Content="选择配方" />
+        <fc:StepperItem Content="参数校验" />
+        <fc:StepperItem Content="通道分配" />
+        <fc:StepperItem Content="安全确认" />
+        <fc:StepperItem Content="开始运行" />
+      </fc:Stepper>
+    </Border>
+    <TextBlock Classes="note" MaxWidth="700"
+               Text="连接线要落在 bullet 的垂直中心（28px 的一半，即 14px），差几像素就会看出来歪。已完成段的连接线用 accent 色——线属于前一步，表示「这一段已经走过了」。各步等宽，否则线长短不一，看着像走歪了。" />
+
+    <TextBlock Classes="sub" Text="失败态 — 某步 IsError=True" />
+    <Border Classes="panel">
+      <fc:Stepper CurrentIndex="2" Width="620">
+        <fc:StepperItem Content="选择配方" />
+        <fc:StepperItem Content="参数校验" IsError="True" />
+        <fc:StepperItem Content="通道分配" />
+        <fc:StepperItem Content="安全确认" />
+        <fc:StepperItem Content="开始运行" />
+      </fc:Stepper>
+    </Border>
+    <TextBlock Classes="note" MaxWidth="700"
+               Text="失败态由那一步自己声明，优先级高过 CurrentIndex 推出来的结果——流程往下走了不等于前面那步就算过了。文字也跟着变红：一个 28px 的圆撑不起「这里出事了」这个信息量。" />
+
+    <TextBlock Classes="sub" Text="StepperItem 状态 — 由 CurrentIndex 推出来，不用手加类" />
+    <g:SpecMatrix States="pending,done,current,error">
+      <g:SpecMatrix.Sample>
+        <DataTemplate>
+          <fc:StepperItem Content="参数校验" StepNumber="2" IsLast="True" />
+        </DataTemplate>
+      </g:SpecMatrix.Sample>
+    </g:SpecMatrix>
+
+    <TextBlock Classes="sub" Text="Chip — 可删除的筛选标签" />
+    <Border Classes="panel">
+      <StackPanel Orientation="Horizontal" Spacing="8">
+        <fc:Chip Content="配方：PES" />
+        <fc:Chip Content="近 7 天" />
+        <fc:Chip Content="只读标签" IsClosable="False" />
+        <fc:Chip Content="已选 3 项" IsAccent="True" />
+      </StackPanel>
+    </Border>
+    <TextBlock Classes="note" MaxWidth="700"
+               Text="高 24 的胶囊。IsClosable 关掉就是纯展示标签，右边内边距会补齐，否则视觉重心偏左。IsAccent 留给「当前生效的那条筛选」，一屏里最多一个。" />
+
+    <TextBlock Classes="sub" Text="PersonPicture" />
+    <Border Classes="panel">
+      <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
+        <fc:PersonPicture Size="Small" DisplayName="张" />
+        <fc:PersonPicture DisplayName="张辉" />
+        <fc:PersonPicture Size="Large" DisplayName="Zhang Hui" />
+        <fc:PersonPicture DisplayName="?" IsNeutral="True" />
+      </StackPanel>
+    </Border>
+    <TextBlock Classes="note" MaxWidth="700"
+               Text="24 / 32 / 48 三档。中文名取姓一个字就够，取两个反而不像称呼；拉丁名取首尾两段的首字母。中性配色留给「未指派」「系统」这类不是具体人的位置。" />
+
+    <TextBlock Classes="sub" Text="GridSplitter" />
+    <Border Classes="panel">
+      <Border BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+              BorderThickness="1"
+              CornerRadius="{DynamicResource ControlCornerRadius}"
+              ClipToBounds="True"
+              Width="420" Height="72">
+        <Grid ColumnDefinitions="120,4,*">
+          <Border Grid.Column="0" Background="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
+          <GridSplitter Grid.Column="1" ResizeDirection="Columns" />
+          <Border Grid.Column="2" Background="{DynamicResource SolidBackgroundFillColorTertiaryBrush}" />
+        </Grid>
+      </Border>
+    </Border>
+    <TextBlock Classes="note" MaxWidth="700"
+               Text="4px 宽的命中区，里面只画 1px 分隔线——手指和鼠标要抓得住，视觉上又不能变成一条粗杠。悬停时线变 accent，这是唯一提示「这里能拖」的信号。" />
+
+    <TextBlock Classes="sub" Text="Toast — 会自动消失，不占布局" />
+    <Border Classes="panel">
+      <StackPanel Spacing="12">
+        <fc:Toast Severity="Success" Title="配方已保存" Message="Recipe-042 · 3 处参数变更" />
+        <fc:Toast Severity="Error" Title="导出失败" Message="目标目录不可写">
+          <fc:Toast.ActionContent>
+            <Button Content="重试" />
+          </fc:Toast.ActionContent>
+        </fc:Toast>
+      </StackPanel>
+    </Border>
+    <TextBlock Classes="note" MaxWidth="700"
+               Text="这里是冻结样品，真实的 Toast 挂在 OverlayLayer 上，右下角堆叠，不进页面布局。Toast 和 InfoBar 分工不同：Toast 瞬时、脱离布局、可忽略；InfoBar 占布局、需要处置。" />
+
+    <TextBlock Classes="sub" Text="试玩 — 走一遍流程，弹真的 Toast" />
+    <Border Classes="play">
+      <StackPanel Spacing="16">
+
+        <fc:Stepper x:Name="Flow" CurrentIndex="0" Width="620">
+          <fc:StepperItem Content="选择配方" />
+          <fc:StepperItem x:Name="StepVerify" Content="参数校验" />
+          <fc:StepperItem Content="通道分配" />
+          <fc:StepperItem Content="安全确认" />
+          <fc:StepperItem Content="开始运行" />
+        </fc:Stepper>
+
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Button x:Name="Prev" Content="上一步" />
+          <Button x:Name="Next" Classes="accent" Content="下一步" />
+          <Button x:Name="Fail" Content="让「参数校验」失败" />
+          <Button x:Name="Done" Content="完成提示" />
+        </StackPanel>
+
+        <TextBlock Classes="note" MaxWidth="700"
+                   Text="走到最后一步「下一步」会弹成功 Toast，4 秒后自己消失。失败按钮弹的那条带「重试」，停留 8 秒——人要先读懂再决定点不点。所以报警绝不能用 Toast。" />
+
+        <StackPanel x:Name="ChipRow" Orientation="Horizontal" Spacing="8">
+          <fc:Chip Content="配方：PES" />
+          <fc:Chip Content="近 7 天" />
+          <fc:Chip Content="通道 1–4" />
+          <fc:Chip Content="仅异常批次" IsAccent="True" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Button x:Name="ResetChips" Content="恢复筛选条件" />
+          <TextBlock Classes="note" VerticalAlignment="Center"
+                     Text="点 × 删标签。删空了这一行整体消失，别留一条空的筛选栏占着位置。" />
+        </StackPanel>
+
+      </StackPanel>
+    </Border>
+
+    <g:MapBlock Note="ToastHost.Show(owner, toast) 就是全部 API——它自己找 OverlayLayer、自己建宿主、自己到点撤。IsError 不走 CurrentIndex 那条通知链，改完要自己调一次 Stepper.RefreshStates()。">
+      <g:MapRow Key="控件" Value="Stepper · Chip · GridSplitter（Avalonia 内置）· Toast / ToastHost · PersonPicture" />
+      <g:MapRow Key="Toast" Value="用 OverlayLayer 承载，不进视觉树布局。停留 4 s，带操作按钮的延到 8 s" />
+      <g:MapRow Key="伪类" Value="StepperItem: :pending :done :current :error :last · Chip: :closable :accent · PersonPicture: :small :medium :large :neutral · Toast: :informational :success :error" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

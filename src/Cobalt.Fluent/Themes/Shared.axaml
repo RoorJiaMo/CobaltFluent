@@ -1,0 +1,36 @@
+<!-- 全库共用的模板片段。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <!-- 聚焦框：控件边 → 1px 反色内环 → 2px 深色外环。
+       外框 2px 深色、里衬 1px 浅色，往外让 1px 再画，所以贴着控件但不压住它。
+       明色主题下是「白内环 + 黑外环」，暗色主题翻过来，两种主题下都能从任意底色上看见。
+       所有可聚焦控件共用这一支，不要各写各的。 -->
+  <Template x:Key="FluentFocusAdorner">
+    <Panel>
+      <Border BorderBrush="{DynamicResource FocusStrokeColorInnerBrush}"
+              BorderThickness="1"
+              CornerRadius="{DynamicResource ControlCornerRadius}"
+              Margin="-1" />
+      <Border BorderBrush="{DynamicResource FocusStrokeColorOuterBrush}"
+              BorderThickness="2"
+              CornerRadius="{DynamicResource ControlCornerRadius}"
+              Margin="-3" />
+    </Panel>
+  </Template>
+
+  <!-- 圆形控件（RadioButton / EStopButton / 日历格）用的聚焦框 -->
+  <Template x:Key="FluentFocusAdornerRound">
+    <Panel>
+      <Border BorderBrush="{DynamicResource FocusStrokeColorInnerBrush}"
+              BorderThickness="1" CornerRadius="1000" Margin="-1" />
+      <Border BorderBrush="{DynamicResource FocusStrokeColorOuterBrush}"
+              BorderThickness="2" CornerRadius="1000" Margin="-3" />
+    </Panel>
+  </Template>
+
+  <!-- 选中指示条：ListBoxItem / NavigationViewItem / TreeViewItem / ComboBoxItem 共用。
+       3×16 圆角 1.5，贴左边垂直居中。Avalonia 内置模板没有这个，是本库必须动 Template 的原因。 -->
+  <x:Double x:Key="SelectionIndicatorRadius">1.5</x:Double>
+
+</ResourceDictionary>

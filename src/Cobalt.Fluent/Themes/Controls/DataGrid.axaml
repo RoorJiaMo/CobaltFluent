@@ -1,0 +1,593 @@
+<!-- DataGrid / DataGridRow / DataGridCell / DataGridColumnHeader
+     —— 表格本体加三个变体类（compact / frozen-first / 行状态色）。
+
+     形状：表头 40、行高 40，只画横线不画竖线，不用斑马纹。
+           横线一律 divider-stroke，由 GridLinesVisibility=Horizontal +
+           HorizontalGridLinesBrush 出（控件内部自己把 Fill 塞给 PART_BottomGridLine）。
+           表格本体不带底色也不带外框 —— 展柜里它是套在 .Card 里的，
+           外框由那只 Card 出。页面内元素一律不带阴影。
+
+     为什么这里连 Template 一起写：
+       DataGrid 的官方主题在 Avalonia.Controls.DataGrid 包里，根节点是 <Styles>
+       （用法是 StyleInclude），没法用 ResourceInclude 并进本库这份 ResourceDictionary，
+       也就没法 BasedOn 它。所以这四个 ControlTheme 必须自足。
+       好处是消费方只 include 本库一份主题就够，不用再
+       include avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml；
+       两份都 include 的话同名键会打架（尤其 DataGridCellTextBlockTheme 的 12px）。
+       模板结构（PART_ 名、必需部件类型）照 Avalonia 11.3 的 [TemplatePart] 抄，
+       改名会让控件静默失灵。
+
+     变体 Classes（挂在 DataGrid 上）：compact · frozen-first
+     行状态 Classes（挂在 DataGridRow 上，由 LoadingRow 里打）：row-warning · row-error
+     列级 Classes（挂在 DataGridColumn.CellStyleClasses 上）：num · editable · frozen -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:fc="using:Cobalt.Fluent.Controls">
+
+  <!-- DataGridTextColumn 用 TryFindResource 按这个键名找单元格文本的 ControlTheme。
+       键名是 Avalonia 定死的，不能改。左右 12 的内边距落在单元格 Padding 上，
+       所以这里清零，避免和 Padding 叠成 24。 -->
+  <ControlTheme x:Key="DataGridCellTextBlockTheme" TargetType="TextBlock">
+    <Setter Property="Margin" Value="0" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+  </ControlTheme>
+
+  <!-- 就地编辑用的 TextBox：撑满格子、28 高、无底色无描边 ——
+       看着像单元格本身，进入编辑态才由 TextBox 自己的
+       :focus 描出输入框。高度跟着行走，不再叠一层 32 的控件高。 -->
+  <ControlTheme x:Key="DataGridCellTextBoxTheme" TargetType="TextBox"
+                BasedOn="{StaticResource {x:Type TextBox}}">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="MinHeight" Value="0" />
+    <!-- 输入框撑满格子，所以要清掉 TextBox 自带的 MinWidth。不清零的话
+         窄列（勾选列 40、状态列）一进编辑态输入框就撑到 64 顶出格子。 -->
+    <Setter Property="MinWidth" Value="0" />
+    <Setter Property="VerticalAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+
+    <!-- border-color: transparent 是四边都要透明。三边走 BorderBrush，
+         底边那条重描边是模板里独立的 PART_UnderlineElement，得单独按掉 ——
+         只清 BorderBrush 的话每个可编辑单元格底下都会留一道 control-strong-stroke。
+         :focus / :error 那两条带伪类，优先级高于这条无条件的，
+         加粗的 accent / critical 底边照常出得来。 -->
+    <Style Selector="^ /template/ Border#PART_UnderlineElement">
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+  </ControlTheme>
+
+  <!-- ============================ DataGridCell ============================
+       单元格 40 高、左右各 12、底下一根 1px divider。
+       下边框不在这里画 —— 那是行的 PART_BottomGridLine 干的活，
+       在单元格上再画一次会在冻结列接缝处叠成 2px。 -->
+  <ControlTheme x:Key="{x:Type DataGridCell}" TargetType="DataGridCell">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource DividerStrokeColorDefaultBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="0" />
+    <Setter Property="Padding" Value="12,0,12,0" />
+    <!-- 行高由 DataGrid.RowHeight 定（40 / compact 32）。这里只给一个不塌陷的下限，
+         写 40 的话 compact 会被顶回 40。 -->
+    <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="DataGridCell">
+        <Border x:Name="PART_Root"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}">
+          <!-- 第二列是竖网格线的槽位。GridLinesVisibility=Horizontal 时
+               控件自己把它收起来，所以本库里它永远不显示。 -->
+          <Grid x:Name="PART_CellRoot" ColumnDefinitions="*,Auto">
+
+            <ContentPresenter Grid.Column="0"
+                              Margin="{TemplateBinding Padding}"
+                              Content="{TemplateBinding Content}"
+                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                              Foreground="{TemplateBinding Foreground}"
+                              HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                              VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+
+            <!-- 校验失败：一圈 critical 描边。这是 Avalonia 的
+                 DataValidation 通路必须有的落点（:invalid 由控件自己置位）。 -->
+            <Rectangle x:Name="PART_InvalidVisual"
+                       Grid.Column="0"
+                       IsVisible="False"
+                       IsHitTestVisible="False"
+                       Fill="Transparent"
+                       Stroke="{DynamicResource SystemFillColorCriticalBrush}"
+                       StrokeThickness="1" />
+
+            <!-- 当前单元格的聚焦框。单元格自己不可聚焦（焦点在 DataGrid 上），
+                 所以走不了 FocusAdorner，只能在模板里画。
+                 两环顺序和 Shared.axaml 的 FluentFocusAdorner 一致：
+                 外 2px FocusStrokeColorOuter、内 1px FocusStrokeColorInner。 -->
+            <Panel x:Name="PART_FocusVisual"
+                   Grid.Column="0"
+                   IsVisible="False"
+                   IsHitTestVisible="False">
+              <Rectangle Fill="Transparent"
+                         Stroke="{DynamicResource FocusStrokeColorOuterBrush}"
+                         StrokeThickness="2" />
+              <Rectangle Margin="2"
+                         Fill="Transparent"
+                         Stroke="{DynamicResource FocusStrokeColorInnerBrush}"
+                         StrokeThickness="1" />
+            </Panel>
+
+            <Rectangle x:Name="PART_RightGridLine"
+                       Grid.Column="1"
+                       Width="1"
+                       VerticalAlignment="Stretch"
+                       Fill="Transparent" />
+          </Grid>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="{StaticResource ControlFasterAnimationDuration}" />
+      </Transitions>
+    </Setter>
+
+    <Style Selector="^:focus /template/ Panel#PART_FocusVisual">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+
+    <Style Selector="^:invalid /template/ Rectangle#PART_InvalidVisual">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+
+    <!-- 数值列：右对齐 + 等宽数字。
+         不等宽的话，85.4 → 86.9 这种刷新会让整列左右横跳。
+         用法：<DataGridTextColumn.CellStyleClasses> 里加 num。 -->
+    <Style Selector="^.num">
+      <Setter Property="HorizontalContentAlignment" Value="Right" />
+      <Setter Property="FontFeatures" Value="{StaticResource TabularNumbers}" />
+    </Style>
+
+    <!-- 可编辑格：左右内边距收到 4，
+         留给就地编辑的 TextBox，左右只剩 4，输入框看着才是撑满格子的。 -->
+    <Style Selector="^.editable">
+      <Setter Property="Padding" Value="4,0,4,0" />
+    </Style>
+
+    <!-- 冻结列吃一层实底，
+         右边一根 1px divider 当「浮起来」的暗示。冻结本身由 DataGrid.FrozenColumnCount 做，
+         这只类负责底色，挂在首列的 CellStyleClasses 上。 -->
+    <Style Selector="^.frozen">
+      <Setter Property="Background" Value="{DynamicResource SolidBackgroundFillColorTertiaryBrush}" />
+      <Setter Property="BorderThickness" Value="0,0,1,0" />
+    </Style>
+
+    <Style Selector="^:disabled">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+    </Style>
+  </ControlTheme>
+
+  <!-- ======================== DataGridColumnHeader ========================
+       表头：左对齐、40 高、左右各 12、Semibold / body / text-secondary、不换行。
+       底下那根 1px 不画在表头上，画在 DataGrid 模板的
+       PART_ColumnHeadersAndRowsSeparator 上 —— 那条才是通栏的，
+       画在表头上会在列与列之间断开。 -->
+  <ControlTheme x:Key="{x:Type DataGridColumnHeader}" TargetType="DataGridColumnHeader">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource DividerStrokeColorDefaultBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="0" />
+    <Setter Property="Padding" Value="12,0,12,0" />
+    <!-- 表头高度由 DataGrid.ColumnHeaderHeight 下发（40 / compact 32）。
+         这里只能给一个不塌陷的下限：写 40 的话 compact 那 32 会被顶回 40，
+         而表头区只按 ColumnHeaderHeight 那么高，多出来的 8px 直接被裁掉。 -->
+    <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <!-- Stretch 而不是 Left：表头内容撑满列宽，数值列想右对齐时
+         给 Header 塞一只 TextAlignment=Right 的 TextBlock 就行。 -->
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <!-- 纵向不画线。这个属性同时是控件内部「期望值」，置 False 后
+         GridLinesVisibility 怎么变都不会把竖线放出来。 -->
+    <Setter Property="AreSeparatorsVisible" Value="False" />
+    <Setter Property="SeparatorBrush" Value="{DynamicResource DividerStrokeColorDefaultBrush}" />
+    <Setter Property="Cursor" Value="Arrow" />
+    <Setter Property="FocusAdorner" Value="{StaticResource FluentFocusAdorner}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="DataGridColumnHeader">
+        <Border x:Name="PART_Root"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}">
+          <Grid x:Name="PART_ColumnHeaderRoot" ColumnDefinitions="*,Auto">
+
+            <Grid Grid.Column="0"
+                  Margin="{TemplateBinding Padding}"
+                  ColumnDefinitions="*,Auto">
+              <ContentPresenter x:Name="PART_ContentPresenter"
+                                Content="{TemplateBinding Content}"
+                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                Foreground="{TemplateBinding Foreground}"
+                                HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                                VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+
+              <!-- 排序箭头：10px、左边留 4、accent 色，走矢量图标不走图标字体。
+                   默认藏起来，由 :sortascending / :sortdescending 放出来。 -->
+              <fc:SymbolIcon x:Name="PART_SortIcon"
+                             Grid.Column="1"
+                             Symbol="ChevronUp"
+                             FontSize="10"
+                             Margin="4,0,0,0"
+                             VerticalAlignment="Center"
+                             IsVisible="False"
+                             Foreground="{DynamicResource AccentFillColorDefaultBrush}" />
+            </Grid>
+
+            <Rectangle x:Name="PART_VerticalSeparator"
+                       Grid.Column="1"
+                       Width="1"
+                       VerticalAlignment="Stretch"
+                       Fill="{TemplateBinding SeparatorBrush}"
+                       IsVisible="{TemplateBinding AreSeparatorsVisible}" />
+          </Grid>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="{StaticResource ControlFasterAnimationDuration}" />
+      </Transitions>
+    </Setter>
+
+    <!-- 可排序表头才吃 hover 底 -->
+    <Style Selector="^:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+    </Style>
+
+    <Style Selector="^:pressed">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorTertiaryBrush}" />
+    </Style>
+
+    <!-- 拖动重排列时跟手的那只影子表头 -->
+    <Style Selector="^:dragIndicator">
+      <Setter Property="Opacity" Value="0.5" />
+    </Style>
+
+    <Style Selector="^:sortascending /template/ fc|SymbolIcon#PART_SortIcon">
+      <Setter Property="IsVisible" Value="True" />
+      <Setter Property="Symbol" Value="ChevronUp" />
+    </Style>
+
+    <Style Selector="^:sortdescending /template/ fc|SymbolIcon#PART_SortIcon">
+      <Setter Property="IsVisible" Value="True" />
+      <Setter Property="Symbol" Value="ChevronDown" />
+    </Style>
+
+    <Style Selector="^:disabled">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+    </Style>
+  </ControlTheme>
+
+  <!-- 左上角那格（HeadersVisibility=All 时才露出来）：不放内容，
+       只把表头底线和行表头竖线接上，否则拐角会缺一截。 -->
+  <ControlTheme x:Key="DataGridTopLeftColumnHeader" TargetType="DataGridColumnHeader"
+                BasedOn="{StaticResource {x:Type DataGridColumnHeader}}">
+    <Setter Property="Template">
+      <ControlTemplate TargetType="DataGridColumnHeader">
+        <Border x:Name="PART_Root"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}"
+                BorderThickness="0,0,1,0" />
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <!-- 行表头。默认 HeadersVisibility=Column，它是收起来的；
+       打开 Row / All 时靠这份出形状。选中态那根 3px 强调条和 ListBoxItem 同一根。 -->
+  <ControlTheme x:Key="{x:Type DataGridRowHeader}" TargetType="DataGridRowHeader">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    <Setter Property="SeparatorBrush" Value="{DynamicResource DividerStrokeColorDefaultBrush}" />
+    <Setter Property="AreSeparatorsVisible" Value="False" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource CaptionFontSize}" />
+    <Setter Property="FontFeatures" Value="{StaticResource TabularNumbers}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="DataGridRowHeader">
+        <Grid x:Name="PART_Root" ColumnDefinitions="Auto,*">
+          <Border Grid.ColumnSpan="2"
+                  Background="{TemplateBinding Background}"
+                  BorderBrush="{DynamicResource DividerStrokeColorDefaultBrush}"
+                  BorderThickness="0,0,1,0" />
+
+          <Rectangle x:Name="PART_SelectionIndicator"
+                     Grid.Column="0"
+                     Width="{DynamicResource SelectionIndicatorWidth}"
+                     Height="{DynamicResource SelectionIndicatorHeight}"
+                     RadiusX="{DynamicResource SelectionIndicatorRadius}"
+                     RadiusY="{DynamicResource SelectionIndicatorRadius}"
+                     Fill="{DynamicResource AccentFillColorDefaultBrush}"
+                     HorizontalAlignment="Left"
+                     VerticalAlignment="Center"
+                     IsHitTestVisible="False"
+                     IsVisible="False" />
+
+          <ContentPresenter Grid.Column="1"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            Foreground="{TemplateBinding Foreground}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center" />
+
+          <Rectangle x:Name="PART_HorizontalSeparator"
+                     Grid.ColumnSpan="2"
+                     Height="1"
+                     VerticalAlignment="Bottom"
+                     Fill="{TemplateBinding SeparatorBrush}"
+                     IsVisible="{TemplateBinding AreSeparatorsVisible}" />
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- 行表头自己带 :selected 伪类（由所属行同步过来），
+         所以指示条的开关写在这里，不要从 DataGridRow 那边跨模板去够。 -->
+    <Style Selector="^:selected /template/ Rectangle#PART_SelectionIndicator">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+
+    <Style Selector="^:invalid /template/ Rectangle#PART_SelectionIndicator">
+      <Setter Property="IsVisible" Value="True" />
+      <Setter Property="Fill" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+    </Style>
+  </ControlTheme>
+
+  <!-- ============================ DataGridRow =============================
+       hover 和 selected 同一档 subtle-hover：选中不靠底色深浅区分，靠左边的选择框，
+       所以按住选中行时也不会闪一下更深的底。
+       底色铺在 PART_RowFill 这只矩形上而不是行的 Background 上 ——
+       Background 让给 row-warning / row-error，两层叠起来
+       （警告底 + 半透明的 hover）才是要的效果。 -->
+  <ControlTheme x:Key="{x:Type DataGridRow}" TargetType="DataGridRow">
+    <Setter Property="Background" Value="{Binding $parent[DataGrid].RowBackground}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="0" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="DataGridRow">
+        <Border x:Name="PART_RowRoot"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}">
+          <!-- PART_Root 必须是 Panel 且必须是 DataGridFrozenGrid：
+               冻结列靠它按 IsFrozen 分组做横向偏移。 -->
+          <DataGridFrozenGrid x:Name="PART_Root"
+                              ColumnDefinitions="Auto,*"
+                              RowDefinitions="*,Auto,Auto">
+
+            <Rectangle x:Name="PART_RowFill"
+                       Grid.RowSpan="2"
+                       Grid.ColumnSpan="2"
+                       Fill="Transparent"
+                       IsHitTestVisible="False">
+              <Rectangle.Transitions>
+                <Transitions>
+                  <BrushTransition Property="Fill" Duration="{StaticResource ControlFasterAnimationDuration}" />
+                </Transitions>
+              </Rectangle.Transitions>
+            </Rectangle>
+
+            <Rectangle x:Name="PART_InvalidVisual"
+                       Grid.ColumnSpan="2"
+                       Fill="{DynamicResource SystemFillColorCriticalBackgroundBrush}"
+                       IsHitTestVisible="False"
+                       IsVisible="False" />
+
+            <DataGridRowHeader Name="PART_RowHeader"
+                               Grid.RowSpan="3"
+                               DataGridFrozenGrid.IsFrozen="True" />
+
+            <DataGridCellsPresenter Name="PART_CellsPresenter"
+                                    Grid.Column="1"
+                                    DataGridFrozenGrid.IsFrozen="True" />
+
+            <DataGridDetailsPresenter Name="PART_DetailsPresenter"
+                                      Grid.Row="1"
+                                      Grid.Column="1"
+                                      Background="{DynamicResource LayerFillColorAltBrush}" />
+
+            <!-- 行底那根 1px divider。
+                 Fill 由控件从 DataGrid.HorizontalGridLinesBrush 现塞，别在这里写死。 -->
+            <Rectangle Name="PART_BottomGridLine"
+                       Grid.Row="2"
+                       Grid.Column="1"
+                       Height="1"
+                       HorizontalAlignment="Stretch" />
+          </DataGridFrozenGrid>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="{StaticResource ControlFasterAnimationDuration}" />
+      </Transitions>
+    </Setter>
+
+    <Style Selector="^:pointerover /template/ Rectangle#PART_RowFill">
+      <Setter Property="Fill" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+    </Style>
+
+    <Style Selector="^:selected /template/ Rectangle#PART_RowFill">
+      <Setter Property="Fill" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+    </Style>
+
+    <Style Selector="^:invalid /template/ Rectangle#PART_InvalidVisual">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+
+    <!-- 整行铺状态底色。颜色 + 状态列的 InfoBadge 是双重编码，
+         色觉障碍或戴防护镜时靠 InfoBadge 的文字也读得出来。 -->
+    <Style Selector="^.row-warning">
+      <Setter Property="Background" Value="{DynamicResource SystemFillColorCautionBackgroundBrush}" />
+    </Style>
+
+    <Style Selector="^.row-error">
+      <Setter Property="Background" Value="{DynamicResource SystemFillColorCriticalBackgroundBrush}" />
+    </Style>
+
+    <Style Selector="^:disabled">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+    </Style>
+  </ControlTheme>
+
+  <!-- ============================== DataGrid ==============================
+       本体撑满、不带边框不带底色，线全部由行和表头画。 -->
+  <ControlTheme x:Key="{x:Type DataGrid}" TargetType="DataGrid">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="0" />
+    <Setter Property="RowBackground" Value="Transparent" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <!-- 行和表头都是 40 高 -->
+    <Setter Property="RowHeight" Value="{DynamicResource DataGridRowHeight}" />
+    <Setter Property="ColumnHeaderHeight" Value="{DynamicResource DataGridRowHeight}" />
+    <Setter Property="HeadersVisibility" Value="Column" />
+    <!-- 只画横线。竖线的 Brush 也一并置成透明，
+         万一使用处把 GridLinesVisibility 改成 All 也不会冒出竖线。 -->
+    <Setter Property="GridLinesVisibility" Value="Horizontal" />
+    <Setter Property="HorizontalGridLinesBrush" Value="{DynamicResource DividerStrokeColorDefaultBrush}" />
+    <Setter Property="VerticalGridLinesBrush" Value="Transparent" />
+    <Setter Property="HorizontalScrollBarVisibility" Value="Auto" />
+    <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+    <Setter Property="SelectionMode" Value="Extended" />
+    <Setter Property="IsScrollInertiaEnabled" Value="True" />
+    <!-- 聚焦框落在当前单元格上（见 DataGridCell 的 PART_FocusVisual），
+         不套在整张表外面 —— 一整屏的表格外描一圈没有指示意义。 -->
+    <Setter Property="FocusAdorner" Value="{x:Null}" />
+    <Setter Property="DropLocationIndicatorTemplate">
+      <Template>
+        <Rectangle Fill="{DynamicResource AccentFillColorDefaultBrush}" Width="2" />
+      </Template>
+    </Setter>
+    <Setter Property="Template">
+      <ControlTemplate TargetType="DataGrid">
+        <Border x:Name="PART_Root"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}">
+          <Grid ColumnDefinitions="Auto,*,Auto"
+                RowDefinitions="Auto,*,Auto,Auto"
+                ClipToBounds="True">
+
+            <DataGridColumnHeader Name="PART_TopLeftCornerHeader"
+                                  Theme="{StaticResource DataGridTopLeftColumnHeader}" />
+
+            <DataGridColumnHeadersPresenter Name="PART_ColumnHeadersPresenter"
+                                            Grid.Row="0"
+                                            Grid.Column="1"
+                                            Grid.ColumnSpan="2" />
+
+            <!-- 表头底下那根 1px divider。
+                 通栏一条，不是每个表头各画一段。 -->
+            <Rectangle Name="PART_ColumnHeadersAndRowsSeparator"
+                       Grid.Row="0"
+                       Grid.Column="0"
+                       Grid.ColumnSpan="3"
+                       Height="1"
+                       VerticalAlignment="Bottom"
+                       Fill="{DynamicResource DividerStrokeColorDefaultBrush}" />
+
+            <DataGridRowsPresenter Name="PART_RowsPresenter"
+                                   Grid.Row="1"
+                                   Grid.Column="0"
+                                   ScrollViewer.IsScrollInertiaEnabled="{TemplateBinding IsScrollInertiaEnabled}">
+              <DataGridRowsPresenter.GestureRecognizers>
+                <ScrollGestureRecognizer CanHorizontallyScroll="True"
+                                         CanVerticallyScroll="True"
+                                         IsScrollInertiaEnabled="{Binding (ScrollViewer.IsScrollInertiaEnabled), ElementName=PART_RowsPresenter}" />
+              </DataGridRowsPresenter.GestureRecognizers>
+            </DataGridRowsPresenter>
+
+            <Rectangle Name="PART_BottomRightCorner"
+                       Grid.Row="2"
+                       Grid.Column="2"
+                       Fill="Transparent" />
+
+            <ScrollBar Name="PART_VerticalScrollbar"
+                       Grid.Row="1"
+                       Grid.Column="2"
+                       Orientation="Vertical"
+                       Width="{DynamicResource ScrollBarSize}" />
+
+            <Grid Grid.Row="2"
+                  Grid.Column="1"
+                  ColumnDefinitions="Auto,*">
+              <Rectangle Name="PART_FrozenColumnScrollBarSpacer" />
+              <ScrollBar Name="PART_HorizontalScrollbar"
+                         Grid.Column="1"
+                         Orientation="Horizontal"
+                         Height="{DynamicResource ScrollBarSize}" />
+            </Grid>
+          </Grid>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- 没有列时把表头那一行整条收掉，否则会剩一根悬空的分隔线 -->
+    <Style Selector="^:empty-columns">
+      <Style Selector="^ /template/ DataGridColumnHeader#PART_TopLeftCornerHeader">
+        <Setter Property="IsVisible" Value="False" />
+      </Style>
+      <Style Selector="^ /template/ DataGridColumnHeadersPresenter#PART_ColumnHeadersPresenter">
+        <Setter Property="IsVisible" Value="False" />
+      </Style>
+      <Style Selector="^ /template/ Rectangle#PART_ColumnHeadersAndRowsSeparator">
+        <Setter Property="IsVisible" Value="False" />
+      </Style>
+    </Style>
+
+    <!-- 行区要压在滚动条格子下面铺满，这条和内置主题一致，动了会露白边 -->
+    <Style Selector="^ /template/ DataGridRowsPresenter#PART_RowsPresenter">
+      <Setter Property="Grid.RowSpan" Value="2" />
+      <Setter Property="Grid.ColumnSpan" Value="3" />
+    </Style>
+
+    <!-- compact：行高和表头高都压到 32。
+         这两个值都由 DataGrid 这两个属性下发到行 / 表头，
+         单元格那边只有 MinHeight 下限，不会把 32 顶回 40。 -->
+    <Style Selector="^.compact">
+      <Setter Property="RowHeight" Value="{DynamicResource DataGridRowHeightCompact}" />
+      <Setter Property="ColumnHeaderHeight" Value="{DynamicResource DataGridRowHeightCompact}" />
+    </Style>
+
+    <!-- 首列冻结。
+         Avalonia 用 FrozenColumnCount 做，首列的底色和右侧描边
+         由那一列 CellStyleClasses 里的 frozen 出。 -->
+    <Style Selector="^.frozen-first">
+      <Setter Property="FrozenColumnCount" Value="1" />
+    </Style>
+
+    <Style Selector="^:disabled">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+    </Style>
+  </ControlTheme>
+
+</ResourceDictionary>

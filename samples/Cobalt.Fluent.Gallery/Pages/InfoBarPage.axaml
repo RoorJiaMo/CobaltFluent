@@ -1,0 +1,101 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             xmlns:fc="using:Cobalt.Fluent.Controls"
+             x:Class="Cobalt.Fluent.Gallery.Pages.InfoBarPage">
+
+  <StackPanel HorizontalAlignment="Left">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="InfoBar" />
+      <Border Classes="tag"><TextBlock Text="5 · 反馈" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead"
+               Text="四个 Severity 各配一套「状态色图标 + 对应浅底 + 通用描边」。三重编码：颜色 + 图标 + 文字，缺一不可。" />
+
+    <TextBlock Classes="sub" Text="四个级别" />
+    <Border Classes="panel">
+      <!-- 这里不上 SpecMatrix：矩阵是强设伪类，而 InfoBar 的 :warning 之类是 Severity 推出来的，
+           强设只换底色、换不了图标——正好把 lead 说的「三重编码」演成半成品。四条真控件更诚实。 -->
+      <StackPanel Spacing="8" Width="720">
+
+        <fc:InfoBar Severity="Informational"
+                    Title="已连接到设备"
+                    Message="Modbus TCP · 192.168.1.50:502 · 心跳正常" />
+
+        <fc:InfoBar Severity="Success"
+                    Title="配方已保存"
+                    Message="Recipe-042 写入成功。" />
+
+        <fc:InfoBar Severity="Warning"
+                    Title="温度偏离设定值"
+                    Message="通道 2 实际 88.4 °C，超出容差带 ±1.0 °C。">
+          <fc:InfoBar.ActionContent>
+            <Button Content="查看趋势" />
+          </fc:InfoBar.ActionContent>
+        </fc:InfoBar>
+
+        <!-- IsClosable=False 是这条的重点，不是排版顺手关掉的 -->
+        <fc:InfoBar Severity="Error"
+                    IsClosable="False"
+                    Title="通信中断"
+                    Message="连续 3 次轮询超时，已切换到本地缓存模式。">
+          <fc:InfoBar.ActionContent>
+            <Button Classes="accent" Content="重连" />
+          </fc:InfoBar.ActionContent>
+        </fc:InfoBar>
+
+      </StackPanel>
+    </Border>
+    <TextBlock Classes="note" MaxWidth="720"
+               Text="Error 级别不给关闭按钮——错误必须由处置动作消解，不能让用户「叉掉当没发生」。Warning 及以下可关闭。" />
+
+    <TextBlock Classes="sub" Text="和 AlarmBanner 的分工" />
+    <Border Classes="panel">
+      <StackPanel Spacing="12" Width="720">
+        <fc:InfoBar Severity="Error"
+                    IsClosable="False"
+                    Title="配方校验失败"
+                    Message="第 3 段升温速率超出工艺上限，未下发。" />
+        <TextBlock Classes="note" Text="↑ 软件层面的错误：留在页面里，等人改完就没了" />
+
+        <!-- 呼吸在这里关掉：本页只借它做对比，AlarmBanner 那页才是它的主场，
+             展柜里多一处常驻动画就是嵌入式上多一份持续开销 -->
+        <fc:AlarmBanner Severity="Alarm"
+                        IsBreathingEnabled="False"
+                        Title="腔体超温 · 已联锁停机"
+                        Detail="TC-02 实际 142 °C，超上限 120 °C。加热回路已断电。" />
+        <TextBlock Classes="note" Text="↑ 设备层面、要人立刻动手的：走 AlarmBanner，安全红实底 + 呼吸 + 确认动作" />
+      </StackPanel>
+    </Border>
+    <TextBlock Classes="note" MaxWidth="720"
+               Text="分界线是「谁来消解它」。InfoBar 占布局、不自动消失，条件不成立了它才该走，读它的人不必放下手里的活；AlarmBanner 的 Alarm/Fault 要求当场处置，所以用不跟随主题的安全红（SystemFillColorCriticalBrush 在深色下是浅粉，那个色对停机级别是错的）。飘一下就没的确认反馈是 Toast，别拿 InfoBar 当 Toast 用。" />
+
+    <TextBlock Classes="sub" Text="试玩 — 点右侧 × 关掉试试" />
+    <Border Classes="play">
+      <StackPanel Spacing="12" Width="720">
+        <fc:InfoBar x:Name="Closable"
+                    Severity="Warning"
+                    Title="点右侧 × 关掉试试"
+                    Message="出场用加速曲线，比入场快——关掉的东西不该挡路。" />
+        <StackPanel Orientation="Horizontal" Spacing="12">
+          <Button x:Name="Restore" Content="再放一条" IsEnabled="False" />
+          <TextBlock Classes="note" VerticalAlignment="Center"
+                     Text="关掉后 IsOpen=False，整条不占布局（不是只隐藏内容），下面的东西会顶上来。" />
+        </StackPanel>
+        <TextBlock Classes="note" MaxWidth="700"
+                   Text="出场 ease-exit（加速），入场 ease-enter（减速）。Error 级别真实实现里不给关闭按钮。" />
+      </StackPanel>
+    </Border>
+
+    <g:MapBlock Note="Avalonia 本体没有 InfoBar，这是本库自己实现的。Close() 幂等，走 IsOpen 而不是 IsVisible——外面绑 ViewModel 的布尔量就能双向控制。Error 级别把 IsClosable 写死 False 是调用方的责任，控件不替你判断：有的项目确实需要一条可关的 Error（例如历史日志回看）。">
+      <g:MapRow Key="控件" Value="fc:InfoBar : TemplatedControl" />
+      <g:MapRow Key="属性" Value="Severity={Informational,Success,Warning,Error} · Title · Message · IsClosable · IsOpen（双向）· ActionContent（Content 属性）· CloseCommand" />
+      <g:MapRow Key="伪类" Value=":informational · :success · :warning · :error —— 由 Severity 推出，不用手加 Classes" />
+      <g:MapRow Key="资源键" Value="SystemFillColorAttention/Success/Caution/CriticalBackgroundBrush（四套浅底）· SystemFillColorSuccess/Caution/CriticalBrush（图标）· CardStrokeColorDefaultBrush（通用描边，四级共用）" />
+      <g:MapRow Key="图标" Value="fc:SymbolIcon —— Info / Completed / Warning / Error，由 Severity 推出的只读 Glyph 属性给出；不走图标字体" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

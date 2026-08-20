@@ -1,0 +1,59 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             xmlns:fc="using:Cobalt.Fluent.Controls"
+             x:Class="Cobalt.Fluent.Gallery.Pages.GaugePage">
+
+  <StackPanel HorizontalAlignment="Left" MaxWidth="900">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="Gauge / BarChart / Sparkline" />
+      <Border Classes="tag"><TextBlock Text="9 · 图表" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead"
+               Text="环形仪表 270° 扫掠，阈值区带在外圈 +5px，中心读数等宽数字。读数绝对居中在环心——用负 margin 是按某个字号手算出来的，字号一变就错位。" />
+
+    <TextBlock Classes="sub" Text="三个阈值段" />
+    <Border Classes="panel">
+      <StackPanel Orientation="Horizontal" Spacing="32">
+        <fc:Gauge Value="42" Minimum="0" Maximum="100" Unit="%" Caption="正常区间"
+                  CautionThreshold="70" CriticalThreshold="90">
+          <fc:GaugeZone From="0" To="70" Kind="Ok" />
+          <fc:GaugeZone From="70" To="90" Kind="Caution" />
+          <fc:GaugeZone From="90" To="100" Kind="Critical" />
+        </fc:Gauge>
+
+        <fc:Gauge Value="78" Minimum="0" Maximum="100" Unit="%" Caption="进入警戒"
+                  CautionThreshold="70" CriticalThreshold="90">
+          <fc:GaugeZone From="0" To="70" Kind="Ok" />
+          <fc:GaugeZone From="70" To="90" Kind="Caution" />
+          <fc:GaugeZone From="90" To="100" Kind="Critical" />
+        </fc:Gauge>
+
+        <fc:Gauge Value="96" Minimum="0" Maximum="100" Unit="%" Caption="超限"
+                  CautionThreshold="70" CriticalThreshold="90">
+          <fc:GaugeZone From="0" To="70" Kind="Ok" />
+          <fc:GaugeZone From="70" To="90" Kind="Caution" />
+          <fc:GaugeZone From="90" To="100" Kind="Critical" />
+        </fc:Gauge>
+      </StackPanel>
+    </Border>
+
+    <TextBlock Classes="sub" Text="BarChart — 分组柱" />
+    <Border Classes="panel" HorizontalAlignment="Stretch">
+      <fc:ChartFrame Title="各产线本班产量" Subtitle="件 · 按小时"
+                     Background="Transparent" BorderThickness="0" Padding="0">
+        <fc:BarChart x:Name="Bars" Height="200" YMaximum="120" />
+      </fc:ChartFrame>
+    </Border>
+
+    <g:MapBlock Note="自绘的话用 ArcSegment + PathGeometry，比图表库轻很多。270° 扫掠、阈值区带在外圈、中心读数 tabular-nums —— 这三条是仪表的形。">
+      <g:MapRow Key="控件" Value="Gauge（含 GaugeZone / GaugeArcs）· BarChart · Sparkline" />
+      <g:MapRow Key="属性" Value="Value / Minimum / Maximum · Unit · Format · Caption · Zones · CautionThreshold · CriticalThreshold" />
+      <g:MapRow Key="伪类" Value=":deviating（过 caution 阈值）· :critical（过 critical 阈值）" />
+      <g:MapRow Key="Sparkline" Value="72×20，无轴无标签。Trend=Up/Down 时换成成功 / 危险色" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

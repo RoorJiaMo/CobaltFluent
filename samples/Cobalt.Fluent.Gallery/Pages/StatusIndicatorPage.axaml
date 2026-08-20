@@ -1,0 +1,56 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             xmlns:fc="using:Cobalt.Fluent.Controls"
+             x:Class="Cobalt.Fluent.Gallery.Pages.StatusIndicatorPage">
+
+  <StackPanel HorizontalAlignment="Left">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="StatusIndicator" />
+      <Border Classes="tag"><TextBlock Text="7 · HMI 专用" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead"
+               Text="三重编码：颜色 + 形状/动效 + 文字。任何一种单独都不够——男性约 8% 有色觉障碍，强光下的工业屏幕颜色也会失真。所以 offline 是空心圈、running 带脉冲环、warning/fault 各有自己的字形。" />
+
+    <TextBlock Classes="sub" Text="五个状态" />
+    <Border Classes="panel">
+      <StackPanel Spacing="12">
+        <fc:StatusIndicator State="Offline" Label="未连接" />
+        <fc:StatusIndicator State="Idle"    Label="待机" />
+        <fc:StatusIndicator State="Running" Label="运行中" />
+        <fc:StatusIndicator State="Warning" Label="参数偏离" />
+        <fc:StatusIndicator State="Fault"   Label="超温停机" />
+      </StackPanel>
+    </Border>
+
+    <TextBlock Classes="sub" Text="嵌入式：关掉脉冲动画" />
+    <Border Classes="panel">
+      <StackPanel Spacing="12">
+        <fc:StatusIndicator State="Running" Label="运行中（脉冲开）" />
+        <fc:StatusIndicator State="Running" Label="运行中（脉冲关，留静态外环）" IsPulseEnabled="False" />
+        <TextBlock Classes="note" MaxWidth="560"
+                   Text="一屏十几个 running 指示灯就是十几个并发动画，Mali 这类 GPU 上会掉帧。关掉后外环变静态，形状编码不丢。" />
+      </StackPanel>
+    </Border>
+
+    <TextBlock Classes="sub" Text="试玩 — 循环切状态" />
+    <Border Classes="play">
+      <StackPanel Spacing="16">
+        <fc:StatusIndicator x:Name="Live" State="Running" Label="运行中" />
+        <StackPanel Orientation="Horizontal" Spacing="12">
+          <Button x:Name="NextState" Content="下一个状态" />
+          <TextBlock x:Name="StateName" Classes="note" VerticalAlignment="Center" />
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <g:MapBlock Note="脉冲环用 Animation + ScaleTransform，只动 transform/opacity。嵌入式上如果一屏有十几个 running 指示灯，把 IsPulseEnabled 关掉——十几个并发动画在 Mali 上会掉帧。">
+      <g:MapRow Key="类型" Value="StatusIndicator : TemplatedControl" />
+      <g:MapRow Key="属性" Value="State:{Offline,Idle,Running,Warning,Fault} · Label · ShowLabel=true · IsPulseEnabled=true" />
+      <g:MapRow Key="伪类" Value=":offline :idle :running :warning :fault（在属性变化里 PseudoClasses.Set）" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

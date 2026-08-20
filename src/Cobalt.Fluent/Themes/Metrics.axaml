@@ -1,0 +1,76 @@
+<!-- 几何 / 尺寸 / 动效时长。
+     这些值不随主题变，所以不进 ThemeDictionaries。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:sys="using:System">
+
+  <!-- 圆角：全库只出现 8 / 4 / 0 三个值。想全局改圆角（触摸屏加大命中区），
+       在 App.Resources 里覆盖这两个键即可，所有控件跟着变。 -->
+  <CornerRadius x:Key="ControlCornerRadius">4</CornerRadius>
+  <CornerRadius x:Key="OverlayCornerRadius">8</CornerRadius>
+
+  <!-- 相接处不圆：SplitButton / JogGroup / TimePicker 分段用。
+       刻意写死而不绑 ControlCornerRadius —— 绑了的话改全局圆角时接缝会裂开。 -->
+  <CornerRadius x:Key="ControlCornerRadiusLeft">4,0,0,4</CornerRadius>
+  <CornerRadius x:Key="ControlCornerRadiusRight">0,4,4,0</CornerRadius>
+  <CornerRadius x:Key="ControlCornerRadiusTop">4,4,0,0</CornerRadius>
+  <CornerRadius x:Key="ControlCornerRadiusBottom">0,0,4,4</CornerRadius>
+
+  <!-- 桌面基准 32px。触摸 / 嵌入式放大规则见 references/industrial-hmi.md -->
+  <x:Double x:Key="ControlHeight">32</x:Double>
+  <x:Double x:Key="ControlMinWidth">64</x:Double>
+
+  <!-- 按钮内边距上下不对称，是为了补偿 Segoe 的基线，不是笔误 -->
+  <Thickness x:Key="ControlPadding">11,5,11,6</Thickness>
+  <Thickness x:Key="ControlBorderThickness">1</Thickness>
+  <Thickness x:Key="FlyoutContentPadding">16,15,16,17</Thickness>
+  <Thickness x:Key="MenuFlyoutPresenterPadding">0,2,0,2</Thickness>
+  <Thickness x:Key="MenuFlyoutItemPadding">11,8,11,9</Thickness>
+  <Thickness x:Key="MenuFlyoutItemMargin">4,2,4,2</Thickness>
+
+  <!-- 间距阶 -->
+  <x:Double x:Key="Space1">4</x:Double>
+  <x:Double x:Key="Space2">8</x:Double>
+  <x:Double x:Key="Space3">12</x:Double>
+  <x:Double x:Key="Space4">16</x:Double>
+  <x:Double x:Key="Space6">24</x:Double>
+  <x:Double x:Key="Space8">32</x:Double>
+
+  <!-- HMI 专用尺寸 -->
+  <x:Double x:Key="ReadoutFontSizeSmall">24</x:Double>
+  <x:Double x:Key="ReadoutFontSizeMedium">40</x:Double>
+  <x:Double x:Key="ReadoutFontSizeLarge">72</x:Double>
+  <x:Double x:Key="EStopSize">80</x:Double>
+  <x:Double x:Key="DeviceStatusBarHeight">40</x:Double>
+
+  <!-- 各控件高度集中在这里，方便触摸屏整体放大 -->
+  <x:Double x:Key="ListBoxItemHeight">40</x:Double>
+  <x:Double x:Key="NavigationViewItemHeight">40</x:Double>
+  <x:Double x:Key="TreeViewItemHeight">32</x:Double>
+  <x:Double x:Key="TabItemMinHeight">48</x:Double>
+  <x:Double x:Key="TabViewItemHeight">36</x:Double>
+  <x:Double x:Key="DataGridRowHeight">40</x:Double>
+  <x:Double x:Key="DataGridRowHeightCompact">32</x:Double>
+  <x:Double x:Key="MenuFlyoutItemMinHeight">32</x:Double>
+  <x:Double x:Key="CommandBarHeight">48</x:Double>
+  <x:Double x:Key="JogButtonHeight">40</x:Double>
+  <x:Double x:Key="ParameterRowMinHeight">44</x:Double>
+  <!-- 参数表状态列宽。定死是为了让各行对齐——状态文字和下发按钮逐行长短不同。 -->
+  <GridLength x:Key="ParameterStateColumnWidth">168</GridLength>
+  <x:Double x:Key="SettingsCardMinHeight">68</x:Double>
+  <x:Double x:Key="ExpanderHeaderMinHeight">64</x:Double>
+
+  <!-- 选中指示条：ListBoxItem / NavigationViewItem / TreeViewItem 共用 -->
+  <x:Double x:Key="SelectionIndicatorWidth">3</x:Double>
+  <x:Double x:Key="SelectionIndicatorHeight">16</x:Double>
+  <x:Double x:Key="TabItemPipeThickness">2</x:Double>
+  <x:Double x:Key="ProgressBarHeight">3</x:Double>
+
+  <!-- 动效时长。键名沿用 WinUI 约定。
+       嵌入式（Mali）上建议只保留状态色过渡，去掉位移和缩放。 -->
+  <sys:TimeSpan x:Key="ControlFasterAnimationDuration">0:0:0.083</sys:TimeSpan>
+  <sys:TimeSpan x:Key="ControlFastAnimationDuration">0:0:0.167</sys:TimeSpan>
+  <sys:TimeSpan x:Key="ControlNormalAnimationDuration">0:0:0.250</sys:TimeSpan>
+  <sys:TimeSpan x:Key="ControlSlowAnimationDuration">0:0:0.333</sys:TimeSpan>
+
+</ResourceDictionary>

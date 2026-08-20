@@ -1,0 +1,141 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             xmlns:fc="using:Cobalt.Fluent.Controls"
+             x:Class="Cobalt.Fluent.Gallery.Pages.TeachingTipPage">
+
+  <StackPanel HorizontalAlignment="Left">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="TeachingTip" />
+      <Border Classes="tag"><TextBlock Text="6 · 弹出" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead"
+               Text="带 beak（尖角）指向目标元素的引导浮层。实色底不是亚克力——它要压住底下的内容才读得清。用于首次使用引导，不要用它做常规提示。" />
+
+    <TextBlock Classes="sub" Text="本体 — 标题 + 一句正文 + 最多两个按钮" />
+    <Border Classes="panel">
+      <StackPanel Spacing="12">
+        <!-- 目标固定 140 宽，提示左移 40：beak 钉死在离左边 24 的位置（+6 是它自己的一半），
+             40+30 正好落在按钮中线上。这道算术是调用方的活，控件不替你找目标。 -->
+        <Button Content="并行通道调度" Width="140" HorizontalAlignment="Left" />
+        <fc:TeachingTip x:Name="SpecTip"
+                        Margin="40,0,0,0"
+                        Title="新增：并行通道调度"
+                        Subtitle="现在可以在同一配方里为 4 个通道分别设定温度曲线，互不干扰。"
+                        ActionButtonContent="查看示例"
+                        CloseButtonContent="知道了" />
+      </StackPanel>
+    </Border>
+    <TextBlock Classes="note"
+               Text="beak 位置要对准触发元素，默认离左边 24px。同一次会话里最多出现一个 TeachingTip——连着弹两个就成了骚扰，第三个开始没人看。标题一行、正文一句，说不完的东西该进文档或 ContentDialog，不该往这里塞。样张里点「知道了」会立刻弹回来：规格图不能被点没。" />
+
+    <TextBlock Classes="sub" Text="四个方向 — Placement 说的是提示在目标的哪一侧，beak 画在对侧" />
+    <Border Classes="panel">
+      <!-- 中间那颗按钮是唯一的目标，四条提示各占一边，beak 都对着它。
+           上下两条跨列、左右两条跨行：不跨的话，220 宽的提示会把中间那格撑到 220，
+           按钮缩在格子左上角，另外两条的 beak 就指到空气上去了。 -->
+      <Grid ColumnDefinitions="Auto,16,Auto,16,Auto" RowDefinitions="Auto,16,Auto,16,Auto">
+
+        <fc:TeachingTip Grid.Row="0" Grid.Column="2" Grid.ColumnSpan="3" Width="220"
+                        Placement="Top" VerticalAlignment="Bottom"
+                        Title="Placement=Top"
+                        Subtitle="提示在目标上方，beak 朝下。"
+                        CloseButtonContent="" />
+
+        <fc:TeachingTip Grid.Row="2" Grid.Column="0" Grid.RowSpan="3" Width="220"
+                        Placement="Left" VerticalAlignment="Top"
+                        Title="Placement=Left"
+                        Subtitle="提示在目标左侧，beak 朝右。"
+                        CloseButtonContent="" />
+
+        <!-- 下移 14：按钮中线落在 30，正是 beak 那条 24+6 的线。
+             横向同理——按钮 64 宽（MinWidth 撑的），中线 32，对上左端 30 的 beak。 -->
+        <Button Grid.Row="2" Grid.Column="2" Content="调度"
+                HorizontalAlignment="Left" VerticalAlignment="Top" Margin="0,14,0,0" />
+
+        <fc:TeachingTip Grid.Row="2" Grid.Column="4" Grid.RowSpan="3" Width="220"
+                        Placement="Right" VerticalAlignment="Top"
+                        Title="Placement=Right"
+                        Subtitle="提示在目标右侧，beak 朝左。"
+                        CloseButtonContent="" />
+
+        <fc:TeachingTip Grid.Row="4" Grid.Column="2" Grid.ColumnSpan="3" Width="220"
+                        Placement="Bottom"
+                        Title="Placement=Bottom（默认）"
+                        Subtitle="提示在目标下方，beak 朝上。"
+                        CloseButtonContent="" />
+
+      </Grid>
+    </Border>
+    <TextBlock Classes="note"
+               Text="这四条把关闭按钮留空只是为了排得下——真正弹给用户看的那条必须留一个出口。选哪个方向看的是空间：提示绝不能盖住它正在介绍的那个东西，宁可换边也别压上去。" />
+
+    <TextBlock Classes="sub" Text="和 ToolTip 的区别 — 不是「小提示」和「大提示」" />
+    <Border Classes="panel">
+      <StackPanel Orientation="Horizontal" Spacing="40">
+
+        <StackPanel Spacing="10" Width="280">
+          <TextBlock Classes="note" Margin="0" Text="ToolTip — 悬停即现，移开即走" />
+          <Button Content="下发配方" HorizontalAlignment="Left"
+                  ToolTip.Tip="把当前配方写入设备，运行中不可下发" />
+          <TextBlock Classes="note"
+                     Text="用户自己去问才有，没有按钮、不用关、也不记录看没看过；同一个按钮悬停一百次弹一百次。它答的是「这东西是什么」。" />
+        </StackPanel>
+
+        <StackPanel Spacing="10" Width="300">
+          <TextBlock Classes="note" Margin="0" Text="TeachingTip — 主动弹出，要用户确认" />
+          <fc:TeachingTip x:Name="CompareTip" Width="300"
+                          Title="配方现在能下发到多台设备"
+                          Subtitle="选中多台设备后再点下发，参数一次写到底。"
+                          ActionButtonContent="试一次"
+                          CloseButtonContent="知道了" />
+          <TextBlock Classes="note"
+                     Text="程序自己弹出来的，不点掉不会走；点掉了就得记下来，下次不再弹。它讲的是「这儿新增了什么、去哪儿用」——用户本来没在找它。" />
+        </StackPanel>
+
+      </StackPanel>
+    </Border>
+    <TextBlock Classes="note"
+               Text="分界线很清楚：这句话能不能等用户想起来再看？能，就是 ToolTip。反过来把常驻说明塞进 TeachingTip，用户一关，那句话就再也找不回来了——引导是一次性的，说明不是。" />
+
+    <TextBlock Classes="sub" Text="试玩 — 一次性引导的完整一轮" />
+    <Border Classes="play">
+      <StackPanel Spacing="16">
+
+        <StackPanel Spacing="12">
+          <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Left">
+            <Button Content="单通道" Width="88" />
+            <Button Content="并行通道" Width="88" />
+            <Button Content="报表" Width="88" />
+          </StackPanel>
+          <!-- 三颗 88 宽、间距 8：第二颗中线在 140，减掉 beak 那 30 就是 110 -->
+          <fc:TeachingTip x:Name="PlayTip"
+                          Margin="110,0,0,0"
+                          Title="新增：并行通道调度"
+                          Subtitle="现在可以在同一配方里为 4 个通道分别设定温度曲线，互不干扰。"
+                          ActionButtonContent="查看示例"
+                          CloseButtonContent="知道了" />
+        </StackPanel>
+
+        <Button x:Name="Rearm" Content="清掉「已读」再弹一次" HorizontalAlignment="Left" />
+
+        <TextBlock x:Name="PlayLog" Classes="note" MaxWidth="700" />
+        <TextBlock Classes="note" MaxWidth="700"
+                   Text="两个按钮点哪个都算已读，没有第三条出路——「以后再说」这种选项只会让同一条引导天天回来。动作按钮是「点完就带我过去」，不是「点完再关一次」：ActionCommand 跑完控件自己就关了。" />
+
+      </StackPanel>
+    </Border>
+
+    <g:MapBlock Note="WinUI 的 Target / PreferredPlacement / IsLightDismissEnabled 本库都没有：这个 TeachingTip 就地放进布局，位置由调用方摆——嵌入式全屏应用没有窗口边界要躲，多套一层 Popup 在 X11 下反而会闪。轻关闭也是故意不做的，点旁边就消失的引导等于没弹过。">
+      <g:MapRow Key="类型" Value="TeachingTip : TemplatedControl（Avalonia 本体没有，本库自带）" />
+      <g:MapRow Key="属性" Value="Title · Subtitle · ActionButtonContent · CloseButtonContent（默认「知道了」）· ActionCommand · Placement={Top,Bottom,Left,Right}（默认 Bottom）· IsOpen（双向，跟 IsVisible 联动）" />
+      <g:MapRow Key="成员" Value="Close()（幂等）· Closed 事件——两个按钮都走它，动作按钮先执行 ActionCommand 再关" />
+      <g:MapRow Key="伪类" Value=":top / :bottom / :left / :right —— 从 Placement 推出来，主题拿它把 beak 挪到对侧、换掉留边的那两条" />
+      <g:MapRow Key="资源键" Value="WinUI 的 TeachingTipTransientBackground 在本库落到 SolidBackgroundFillColorQuarternaryBrush（实色，不是亚克力）· SurfaceStrokeColorFlyoutBrush · OverlayCornerRadius（8px）" />
+      <g:MapRow Key="阴影" Value="BoxShadow=&quot;0 8 16 0 #24000000, 0 0 2 0 #1F000000&quot;（shadow-flyout，和 Flyout 同档；全库只有弹出层能用阴影）" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

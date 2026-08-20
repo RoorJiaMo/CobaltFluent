@@ -1,0 +1,124 @@
+<!-- CommandBar / AppBarButton / AppBarSeparator —— 页面顶上那条命令栏，住 base layer。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:fc="using:Cobalt.Fluent.Controls">
+
+  <ControlTheme x:Key="{x:Type fc:CommandBar}" TargetType="fc:CommandBar">
+    <!-- 属于 base layer，背景透明。上底色会把 base / content 两层结构打乱。 -->
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Height" Value="{DynamicResource CommandBarHeight}" />
+    <Setter Property="Padding" Value="4,0" />
+    <Setter Property="ItemsPanel">
+      <ItemsPanelTemplate>
+        <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" />
+      </ItemsPanelTemplate>
+    </Setter>
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:CommandBar">
+        <Border Background="{TemplateBinding Background}"
+                Padding="{TemplateBinding Padding}"
+                Height="{TemplateBinding Height}">
+          <ItemsPresenter ItemsPanel="{TemplateBinding ItemsPanel}" VerticalAlignment="Center" />
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type fc:AppBarButton}" TargetType="fc:AppBarButton">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <Setter Property="MinWidth" Value="40" />
+    <Setter Property="Height" Value="40" />
+    <Setter Property="Padding" Value="8,0" />
+    <Setter Property="Cursor" Value="Arrow" />
+    <Setter Property="FocusAdorner" Value="{StaticResource FluentFocusAdorner}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:AppBarButton">
+        <Border x:Name="PART_Root"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Padding="{TemplateBinding Padding}"
+                MinWidth="{TemplateBinding MinWidth}"
+                Height="{TemplateBinding Height}">
+          <!-- 图标上文字下是默认；:label-right 时由下面的样式改成横排 -->
+          <StackPanel x:Name="PART_Stack"
+                      Orientation="Vertical"
+                      Spacing="2"
+                      HorizontalAlignment="Center"
+                      VerticalAlignment="Center">
+            <fc:SymbolIcon x:Name="PART_Icon"
+                           Symbol="{TemplateBinding Icon}"
+                           FontSize="16"
+                           HorizontalAlignment="Center"
+                           Foreground="{TemplateBinding Foreground}" />
+            <TextBlock x:Name="PART_Label"
+                       Text="{TemplateBinding Label}"
+                       FontSize="11"
+                       LineHeight="12"
+                       HorizontalAlignment="Center"
+                       Foreground="{TemplateBinding Foreground}" />
+          </StackPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="0:0:0.083" />
+      </Transitions>
+    </Setter>
+
+    <Style Selector="^:pointerover /template/ Border#PART_Root">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+    </Style>
+    <Style Selector="^:pressed">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+      <Style Selector="^ /template/ Border#PART_Root">
+        <Setter Property="Background" Value="{DynamicResource SubtleFillColorTertiaryBrush}" />
+      </Style>
+    </Style>
+    <Style Selector="^:disabled">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+    </Style>
+
+    <!-- 图标左、文字右 -->
+    <Style Selector="^:label-right">
+      <Style Selector="^ /template/ StackPanel#PART_Stack">
+        <Setter Property="Orientation" Value="Horizontal" />
+        <Setter Property="Spacing" Value="8" />
+      </Style>
+      <Style Selector="^ /template/ TextBlock#PART_Label">
+        <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+        <Setter Property="LineHeight" Value="{DynamicResource BodyLineHeight}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+      </Style>
+    </Style>
+
+    <!-- 只有图标 -->
+    <Style Selector="^:label-collapsed /template/ TextBlock#PART_Label">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <!-- 没给 Label 的时候也不留空行 -->
+    <Style Selector="^ /template/ TextBlock#PART_Label:empty">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+  </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type fc:AppBarSeparator}" TargetType="fc:AppBarSeparator">
+    <Setter Property="Width" Value="1" />
+    <Setter Property="Height" Value="24" />
+    <Setter Property="Margin" Value="4,0" />
+    <Setter Property="Background" Value="{DynamicResource DividerStrokeColorDefaultBrush}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:AppBarSeparator">
+        <Border Background="{TemplateBinding Background}" />
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+</ResourceDictionary>

@@ -1,0 +1,433 @@
+<!-- 第 10、11 组：Chip · PersonPicture · SegmentedControl · Stepper · BreadcrumbBar
+     · EmptyState · Skeleton · Toast · Pagination。
+     第 10 / 11 组里那些「一句话就能说清」的小控件。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:fc="using:Cobalt.Fluent.Controls">
+
+  <!-- ==================== Chip ==================== -->
+  <ControlTheme x:Key="{x:Type fc:Chip}" TargetType="fc:Chip">
+    <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="12" />
+    <Setter Property="Height" Value="24" />
+    <Setter Property="FontSize" Value="{DynamicResource CaptionFontSize}" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:Chip">
+        <Border Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Height="{TemplateBinding Height}"
+                Padding="10,0,4,0">
+          <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+            <ContentPresenter Content="{TemplateBinding Content}"
+                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                              VerticalAlignment="Center"
+                              Foreground="{TemplateBinding Foreground}"
+                              FontSize="{TemplateBinding FontSize}" />
+            <Button x:Name="PART_Close"
+                    Width="16" Height="16"
+                    MinWidth="16" MinHeight="16"
+                    Padding="0"
+                    CornerRadius="8"
+                    Classes="subtle"
+                    IsVisible="{TemplateBinding IsClosable}">
+              <fc:SymbolIcon Symbol="Cancel" FontSize="8"
+                             Foreground="{TemplateBinding Foreground}" />
+            </Button>
+          </StackPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- 不可删除时右边补齐内边距，否则视觉重心偏左 -->
+    <Style Selector="^:not(:closable) /template/ Border">
+      <Setter Property="Padding" Value="10,0" />
+    </Style>
+
+    <Style Selector="^:accent">
+      <Setter Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
+      <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+  </ControlTheme>
+
+  <!-- ==================== PersonPicture ==================== -->
+  <ControlTheme x:Key="{x:Type fc:PersonPicture}" TargetType="fc:PersonPicture">
+    <Setter Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
+    <Setter Property="Width" Value="32" />
+    <Setter Property="Height" Value="32" />
+    <Setter Property="FontSize" Value="{DynamicResource CaptionFontSize}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:PersonPicture">
+        <Border Background="{TemplateBinding Background}"
+                CornerRadius="1000"
+                Width="{TemplateBinding Width}"
+                Height="{TemplateBinding Height}"
+                ClipToBounds="True">
+          <Panel>
+            <TextBlock Text="{TemplateBinding Initials}"
+                       FontSize="{TemplateBinding FontSize}"
+                       FontWeight="SemiBold"
+                       Foreground="{TemplateBinding Foreground}"
+                       HorizontalAlignment="Center"
+                       VerticalAlignment="Center" />
+            <Image Source="{TemplateBinding Source}" Stretch="UniformToFill"
+                   IsVisible="{TemplateBinding Source,
+                               Converter={x:Static ObjectConverters.IsNotNull}}" />
+          </Panel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^:small">
+      <Setter Property="Width" Value="24" />
+      <Setter Property="Height" Value="24" />
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+    <Style Selector="^:large">
+      <Setter Property="Width" Value="48" />
+      <Setter Property="Height" Value="48" />
+      <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    </Style>
+    <Style Selector="^:neutral">
+      <Setter Property="Background" Value="{DynamicResource ControlAltFillColorQuarternaryBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    </Style>
+  </ControlTheme>
+
+  <!-- ==================== BreadcrumbBar ==================== -->
+  <!-- 面包屑：横排、段间 2px、放不下就换行。
+
+       分隔的「›」画在每一段自己的模板里、跟在内容后头，末级那段把它藏掉。
+       没做成夹在两段之间的独立元素：那样 ItemsControl 得生成 2n-1 个容器，
+       索引和选择器全要跟着错位；而「n 段配 n-1 个分隔」和「除末级外每段带一个分隔」
+       画出来是同一张图。
+
+       悬停底只罩住文字那一格，不罩分隔符 —— 分隔符不属于任何一段，
+       罩进去会让人以为点分隔符也能跳。 -->
+  <ControlTheme x:Key="{x:Type fc:BreadcrumbBar}" TargetType="fc:BreadcrumbBar">
+    <Setter Property="ItemsPanel">
+      <ItemsPanelTemplate>
+        <WrapPanel Orientation="Horizontal" ItemSpacing="2" LineSpacing="2" />
+      </ItemsPanelTemplate>
+    </Setter>
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:BreadcrumbBar">
+        <ItemsPresenter x:Name="PART_ItemsPresenter"
+                        ItemsPanel="{TemplateBinding ItemsPanel}" />
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type fc:BreadcrumbItem}" TargetType="fc:BreadcrumbItem">
+    <!-- 透明底不是「没有底」：底为 null 时接不到指针事件，:pointerover 永远不亮 -->
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <Setter Property="Padding" Value="8,4" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <!-- 不是链接，光标不变手型：面包屑是位置指示，顺带能点 -->
+    <Setter Property="Cursor" Value="Arrow" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:BreadcrumbItem">
+        <StackPanel Orientation="Horizontal" Spacing="2" VerticalAlignment="Center">
+          <Border x:Name="PART_Chip"
+                  Background="{TemplateBinding Background}"
+                  CornerRadius="{TemplateBinding CornerRadius}"
+                  Padding="{TemplateBinding Padding}">
+            <ContentPresenter Content="{TemplateBinding Content}"
+                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                              Foreground="{TemplateBinding Foreground}"
+                              VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+          </Border>
+          <fc:SymbolIcon x:Name="PART_Separator"
+                         Symbol="ChevronRight"
+                         FontSize="10"
+                         VerticalAlignment="Center"
+                         Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+        </StackPanel>
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^:pointerover:not(:current)">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+      <Style Selector="^ /template/ Border#PART_Chip">
+        <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+      </Style>
+    </Style>
+
+    <Style Selector="^:current">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <!-- 末级后面没有下一级，分隔符没有指向对象 -->
+      <Style Selector="^ /template/ fc|SymbolIcon#PART_Separator">
+        <Setter Property="IsVisible" Value="False" />
+      </Style>
+    </Style>
+
+    <Style Selector="^:disabled">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+    </Style>
+  </ControlTheme>
+
+  <!-- ==================== SegmentedControl ==================== -->
+  <!-- 互斥模式选择。整体是一条凹槽，选中项浮起来（实色 + 描边）。 -->
+  <ControlTheme x:Key="{x:Type fc:SegmentedControl}" TargetType="fc:SegmentedControl">
+    <Setter Property="Background" Value="{DynamicResource ControlAltFillColorSecondaryBrush}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <Setter Property="Padding" Value="2" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="ItemsPanel">
+      <ItemsPanelTemplate>
+        <StackPanel Orientation="Horizontal" Spacing="2" />
+      </ItemsPanelTemplate>
+    </Setter>
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:SegmentedControl">
+        <Border Background="{TemplateBinding Background}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Padding="{TemplateBinding Padding}">
+          <ItemsPresenter ItemsPanel="{TemplateBinding ItemsPanel}" />
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type fc:SegmentedItem}" TargetType="fc:SegmentedItem">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="3" />
+    <Setter Property="MinWidth" Value="72" />
+    <Setter Property="Height" Value="28" />
+    <Setter Property="Padding" Value="12,0" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Cursor" Value="Arrow" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:SegmentedItem">
+        <ContentPresenter x:Name="PART_ContentPresenter"
+                          Background="{TemplateBinding Background}"
+                          BorderBrush="{TemplateBinding BorderBrush}"
+                          BorderThickness="{TemplateBinding BorderThickness}"
+                          CornerRadius="{TemplateBinding CornerRadius}"
+                          Padding="{TemplateBinding Padding}"
+                          MinWidth="{TemplateBinding MinWidth}"
+                          Height="{TemplateBinding Height}"
+                          Content="{TemplateBinding Content}"
+                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                          Foreground="{TemplateBinding Foreground}" />
+      </ControlTemplate>
+    </Setter>
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="0:0:0.083" />
+      </Transitions>
+    </Setter>
+
+    <Style Selector="^:pointerover:not(:selected)">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    </Style>
+    <Style Selector="^:selected">
+      <Setter Property="Background" Value="{DynamicResource ControlSolidFillColorDefaultBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="BorderBrush" Value="{DynamicResource ControlElevationBorderBrush}" />
+    </Style>
+    <Style Selector="^:disabled">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+    </Style>
+  </ControlTheme>
+
+  <!-- ==================== Skeleton ==================== -->
+  <ControlTheme x:Key="{x:Type fc:Skeleton}" TargetType="fc:Skeleton">
+    <Setter Property="Height" Value="12" />
+    <Setter Property="Background" Value="{DynamicResource ControlAltFillColorSecondaryBrush}" />
+    <Setter Property="CornerRadius" Value="6" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:Skeleton">
+        <Border Background="{TemplateBinding Background}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Height="{TemplateBinding Height}"
+                ClipToBounds="True">
+          <!-- 微光：只动 transform，代价最低的那种动画 -->
+          <Border x:Name="PART_Shimmer"
+                  Width="120"
+                  HorizontalAlignment="Left"
+                  Opacity="0"
+                  RenderTransformOrigin="50%,50%">
+            <Border.RenderTransform>
+              <TranslateTransform />
+            </Border.RenderTransform>
+            <Border.Background>
+              <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,0%">
+                <GradientStop Color="Transparent" Offset="0" />
+                <GradientStop Color="{DynamicResource SubtleFillColorSecondary}" Offset="0.5" />
+                <GradientStop Color="Transparent" Offset="1" />
+              </LinearGradientBrush>
+            </Border.Background>
+          </Border>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^:shimmer /template/ Border#PART_Shimmer">
+      <Setter Property="Opacity" Value="1" />
+      <Style.Animations>
+        <Animation Duration="0:0:1.4" IterationCount="Infinite" Easing="CubicEaseInOut">
+          <KeyFrame Cue="0%"><Setter Property="TranslateTransform.X" Value="-160" /></KeyFrame>
+          <KeyFrame Cue="100%"><Setter Property="TranslateTransform.X" Value="640" /></KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+  </ControlTheme>
+
+  <!-- ==================== EmptyState ==================== -->
+  <ControlTheme x:Key="{x:Type fc:EmptyState}" TargetType="fc:EmptyState">
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:EmptyState">
+        <StackPanel Spacing="8"
+                    Margin="24,56"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center">
+          <fc:SymbolIcon Symbol="{TemplateBinding Icon}"
+                         FontSize="32"
+                         HorizontalAlignment="Center"
+                         Foreground="{DynamicResource TextFillColorTertiaryBrush}" />
+          <TextBlock Text="{TemplateBinding Title}"
+                     FontWeight="SemiBold"
+                     TextAlignment="Center"
+                     HorizontalAlignment="Center"
+                     Foreground="{TemplateBinding Foreground}" />
+          <TextBlock Text="{TemplateBinding Description}"
+                     FontSize="{DynamicResource CaptionFontSize}"
+                     TextAlignment="Center"
+                     TextWrapping="Wrap"
+                     MaxWidth="360"
+                     HorizontalAlignment="Center"
+                     Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+          <ContentPresenter Content="{TemplateBinding ActionContent}"
+                            Margin="0,8,0,0"
+                            HorizontalAlignment="Center" />
+        </StackPanel>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <!-- ==================== Toast ==================== -->
+  <!-- 悬浮层，可以用阴影。不占布局，挂在 OverlayLayer 上。 -->
+  <ControlTheme x:Key="{x:Type fc:Toast}" TargetType="fc:Toast">
+    <Setter Property="Background" Value="{DynamicResource SolidBackgroundFillColorQuarternaryBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SurfaceStrokeColorFlyoutBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{DynamicResource OverlayCornerRadius}" />
+    <Setter Property="MinWidth" Value="280" />
+    <Setter Property="MaxWidth" Value="400" />
+    <Setter Property="Padding" Value="16,12" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:Toast">
+        <Border Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Padding="{TemplateBinding Padding}"
+                MinWidth="{TemplateBinding MinWidth}"
+                MaxWidth="{TemplateBinding MaxWidth}"
+                BoxShadow="0 8 16 0 #24000000, 0 0 2 0 #1F000000">
+          <Grid ColumnDefinitions="Auto,*,Auto">
+            <fc:SymbolIcon x:Name="PART_Glyph"
+                           Grid.Column="0"
+                           Symbol="{TemplateBinding Glyph}"
+                           FontSize="16"
+                           Margin="0,2,12,0"
+                           VerticalAlignment="Top"
+                           Foreground="{DynamicResource AccentFillColorDefaultBrush}" />
+            <StackPanel Grid.Column="1" Spacing="2">
+              <TextBlock Text="{TemplateBinding Title}"
+                         FontWeight="SemiBold"
+                         TextWrapping="Wrap"
+                         Foreground="{TemplateBinding Foreground}" />
+              <TextBlock Text="{TemplateBinding Message}"
+                         FontSize="{DynamicResource CaptionFontSize}"
+                         TextWrapping="Wrap"
+                         Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                         IsVisible="{TemplateBinding Message,
+                                     Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+            </StackPanel>
+            <ContentPresenter Grid.Column="2"
+                              Margin="12,0,0,0"
+                              VerticalAlignment="Center"
+                              Content="{TemplateBinding ActionContent}" />
+          </Grid>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^:success /template/ fc|SymbolIcon#PART_Glyph">
+      <Setter Property="Foreground" Value="{DynamicResource SystemFillColorSuccessBrush}" />
+    </Style>
+    <Style Selector="^:error /template/ fc|SymbolIcon#PART_Glyph">
+      <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+    </Style>
+  </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type fc:ToastHost}" TargetType="fc:ToastHost">
+    <Setter Property="ItemsPanel">
+      <ItemsPanelTemplate>
+        <StackPanel Spacing="8" />
+      </ItemsPanelTemplate>
+    </Setter>
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:ToastHost">
+        <ItemsPresenter ItemsPanel="{TemplateBinding ItemsPanel}" />
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <!-- ==================== Pagination ==================== -->
+  <ControlTheme x:Key="{x:Type fc:Pagination}" TargetType="fc:Pagination">
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}" />
+    <Setter Property="Padding" Value="12,8" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:Pagination">
+        <Border Padding="{TemplateBinding Padding}">
+          <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+            <TextBlock Text="{TemplateBinding InfoText}"
+                       Margin="0,0,8,0"
+                       VerticalAlignment="Center"
+                       FontSize="{DynamicResource CaptionFontSize}"
+                       FontFeatures="{StaticResource TabularNumbers}"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+
+            <Button x:Name="PART_Previous" Classes="subtle icon">
+              <fc:SymbolIcon Symbol="ChevronLeft" FontSize="12" />
+            </Button>
+
+            <StackPanel x:Name="PART_Pages" Orientation="Horizontal" Spacing="4" />
+
+            <Button x:Name="PART_Next" Classes="subtle icon">
+              <fc:SymbolIcon Symbol="ChevronRight" FontSize="12" />
+            </Button>
+          </StackPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <!-- 分页按钮的外观直接复用 Button 的 accent / subtle 变体，
+       由 Pagination 在建按钮时打 Classes —— 不需要额外的全局 Style
+       （ResourceDictionary 里也放不下裸 Style）。 -->
+
+</ResourceDictionary>

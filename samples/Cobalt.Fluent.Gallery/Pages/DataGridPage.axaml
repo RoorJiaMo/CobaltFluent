@@ -1,0 +1,132 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             xmlns:fc="using:Cobalt.Fluent.Controls"
+             xmlns:p="using:Cobalt.Fluent.Gallery.Pages"
+             x:Class="Cobalt.Fluent.Gallery.Pages.DataGridPage">
+
+  <StackPanel Spacing="0" HorizontalAlignment="Left">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="DataGrid" />
+      <Border Classes="tag"><TextBlock Text="4 · 集合" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead"
+               Text="表头 40 / 行高 40，只有横向分隔线，没有竖线，不用斑马纹。数值列必须右对齐 + tabular-nums，否则数字刷新时会左右横跳。" />
+
+    <TextBlock Classes="sub" Text="批次记录" />
+    <!-- Padding 覆成 0,8：表格本体不带底色也不带外框，外框由这只 panel 出，
+         左右再垫 16 的话就和单元格自己的 12 叠成 28 了。 -->
+    <Border Classes="panel" Padding="0,8">
+      <!-- Height 写死是必须的：DataGrid 是虚拟化控件，套在 StackPanel 里
+           拿到的是无限高度，量不出行数，会塌成一条。40 表头 + 4×40 行。 -->
+      <DataGrid x:Name="Grid"
+                x:DataType="p:BatchRecord"
+                Width="700"
+                Height="200"
+                IsReadOnly="True"
+                SelectedIndex="1"
+                CanUserSortColumns="True">
+        <DataGrid.Columns>
+
+          <!-- 只有批次号可排序。其余列绑的是显示串，按串排会得出
+               「119.8 °C 排在 85.4 °C 前面」这种结果——宁可关掉，
+               也不给一个看着能用、结果是错的排序。 -->
+          <DataGridTextColumn Header="批次号" Width="160" Binding="{Binding Batch}" />
+
+          <DataGridTextColumn Header="配方" Width="110" Binding="{Binding Recipe}" CanUserSort="False" />
+
+          <DataGridTextColumn Header="目标温度" Width="110" Binding="{Binding TargetText}" CanUserSort="False">
+            <DataGridTextColumn.CellStyleClasses>
+              <x:String>num</x:String>
+            </DataGridTextColumn.CellStyleClasses>
+          </DataGridTextColumn>
+
+          <DataGridTextColumn Header="实际峰值" Width="110" Binding="{Binding PeakText}" CanUserSort="False">
+            <DataGridTextColumn.CellStyleClasses>
+              <x:String>num</x:String>
+            </DataGridTextColumn.CellStyleClasses>
+          </DataGridTextColumn>
+
+          <DataGridTextColumn Header="耗时" Width="100" Binding="{Binding ElapsedText}" CanUserSort="False">
+            <DataGridTextColumn.CellStyleClasses>
+              <x:String>num</x:String>
+            </DataGridTextColumn.CellStyleClasses>
+          </DataGridTextColumn>
+
+          <DataGridTemplateColumn Header="状态" Width="100">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="p:BatchRecord">
+                <fc:InfoBadge Severity="{Binding Severity}"
+                              Text="{Binding Status}"
+                              HorizontalAlignment="Left"
+                              VerticalAlignment="Center" />
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+
+        </DataGrid.Columns>
+      </DataGrid>
+    </Border>
+    <TextBlock Classes="note"
+               Text="状态列用 InfoBadge 而不是纯色文字——颜色 + 底色 + 文字三重编码，色觉障碍和戴防护镜时都能读。" />
+    <TextBlock Classes="note"
+               Text="数值列挂 CellStyleClasses=&quot;num&quot;：右对齐 + tnum。中断那批没有峰值，填「—」而不是 0——0 会被当成一个真读数，而且它还会参与排序和求平均。" />
+    <TextBlock Classes="note"
+               Text="选中态和悬停态同一档底色，靠左边的选择框区分，所以按住选中行时不会闪一下更深的底。" />
+
+    <TextBlock Classes="sub" Text="试玩 — 表头 CheckBox 三态联动" />
+    <Border Classes="play" Padding="0,8">
+      <StackPanel Spacing="0">
+        <DataGrid x:Name="PlayGrid"
+                  x:DataType="p:PickableBatch"
+                  Width="520"
+                  Height="160"
+                  IsReadOnly="True"
+                  CanUserSortColumns="False">
+          <DataGrid.Columns>
+
+            <!-- 选择列的表头是一只真 CheckBox，不是文字。代码后台按
+                 Columns[0].Header 取它——列的 Header 不进 UserControl 的
+                 命名域，FindControl 找不到。 -->
+            <DataGridTemplateColumn Width="48">
+              <DataGridTemplateColumn.Header>
+                <CheckBox IsThreeState="True" />
+              </DataGridTemplateColumn.Header>
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="p:PickableBatch">
+                  <CheckBox IsChecked="{Binding IsPicked, Mode=TwoWay}"
+                            VerticalAlignment="Center" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+
+            <DataGridTextColumn Header="批次号" Width="160" Binding="{Binding Batch}" />
+            <DataGridTextColumn Header="配方" Width="120" Binding="{Binding Recipe}" />
+
+            <DataGridTextColumn Header="峰值" Width="*" Binding="{Binding PeakText}">
+              <DataGridTextColumn.CellStyleClasses>
+                <x:String>num</x:String>
+              </DataGridTextColumn.CellStyleClasses>
+            </DataGridTextColumn>
+
+          </DataGrid.Columns>
+        </DataGrid>
+        <TextBlock Classes="note" Margin="16,10,16,0"
+                   Text="勾选部分行 → 表头自动变 indeterminate；全选 → 变 checked；点表头一次性全选 / 全不选。这个三态联动是 CheckBox 三态在实际项目里最主要的用途。" />
+        <TextBlock Classes="note" Margin="16,6,16,0"
+                   Text="表头处于 indeterminate 时点一下是「全选」而不是「全不选」：那一档表示的是当前选了多少，是结果，不该成为用户点得出来的一个态。" />
+      </StackPanel>
+    </Border>
+
+    <g:MapBlock Note="需要单独引 Avalonia.Controls.DataGrid 这个包。本库把 DataGrid / Row / Cell / ColumnHeader 四份 ControlTheme 连模板一起重写了——官方主题的根节点是 &lt;Styles&gt;（只能 StyleInclude），并不进本库这份 ResourceDictionary，也就没法 BasedOn 它；两份都 include 的话同名键会打架，尤其 DataGridCellTextBlockTheme 的 12px。所以消费方只 include 本库一份主题就够，不要再 include avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml。">
+      <g:MapRow Key="控件" Value="DataGrid · DataGridTextColumn · DataGridTemplateColumn（Avalonia.Controls.DataGrid 包）" />
+      <g:MapRow Key="属性" Value="GridLinesVisibility=Horizontal · CanUserSortColumns · RowHeight=40 · ColumnHeaderHeight=40 · HeadersVisibility=Column · FrozenColumnCount" />
+      <g:MapRow Key="列级类" Value="DataGridColumn.CellStyleClasses: num（右对齐 + tnum）· editable（左右留 4 给就地编辑的 TextBox）· frozen（冻结列的实底 + 右描边）" />
+      <g:MapRow Key="行级类" Value="DataGridRow: row-warning · row-error（在 DataGrid.LoadingRow 里按数据打）" />
+      <g:MapRow Key="资源键" Value="DividerStrokeColorDefaultBrush（HorizontalGridLinesBrush 和表头底线）· TextFillColorSecondaryBrush（表头文字，SemiBold）· SubtleFillColorSecondaryBrush（hover / selected 同一档）" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

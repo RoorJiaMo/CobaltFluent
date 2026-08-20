@@ -1,0 +1,101 @@
+<!-- TabView / TabViewItem —— 浏览器式的文档标签。
+     浏览器式标签：选中的那个「浮」到内容区上（同底色、无下边框）。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:fc="using:Cobalt.Fluent.Controls">
+
+  <ControlTheme x:Key="{x:Type fc:TabView}" TargetType="fc:TabView">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:TabView">
+        <Grid RowDefinitions="Auto,*">
+          <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="2" VerticalAlignment="Bottom">
+            <ItemsPresenter ItemsPanel="{TemplateBinding ItemsPanel}" />
+            <Button x:Name="PART_AddButton"
+                    Classes="subtle icon"
+                    Height="32"
+                    VerticalAlignment="Bottom"
+                    IsVisible="{TemplateBinding IsAddButtonVisible}">
+              <fc:SymbolIcon Symbol="Add" FontSize="12" />
+            </Button>
+          </StackPanel>
+
+          <Border Grid.Row="1"
+                  Background="{DynamicResource LayerFillColorDefaultBrush}"
+                  BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                  BorderThickness="1"
+                  CornerRadius="0,4,4,4"
+                  Padding="16">
+            <ContentPresenter Content="{TemplateBinding SelectedContent}"
+                              ContentTemplate="{TemplateBinding SelectedContentTemplate}" />
+          </Border>
+        </Grid>
+      </ControlTemplate>
+    </Setter>
+    <Setter Property="ItemsPanel">
+      <ItemsPanelTemplate>
+        <StackPanel Orientation="Horizontal" Spacing="2" VerticalAlignment="Bottom" />
+      </ItemsPanelTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type fc:TabViewItem}" TargetType="fc:TabViewItem">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="4,4,0,0" />
+    <Setter Property="Height" Value="{DynamicResource TabViewItemHeight}" />
+    <Setter Property="MaxWidth" Value="200" />
+    <Setter Property="Padding" Value="12,0,8,0" />
+    <Setter Property="Cursor" Value="Arrow" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:TabViewItem">
+        <Border x:Name="PART_Root"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Height="{TemplateBinding Height}"
+                MaxWidth="{TemplateBinding MaxWidth}"
+                Padding="{TemplateBinding Padding}">
+          <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+            <fc:SymbolIcon Symbol="{TemplateBinding Icon}"
+                           FontSize="14"
+                           VerticalAlignment="Center"
+                           Foreground="{TemplateBinding Foreground}"
+                           IsVisible="{TemplateBinding Icon,
+                                       Converter={x:Static fc:SymbolConverters.IsNotNone}}" />
+            <ContentPresenter Content="{TemplateBinding Header}"
+                              ContentTemplate="{TemplateBinding HeaderTemplate}"
+                              VerticalAlignment="Center"
+                              Foreground="{TemplateBinding Foreground}" />
+            <Button x:Name="PART_Close"
+                    Width="24" Height="24" MinWidth="24" MinHeight="24"
+                    Padding="0"
+                    Classes="subtle"
+                    IsVisible="{TemplateBinding IsClosable}">
+              <fc:SymbolIcon Symbol="Cancel" FontSize="9"
+                             Foreground="{TemplateBinding Foreground}" />
+            </Button>
+          </StackPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^:pointerover:not(:selected) /template/ Border#PART_Root">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+    </Style>
+
+    <!-- 选中：和内容区同底色、无下边框，视觉上连成一体 -->
+    <Style Selector="^:selected">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+      <Style Selector="^ /template/ Border#PART_Root">
+        <Setter Property="Background" Value="{DynamicResource LayerFillColorDefaultBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
+        <Setter Property="BorderThickness" Value="1,1,1,0" />
+      </Style>
+    </Style>
+  </ControlTheme>
+
+</ResourceDictionary>

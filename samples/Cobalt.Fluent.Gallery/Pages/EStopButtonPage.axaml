@@ -1,0 +1,48 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             xmlns:fc="using:Cobalt.Fluent.Controls"
+             x:Class="Cobalt.Fluent.Gallery.Pages.EStopButtonPage">
+
+  <StackPanel HorizontalAlignment="Left" MaxWidth="880">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="EStopButton" />
+      <Border Classes="tag"><TextBlock Text="7 · HMI 专用" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead"
+               Text="急停。刻意打破 Fluent 的扁平——真实急停是物理蘑菇头，视觉上要有实体感。颜色写死安全红 + 安全黄（ISO 13850 要求红钮黄衬），不跟随主题，也不占「一屏一个强调色」的名额。" />
+
+    <TextBlock Classes="sub" Text="状态" />
+    <Border Classes="panel">
+      <StackPanel Orientation="Horizontal" Spacing="48">
+        <fc:EStopButton Content="急停" />
+        <fc:EStopButton x:Name="Engaged" Content="急停" IsEngaged="True" />
+      </StackPanel>
+    </Border>
+
+    <TextBlock Classes="sub" Text="试玩 — 触发即自锁，必须复位" />
+    <Border Classes="play" HorizontalAlignment="Stretch">
+      <StackPanel Orientation="Horizontal" Spacing="32">
+        <fc:EStopButton x:Name="Live" Content="急停"
+                        HardwareLocationHint="硬件急停在操作台右下" />
+        <StackPanel Spacing="8" VerticalAlignment="Center" MaxWidth="520">
+          <TextBlock x:Name="Log" Classes="note" Text="按下即触发——不等松手。急停不接受一次松手的延迟。" />
+          <TextBlock Classes="note"
+                     Text="触发后再点无效：必须长按 1.2 秒复位（对应真实急停「拧一下才能弹起」的手感，防误碰）。" />
+          <TextBlock Classes="note" FontWeight="SemiBold"
+                     Text="软件急停不能替代硬件急停回路。界面上建议同时标注硬件急停的物理位置。" />
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <g:MapBlock Note="固定在右上或右下，任何页面都可见（放在 base layer，不随导航切换）。颜色写死 SafetyRedBrush / SafetyYellowBrush，不要用 SystemFillColorCriticalBrush——那个在深色主题下是浅粉色。">
+      <g:MapRow Key="类型" Value="EStopButton : Button" />
+      <g:MapRow Key="属性" Value="IsEngaged · EngageCommand · ResetCommand · RequireHoldToReset=true · ResetHoldDuration=1.2s · Caption · EngagedCaption · HardwareLocationHint" />
+      <g:MapRow Key="伪类" Value=":engaged :resetting" />
+      <g:MapRow Key="行为" Value="按下即触发（不等 Click）· 触发后自锁 · 复位默认要长按" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

@@ -1,0 +1,106 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             xmlns:fc="using:Cobalt.Fluent.Controls"
+             x:Class="Cobalt.Fluent.Gallery.Pages.ProgressBarPage">
+
+  <StackPanel Spacing="0" HorizontalAlignment="Left">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="ProgressBar" />
+      <Border Classes="tag"><TextBlock Text="5 · 反馈" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead"
+               Text="高度 3px，药丸圆角。Win11 的进度条比大多数框架细得多——加粗会立刻显得不像。不确定态是一小段来回跑，不是整条闪。" />
+
+    <TextBlock Classes="sub" Text="四种形态" />
+    <Border Classes="panel">
+      <StackPanel Spacing="18">
+
+        <StackPanel Spacing="6">
+          <ProgressBar Width="280" Value="62" />
+          <TextBlock Classes="note" Margin="0" Text="determinate 62%" />
+        </StackPanel>
+
+        <StackPanel Spacing="6">
+          <ProgressBar Width="280" IsIndeterminate="True" />
+          <TextBlock Classes="note" Margin="0" Text="indeterminate — 33% 宽的一段，2s 一个来回" />
+        </StackPanel>
+
+        <StackPanel Spacing="6">
+          <ProgressBar Width="280" Value="62" Classes="paused" />
+          <TextBlock Classes="note" Margin="0" Text=".paused — caution" />
+        </StackPanel>
+
+        <StackPanel Spacing="6">
+          <ProgressBar Width="280" Value="62" Classes="error" />
+          <TextBlock Classes="note" Margin="0" Text=".error — critical" />
+        </StackPanel>
+
+      </StackPanel>
+    </Border>
+    <TextBlock Classes="note"
+               Text="圆角写死 1.5 不绑 ControlCornerRadius：4px 的控件圆角落在 3px 高的条上会切出方角，这里要的是整圆端头。槽和条共用同一个半径，条走到头才严丝合缝。" />
+
+    <TextBlock Classes="sub" Text="典型用法" />
+    <Border Classes="panel">
+      <fc:Card Width="360">
+        <StackPanel Spacing="8">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Grid.Column="0" Text="恒温保持" />
+            <TextBlock Grid.Column="1"
+                       Theme="{StaticResource CaptionTextBlockStyle}"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                       FontFeatures="{StaticResource TabularNumbers}"
+                       VerticalAlignment="Center"
+                       Text="742 / 1200 s" />
+          </Grid>
+          <ProgressBar Value="61.8" />
+        </StackPanel>
+      </fc:Card>
+    </Border>
+    <TextBlock Classes="note"
+               Text="读数单独起一行，不用 ShowProgressText——文字塞进条里会把 3px 撑到一行字高，那就不是这个控件了。数字必须等宽，742→800 只差一位也会让右边缘横跳。" />
+
+    <TextBlock Classes="sub" Text="试玩 — 跑一遍带暂停和故障的批次" />
+    <Border Classes="play">
+      <StackPanel Spacing="12">
+
+        <Grid ColumnDefinitions="*,Auto" Width="360">
+          <TextBlock Grid.Column="0" Text="恒温保持" />
+          <TextBlock Grid.Column="1" x:Name="Elapsed"
+                     Theme="{StaticResource CaptionTextBlockStyle}"
+                     Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                     FontFeatures="{StaticResource TabularNumbers}"
+                     VerticalAlignment="Center"
+                     Text="0 / 1200 s" />
+        </Grid>
+
+        <ProgressBar x:Name="Run" Width="360" Maximum="1200" />
+
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Button x:Name="Go" Classes="accent" Content="运行" />
+          <Button x:Name="Pause" Content="暂停" />
+          <Button x:Name="Fault" Content="模拟故障" />
+          <Button x:Name="Reset" Content="复位" />
+        </StackPanel>
+
+        <CheckBox x:Name="Indeterminate" Content="切到不确定态" />
+
+        <TextBlock Classes="note" MaxWidth="700"
+                   Text="暂停和故障只换颜色，条一步都不退——操作员是靠停在哪个位置判断卡在哪一步的，清零等于把现场抹掉。两态互切走 167ms 的透明度淡入淡出，条不会瞬移。" />
+
+      </StackPanel>
+    </Border>
+
+    <g:MapBlock Note="paused / error 在 Avalonia 里没有内置伪类，用 Classes 切：ProgressBar.paused / .error，Setter 只改 Foreground。之所以只改这一处就够——确定态和不确定态两个 Indicator 都 TemplateBinding 到 Foreground，等于拿它当条色插槽用。这两档走主题状态色不走安全色，进度停了和报警不是一回事。">
+      <g:MapRow Key="控件" Value="ProgressBar（Avalonia 内置）" />
+      <g:MapRow Key="属性" Value="IsIndeterminate · ShowProgressText / ProgressTextFormat · Value · Minimum / Maximum · Orientation" />
+      <g:MapRow Key="Classes" Value="paused（caution）· error（critical）" />
+      <g:MapRow Key="伪类" Value=":indeterminate · :horizontal / :vertical（都是 Avalonia 内置，由属性推出来）" />
+      <g:MapRow Key="资源键" Value="ProgressBarHeight=3 · ProgressBarCornerRadius=1.5 · ProgressBarMinLength=200 · ControlAltFillColorSecondaryBrush（槽）· AccentFillColorDefaultBrush（条）· SystemFillColorCautionBrush · SystemFillColorCriticalBrush" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

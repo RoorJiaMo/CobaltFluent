@@ -1,0 +1,132 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             xmlns:fc="using:Cobalt.Fluent.Controls"
+             x:Class="Cobalt.Fluent.Gallery.Pages.SettingsCardPage">
+
+  <StackPanel Spacing="0" HorizontalAlignment="Left">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="SettingsCard" />
+      <Border Classes="tag"><TextBlock Text="3 · 容器" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead"
+               Text="Win11 设置页的标准行：图标 + 标题 + 说明 + 右侧控件，最小高 68。成组时用 2px 缝隙、只有首尾圆角——中间项圆角会让整组看起来散掉。" />
+
+    <TextBlock Classes="sub" Text="单张 — 说明行可以不要" />
+    <Border Classes="panel">
+      <StackPanel Width="560" Spacing="8">
+        <fc:SettingsCard Icon="Save"
+                         Header="自动保存"
+                         Description="参数变更后立即写入配方文件">
+          <ToggleSwitch IsChecked="True" OnContent="开" OffContent="关" />
+        </fc:SettingsCard>
+        <fc:SettingsCard Icon="Brightness" Header="夜间模式">
+          <ToggleSwitch OnContent="开" OffContent="关" />
+        </fc:SettingsCard>
+      </StackPanel>
+    </Border>
+    <TextBlock Classes="note"
+               Text="Description 为空时那行整个不占位，标题自己回到垂直居中。68 是最小高不是固定高——说明文字换两行就自然长高，别为了「对齐」把它写死。" />
+
+    <TextBlock Classes="sub" Text="成组 — 2px 缝隙、首尾圆角、中间方角" />
+    <Border Classes="panel">
+      <fc:SettingsGroup Width="560">
+        <fc:SettingsCard Icon="Save"
+                         Header="自动保存"
+                         Description="参数变更后立即写入配方文件">
+          <ToggleSwitch IsChecked="True" OnContent="开" OffContent="关" />
+        </fc:SettingsCard>
+        <fc:SettingsCard Icon="Speed"
+                         Header="采样周期"
+                         Description="影响趋势曲线的分辨率与磁盘占用">
+          <ComboBox Width="120" SelectedIndex="2">
+            <ComboBoxItem Content="200 ms" />
+            <ComboBoxItem Content="500 ms" />
+            <ComboBoxItem Content="1 s" />
+            <ComboBoxItem Content="2 s" />
+            <ComboBoxItem Content="5 s" />
+          </ComboBox>
+        </fc:SettingsCard>
+        <fc:SettingsCard Icon="Folder"
+                         Header="数据目录"
+                         Description="D:\Cobalt\Runs">
+          <Button Content="浏览" />
+        </fc:SettingsCard>
+      </fc:SettingsGroup>
+    </Border>
+    <TextBlock Classes="note"
+               Text="中间那两个方角是把三行黏成一块的关键。2px 的缝只负责让相邻两行分得开，不负责分组——分组是靠外轮廓那一圈圆角说的。" />
+
+    <TextBlock Classes="sub" Text="对照 — 同样三行，散着放" />
+    <Border Classes="panel">
+      <StackPanel Width="560" Spacing="8">
+        <fc:SettingsCard Icon="Save"
+                         Header="自动保存"
+                         Description="参数变更后立即写入配方文件">
+          <ToggleSwitch IsChecked="True" OnContent="开" OffContent="关" />
+        </fc:SettingsCard>
+        <fc:SettingsCard Icon="Speed"
+                         Header="采样周期"
+                         Description="影响趋势曲线的分辨率与磁盘占用">
+          <ComboBox Width="120" SelectedIndex="2">
+            <ComboBoxItem Content="200 ms" />
+            <ComboBoxItem Content="500 ms" />
+            <ComboBoxItem Content="1 s" />
+            <ComboBoxItem Content="2 s" />
+            <ComboBoxItem Content="5 s" />
+          </ComboBox>
+        </fc:SettingsCard>
+        <fc:SettingsCard Icon="Folder"
+                         Header="数据目录"
+                         Description="D:\Cobalt\Runs">
+          <Button Content="浏览" />
+        </fc:SettingsCard>
+      </StackPanel>
+    </Border>
+    <TextBlock Classes="note"
+               Text="内容一个字没变，读出来却是三件不相干的事。设置页上「这几条归一组」几乎全靠外轮廓传达，一旦每张都自己圆一圈，这层信息就没了。" />
+
+    <TextBlock Classes="sub" Text="试玩 — 增删项，首尾圆角跟着重算" />
+    <Border Classes="play">
+      <StackPanel Spacing="16">
+        <fc:SettingsGroup x:Name="PlayGroup" Width="560">
+          <fc:SettingsCard Icon="Save"
+                           Header="自动保存"
+                           Description="参数变更后立即写入配方文件">
+            <ToggleSwitch IsChecked="True" OnContent="开" OffContent="关" />
+          </fc:SettingsCard>
+          <fc:SettingsCard Icon="Speed"
+                           Header="采样周期"
+                           Description="影响趋势曲线的分辨率与磁盘占用">
+            <ComboBox Width="120" SelectedIndex="2">
+              <ComboBoxItem Content="200 ms" />
+              <ComboBoxItem Content="500 ms" />
+              <ComboBoxItem Content="1 s" />
+              <ComboBoxItem Content="2 s" />
+              <ComboBoxItem Content="5 s" />
+            </ComboBox>
+          </fc:SettingsCard>
+        </fc:SettingsGroup>
+
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Button x:Name="AddRow" Content="添加一项" />
+          <Button x:Name="RemoveRow" Content="删除末项" />
+        </StackPanel>
+
+        <TextBlock x:Name="PlayLog" Classes="note" Margin="0" />
+      </StackPanel>
+    </Border>
+    <TextBlock Classes="note"
+               Text="圆角是在子项集合变化的时候重算的。想临时藏掉一项就从集合里移走——只把 IsVisible 设成 False，类不会重打，末尾会留下一个方角的行。" />
+
+    <g:MapBlock Note="FluentAvalonia 有一只 SettingsExpander：多个 SettingsExpanderItem 丢进 ItemsSource，首尾圆角它自己算。本库零第三方依赖，所以自带了一套，代价是圆角得由 SettingsGroup 打类到子项上——ControlTheme 里出现后代选择器（^ fc|SettingsCard）编译能过、运行时直接抛异常，绕不开。">
+      <g:MapRow Key="控件" Value="fc:SettingsCard : ContentControl · fc:SettingsGroup : StackPanel（Spacing 固定 2）" />
+      <g:MapRow Key="属性" Value="Icon:Symbol · Header · Description · Content（右侧控件槽，ToggleSwitch / ComboBox / Button 都直接塞）" />
+      <g:MapRow Key="类" Value="settings-first · settings-middle · settings-last · settings-only —— SettingsGroup 按可见子项的位置打，不要手写" />
+      <g:MapRow Key="资源键" Value="同 Card —— CardBackgroundFillColorDefaultBrush · CardStrokeColorDefaultBrush · ControlCornerRadius · SettingsCardMinHeight=68" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

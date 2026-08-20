@@ -1,0 +1,175 @@
+<!-- JogButton / JogGroup / EStopButton —— 第 7 组，直接驱动执行机构。
+     这两个控件涉及人身和设备安全，视觉上刻意区别于普通按钮：
+     JogButton 描边更重（表示「这是动作」），EStopButton 直接打破 Fluent 的扁平。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:fc="using:Cobalt.Fluent.Controls">
+
+  <!-- ==================== JogButton ==================== -->
+  <ControlTheme x:Key="{x:Type fc:JogButton}" TargetType="fc:JogButton">
+    <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <!-- 描边比普通按钮重一档，底边 2px：视觉上说明「按住会动」而不是「点一下切换」 -->
+    <Setter Property="BorderBrush" Value="{DynamicResource ControlStrongStrokeColorDefaultBrush}" />
+    <Setter Property="BorderThickness" Value="1,1,1,2" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <Setter Property="MinHeight" Value="{DynamicResource JogButtonHeight}" />
+    <Setter Property="MinWidth" Value="{DynamicResource ControlMinWidth}" />
+    <Setter Property="Padding" Value="16,0" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Cursor" Value="Arrow" />
+    <Setter Property="FocusAdorner" Value="{StaticResource FluentFocusAdorner}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:JogButton">
+        <ContentPresenter x:Name="PART_ContentPresenter"
+                          Background="{TemplateBinding Background}"
+                          BorderBrush="{TemplateBinding BorderBrush}"
+                          BorderThickness="{TemplateBinding BorderThickness}"
+                          CornerRadius="{TemplateBinding CornerRadius}"
+                          Padding="{TemplateBinding Padding}"
+                          Content="{TemplateBinding Content}"
+                          ContentTemplate="{TemplateBinding ContentTemplate}"
+                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                          RecognizesAccessKey="True" />
+      </ControlTemplate>
+    </Setter>
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="0:0:0.083" />
+      </Transitions>
+    </Setter>
+
+    <Style Selector="^:pointerover">
+      <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+    </Style>
+
+    <!-- :jogging 就是「正在动作」——本控件唯一有意义的活跃态。
+         底边从 2px 收回 1px，和普通按钮按下时「按平」的语言一致。 -->
+    <Style Selector="^:jogging">
+      <Setter Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+
+    <Style Selector="^:disabled">
+      <Setter Property="Background" Value="{DynamicResource ControlFillColorDisabledBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+    </Style>
+
+    <!-- 成组：相接处不圆、不双线。类由 JogGroup 打，见 JogGroup.Retag()。
+         中间那些既不是 first 也不是 last，四角都方。 -->
+    <Style Selector="^.jog-first, ^.jog-last">
+      <Setter Property="CornerRadius" Value="0" />
+    </Style>
+    <Style Selector="^.jog-first">
+      <Setter Property="CornerRadius" Value="4,0,0,4" />
+      <Setter Property="BorderThickness" Value="1,1,0,2" />
+    </Style>
+    <Style Selector="^.jog-last">
+      <Setter Property="CornerRadius" Value="0,4,4,0" />
+    </Style>
+    <Style Selector="^.jog-only">
+      <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    </Style>
+  </ControlTheme>
+
+  <!-- JogGroup 只负责给子按钮打类，圆角规则在上面 JogButton 的 ControlTheme 里 -->
+  <ControlTheme x:Key="{x:Type fc:JogGroup}" TargetType="fc:JogGroup">
+    <Setter Property="Orientation" Value="Horizontal" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+  </ControlTheme>
+
+  <!-- ==================== EStopButton ==================== -->
+  <!-- 刻意打破 Fluent 的扁平：真实急停是物理蘑菇头，要有实体感。
+       颜色写死安全红 + 安全黄（ISO 13850 红钮黄衬），不跟随主题，
+       也不占「一屏一个强调色」的名额。 -->
+  <ControlTheme x:Key="{x:Type fc:EStopButton}" TargetType="fc:EStopButton">
+    <Setter Property="Background" Value="{DynamicResource SafetyRedBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextOnSafetyFillColorPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SafetyYellowBrush}" />
+    <Setter Property="BorderThickness" Value="4" />
+    <Setter Property="FontWeight" Value="SemiBold" />
+    <Setter Property="FontSize" Value="15" />
+    <Setter Property="Cursor" Value="Arrow" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="FocusAdorner" Value="{StaticResource FluentFocusAdornerRound}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:EStopButton">
+        <StackPanel Spacing="8" HorizontalAlignment="Center">
+
+          <Border x:Name="PART_Knob"
+                  Width="{DynamicResource EStopSize}"
+                  Height="{DynamicResource EStopSize}"
+                  CornerRadius="1000"
+                  Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  BoxShadow="0 2 0 0 #47000000, 0 4 10 0 #40000000">
+            <Border.Transitions>
+              <Transitions>
+                <BrushTransition Property="Background" Duration="0:0:0.083" />
+                <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.083" />
+              </Transitions>
+            </Border.Transitions>
+
+            <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="2">
+              <fc:SymbolIcon Symbol="EmergencyStop"
+                             FontSize="22"
+                             HorizontalAlignment="Center"
+                             Foreground="{TemplateBinding Foreground}" />
+              <ContentPresenter Content="{TemplateBinding Content}"
+                                ContentTemplate="{TemplateBinding ContentTemplate}"
+                                HorizontalAlignment="Center"
+                                Foreground="{TemplateBinding Foreground}"
+                                FontSize="{TemplateBinding FontSize}"
+                                FontWeight="{TemplateBinding FontWeight}" />
+            </StackPanel>
+          </Border>
+
+          <!-- 说明字不参与命中，避免看起来整块都能按 -->
+          <TextBlock x:Name="PART_Caption"
+                     Text="{TemplateBinding CaptionText}"
+                     Width="{DynamicResource EStopSize}"
+                     TextAlignment="Center"
+                     TextWrapping="Wrap"
+                     IsHitTestVisible="False"
+                     FontSize="{DynamicResource CaptionFontSize}"
+                     Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+        </StackPanel>
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^:pointerover:not(:engaged) /template/ Border#PART_Knob">
+      <Setter Property="Background" Value="{DynamicResource SafetyRedHighBrush}" />
+    </Style>
+
+    <!-- 按下：钮沉下去，投影收平 -->
+    <Style Selector="^:pressed:not(:engaged) /template/ Border#PART_Knob">
+      <Setter Property="RenderTransform" Value="translateY(2px)" />
+      <Setter Property="BoxShadow" Value="0 0 0 0 #47000000, 0 1 4 0 #40000000" />
+    </Style>
+
+    <!-- 已触发并自锁：沉到底 + 内阴影。再点无效，必须复位。 -->
+    <Style Selector="^:engaged /template/ Border#PART_Knob">
+      <Setter Property="Background" Value="{DynamicResource SafetyRedHighBrush}" />
+      <Setter Property="RenderTransform" Value="translateY(3px)" />
+      <Setter Property="BoxShadow" Value="inset 0 2 6 0 #73000000" />
+    </Style>
+    <Style Selector="^:engaged /template/ TextBlock#PART_Caption">
+      <Setter Property="Foreground" Value="{DynamicResource SafetyRedBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <!-- 长按复位过程中给个提示 -->
+    <Style Selector="^:resetting /template/ Border#PART_Knob">
+      <Setter Property="BorderBrush" Value="{DynamicResource TextOnSafetyFillColorPrimaryBrush}" />
+    </Style>
+  </ControlTheme>
+
+</ResourceDictionary>

@@ -1,0 +1,146 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             xmlns:fc="using:Cobalt.Fluent.Controls"
+             x:Class="Cobalt.Fluent.Gallery.Pages.NumberBoxPage">
+
+  <StackPanel HorizontalAlignment="Left">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="NumberBox" />
+      <Border Classes="tag"><TextBlock Text="2 · 基础输入" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead"
+               Text="工业界面用得最多的输入控件。数字必须等宽（tnum），否则数值变化时右侧会横跳。微调按钮在框内右侧，30px 宽。Avalonia 这边叫 NumericUpDown。" />
+
+    <TextBlock Classes="sub" Text="状态矩阵 — rest / :disabled" />
+    <g:SpecMatrix States="rest,disabled">
+      <g:SpecMatrix.Sample>
+        <DataTemplate>
+          <NumericUpDown Width="140" Value="85.5" FormatString="F1" />
+        </DataTemplate>
+      </g:SpecMatrix.Sample>
+    </g:SpecMatrix>
+    <TextBlock Classes="note"
+               Text="矩阵里只有这两格：框、hover 底、聚焦那 2px 底边全部由模板内部那只 TextBox 出，强制伪类加在外层 NumericUpDown 上传不进去，凑出来的格子会和真主题不一样。:pointerover 和 :focus 去下面试玩区看真的。禁用是例外——IsEnabled 沿视觉树往下传，内部 TextBox 和两只微调按钮一起变灰。" />
+
+    <TextBlock Classes="sub" Text="带单位后缀 — 单位在框外" />
+    <Border Classes="panel">
+      <StackPanel Spacing="16">
+        <StackPanel Spacing="4">
+          <TextBlock Text="目标温度" />
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <NumericUpDown Width="140" Value="85.5" FormatString="F1" />
+            <TextBlock Text="°C" VerticalAlignment="Center"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+          </StackPanel>
+        </StackPanel>
+        <StackPanel Spacing="4">
+          <TextBlock Text="进料压力" />
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <NumericUpDown Width="140" Value="2.40" FormatString="F2" />
+            <TextBlock Text="bar" VerticalAlignment="Center"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+          </StackPanel>
+        </StackPanel>
+      </StackPanel>
+    </Border>
+    <TextBlock Classes="note"
+               Text="单位放在框外做静态标签，不要塞进输入值里——否则解析和校验都要额外处理，而且用户全选修改时会连单位一起删掉。真要放进框里，用 InnerRightContent 挂一个只读的 TextBlock，它排在微调区左边，不参与文本解析。" />
+
+    <TextBlock Classes="sub" Text="量程与步进 — Minimum / Maximum / Increment / FormatString" />
+    <Border Classes="panel">
+      <Grid ColumnDefinitions="Auto,Auto,Auto,*" RowDefinitions="Auto,Auto,Auto,Auto"
+            ColumnSpacing="12" RowSpacing="12">
+
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="目标温度" VerticalAlignment="Center" />
+        <NumericUpDown Grid.Row="0" Grid.Column="1" Width="140"
+                       Minimum="-40" Maximum="300" Increment="0.5"
+                       FormatString="F1" Value="85.5" />
+        <TextBlock Grid.Row="0" Grid.Column="2" Text="°C" VerticalAlignment="Center"
+                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+        <TextBlock Grid.Row="0" Grid.Column="3" Classes="note" Margin="8,0,0,0"
+                   VerticalAlignment="Center"
+                   Text="−40 ~ 300 · 步进 0.5 · F1" />
+
+        <TextBlock Grid.Row="1" Grid.Column="0" Text="进料压力" VerticalAlignment="Center" />
+        <NumericUpDown Grid.Row="1" Grid.Column="1" Width="140"
+                       Minimum="0" Maximum="10" Increment="0.05"
+                       FormatString="F2" Value="2.4" />
+        <TextBlock Grid.Row="1" Grid.Column="2" Text="bar" VerticalAlignment="Center"
+                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+        <TextBlock Grid.Row="1" Grid.Column="3" Classes="note" Margin="8,0,0,0"
+                   VerticalAlignment="Center"
+                   Text="步进 0.05 —— 步进要按仪表分辨率给，不是按「好看」给" />
+
+        <TextBlock Grid.Row="2" Grid.Column="0" Text="主轴转速" VerticalAlignment="Center" />
+        <NumericUpDown Grid.Row="2" Grid.Column="1" Width="140"
+                       Minimum="0" Maximum="6000" Increment="100"
+                       FormatString="N0" Value="1420" />
+        <TextBlock Grid.Row="2" Grid.Column="2" Text="rpm" VerticalAlignment="Center"
+                   Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+        <TextBlock Grid.Row="2" Grid.Column="3" Classes="note" Margin="8,0,0,0"
+                   VerticalAlignment="Center"
+                   Text="N0 带千位分隔 · 押着微调按钮从 1,420 冲到 6,000，千位分隔进出的那一刻数字也不横跳" />
+
+        <TextBlock Grid.Row="3" Grid.Column="0" Text="批次编号" VerticalAlignment="Center" />
+        <NumericUpDown Grid.Row="3" Grid.Column="1" Width="140"
+                       Minimum="1" Maximum="9999" Increment="1"
+                       FormatString="0000" Value="42" ShowButtonSpinner="False" />
+        <TextBlock Grid.Row="3" Grid.Column="3" Classes="note" Margin="8,0,0,0"
+                   VerticalAlignment="Center"
+                   Text="ShowButtonSpinner=False —— 四位一口气打完的字段，微调按钮只是白占 30px" />
+      </Grid>
+    </Border>
+    <TextBlock Classes="note"
+               Text="FormatString 只管显示，不管存的值：F1 的框里存的仍是 85.53，只是画成 85.5。要真的按分辨率落值，得在提交那一层自己取整——把显示格式当成数据精度是量产事故的常见来源。" />
+
+    <TextBlock Classes="sub" Text="试玩 — 和 Slider 配合 · 越界钳制 · 悬停和聚焦" />
+    <Border Classes="play">
+      <StackPanel Spacing="20">
+
+        <StackPanel Spacing="8">
+          <TextBlock Text="腔体温度设定" />
+          <StackPanel Orientation="Horizontal" Spacing="16">
+            <Slider x:Name="TempSlider" Width="280" VerticalAlignment="Center"
+                    Minimum="-40" Maximum="300" TickFrequency="0.5"
+                    IsSnapToTickEnabled="True" Value="85.5" />
+            <NumericUpDown x:Name="TempBox" Width="140" VerticalAlignment="Center"
+                           Minimum="-40" Maximum="300" Increment="0.5"
+                           FormatString="F1" ClipValueToMinMax="True" Value="85.5" />
+            <TextBlock Text="°C" VerticalAlignment="Center"
+                       Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+          </StackPanel>
+          <TextBlock Classes="note"
+                     Text="滑杆负责粗调（拖到大概位置），数字框负责定值（键盘敲准）。两边共用同一组 Minimum/Maximum，步进也对齐到 0.5——不对齐的话拖完滑杆再看数字框会多出一串小数，用户会以为自己拖歪了。" />
+        </StackPanel>
+
+        <StackPanel Spacing="8">
+          <TextBlock Text="越界钳制" />
+          <StackPanel Orientation="Horizontal" Spacing="16">
+            <NumericUpDown x:Name="ClampBox" Width="140" VerticalAlignment="Center"
+                           Minimum="0" Maximum="100" Increment="1"
+                           FormatString="F0" ClipValueToMinMax="True" Value="60" />
+            <NumericUpDown Width="140" VerticalAlignment="Center"
+                           Minimum="0" Maximum="100" Increment="1"
+                           FormatString="F0" Value="60" />
+          </StackPanel>
+          <TextBlock Classes="note"
+                     Text="左边 ClipValueToMinMax=True：敲 999 回车会被拉回 100。右边是默认的 False：超范围直接判成无效输入，回车后弹回上一个合法值，输入的东西没了。两种都对，但同一套界面里只能选一种——用户第二次遇到不一致的行为就不再相信这个框了。" />
+        </StackPanel>
+
+        <TextBlock Classes="note"
+                   Text="把鼠标放到框上看 hover 底，点进去看底边从 1px 变 2px accent——同时下内边距减 1，右对齐的数字不该抖。右上角「动效 0.25×」可以慢放。" />
+      </StackPanel>
+    </Border>
+
+    <g:MapBlock Note="WinUI 的 SpinButtonPlacementMode=Inline 在 Avalonia 没有对应属性：本库模板把微调区固定塞进 TextBox 的 InnerRightContent，本来就是 Inline，30px 宽。SmallChange 对应 Increment，SimpleNumberFormat 对应 FormatString。等宽数字靠 FontFeatures=&quot;tnum=1&quot;（Avalonia 11.1+），模板里已经写死在 PART_TextBox 上，使用处不用管——这一条在数值刷新的界面里不是可选项。">
+      <g:MapRow Key="控件" Value="NumericUpDown（Avalonia 内置；WinUI/FluentAvalonia 那边叫 NumberBox）" />
+      <g:MapRow Key="属性" Value="Minimum · Maximum · Increment · FormatString · ClipValueToMinMax · ShowButtonSpinner · AllowSpin · Watermark · IsReadOnly · InnerRightContent" />
+      <g:MapRow Key="伪类" Value="同 TextBox —— :pointerover · :focus · :error · :disabled 都落在模板内部那只 TextBox 上" />
+      <g:MapRow Key="资源键" Value="同 TextBox，另加 NumberBoxSpinnerWidth=30 · NumberBoxPadding / NumberBoxPaddingThickUnderline（聚焦补偿）· NumberBoxSpinButtonStyle · NumberBoxSpinnerStyle" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

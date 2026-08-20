@@ -1,0 +1,99 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             xmlns:fc="using:Cobalt.Fluent.Controls"
+             x:Class="Cobalt.Fluent.Gallery.Pages.SplitButtonPage">
+
+  <StackPanel HorizontalAlignment="Left">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="SplitButton / DropDownButton" />
+      <Border Classes="tag"><TextBlock Text="2 · 基础输入" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead"
+               Text="SplitButton 两半相接处不圆角、不双线——左半 4,0,0,4、右半 0,4,4,0，中间一条 1px 分隔。这是「相接处不圆」规则最典型的应用。" />
+
+    <TextBlock Classes="sub" Text="SplitButton" />
+    <g:SpecMatrix>
+      <g:SpecMatrix.Sample>
+        <DataTemplate>
+          <SplitButton Content="导出 CSV">
+            <SplitButton.Flyout>
+              <MenuFlyout>
+                <MenuItem Header="导出 CSV" />
+                <MenuItem Header="导出 Excel" />
+              </MenuFlyout>
+            </SplitButton.Flyout>
+          </SplitButton>
+        </DataTemplate>
+      </g:SpecMatrix.Sample>
+    </g:SpecMatrix>
+
+    <TextBlock Classes="sub" Text="accent" />
+    <g:SpecMatrix States="rest,pointerover,pressed,disabled">
+      <g:SpecMatrix.Sample>
+        <DataTemplate>
+          <SplitButton Classes="accent" Content="运行">
+            <SplitButton.Flyout>
+              <MenuFlyout><MenuItem Header="单步运行" /></MenuFlyout>
+            </SplitButton.Flyout>
+          </SplitButton>
+        </DataTemplate>
+      </g:SpecMatrix.Sample>
+    </g:SpecMatrix>
+
+    <TextBlock Classes="sub" Text="DropDownButton" />
+    <g:SpecMatrix States="rest,pointerover,pressed,disabled">
+      <g:SpecMatrix.Sample>
+        <DataTemplate>
+          <DropDownButton>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <fc:SymbolIcon Symbol="Sort" VerticalAlignment="Center" />
+              <TextBlock Text="排序方式" VerticalAlignment="Center" />
+            </StackPanel>
+            <DropDownButton.Flyout>
+              <MenuFlyout>
+                <MenuItem Header="按名称" />
+                <MenuItem Header="按时间" />
+              </MenuFlyout>
+            </DropDownButton.Flyout>
+          </DropDownButton>
+        </DataTemplate>
+      </g:SpecMatrix.Sample>
+    </g:SpecMatrix>
+
+    <TextBlock Classes="sub" Text="试玩" />
+    <Border Classes="play">
+      <StackPanel Spacing="12">
+        <StackPanel Orientation="Horizontal" Spacing="12">
+          <SplitButton Content="导出 CSV">
+            <SplitButton.Flyout>
+              <MenuFlyout>
+                <MenuItem Header="导出 CSV" />
+                <MenuItem Header="导出 Excel" />
+                <MenuItem Header="导出 PDF" />
+              </MenuFlyout>
+            </SplitButton.Flyout>
+          </SplitButton>
+          <DropDownButton Content="排序方式">
+            <DropDownButton.Flyout>
+              <MenuFlyout>
+                <MenuItem Header="按名称" />
+                <MenuItem Header="按时间" />
+              </MenuFlyout>
+            </DropDownButton.Flyout>
+          </DropDownButton>
+        </StackPanel>
+        <TextBlock Classes="note" Text="点右半展开菜单；点左半直接执行默认动作。展开面板走弹出层规格（8px 圆角 + 亚克力 + 阴影），和收起态的 4px 不是一套规格。" />
+      </StackPanel>
+    </Border>
+
+    <g:MapBlock Note="CornerRadius 拆分在 XAML 里写死：左 4,0,0,4，右 0,4,4,0。不要用 ControlCornerRadius 绑定，否则改全局圆角时相接处会裂开。">
+      <g:MapRow Key="控件" Value="SplitButton · ToggleSplitButton · DropDownButton" />
+      <g:MapRow Key="Template" Value="自定义：两个 Button + 中间 Rectangle 分隔，CornerRadius 分别写死左右" />
+      <g:MapRow Key="资源键" Value="ControlStrokeColorDefaultBrush（分隔线）· accent 变体用 ControlStrokeColorOnAccentSecondaryBrush" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

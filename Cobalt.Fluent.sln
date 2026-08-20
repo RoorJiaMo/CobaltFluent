@@ -1,0 +1,54 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{2F98E00F-42A4-4BCF-BB4F-8EF476F15EA4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cobalt.Fluent", "src\Cobalt.Fluent\Cobalt.Fluent.csproj", "{BAE2F782-D516-45F0-A3D2-293CBC499F59}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{03F5D12B-1CF3-4A7A-BC59-7940739F6BDB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cobalt.Fluent.Gallery", "samples\Cobalt.Fluent.Gallery\Cobalt.Fluent.Gallery.csproj", "{CAC723F2-636F-449B-AEAB-D50EAEF73179}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0D955CB8-7677-4E31-92D7-328DD400EF4A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cobalt.Fluent.Tests", "tests\Cobalt.Fluent.Tests\Cobalt.Fluent.Tests.csproj", "{A738F123-CA23-47ED-8B6B-A6D33B537224}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{3C1C5806-9BE4-4A63-8AD1-7C52F1BB92E3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cobalt.Fluent.Shots", "tools\Cobalt.Fluent.Shots\Cobalt.Fluent.Shots.csproj", "{F61375E7-7CDF-4AB2-96EA-D0125D06A1A5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BAE2F782-D516-45F0-A3D2-293CBC499F59}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BAE2F782-D516-45F0-A3D2-293CBC499F59}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BAE2F782-D516-45F0-A3D2-293CBC499F59}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BAE2F782-D516-45F0-A3D2-293CBC499F59}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CAC723F2-636F-449B-AEAB-D50EAEF73179}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CAC723F2-636F-449B-AEAB-D50EAEF73179}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CAC723F2-636F-449B-AEAB-D50EAEF73179}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CAC723F2-636F-449B-AEAB-D50EAEF73179}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A738F123-CA23-47ED-8B6B-A6D33B537224}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A738F123-CA23-47ED-8B6B-A6D33B537224}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A738F123-CA23-47ED-8B6B-A6D33B537224}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A738F123-CA23-47ED-8B6B-A6D33B537224}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F61375E7-7CDF-4AB2-96EA-D0125D06A1A5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F61375E7-7CDF-4AB2-96EA-D0125D06A1A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F61375E7-7CDF-4AB2-96EA-D0125D06A1A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F61375E7-7CDF-4AB2-96EA-D0125D06A1A5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{BAE2F782-D516-45F0-A3D2-293CBC499F59} = {2F98E00F-42A4-4BCF-BB4F-8EF476F15EA4}
+		{CAC723F2-636F-449B-AEAB-D50EAEF73179} = {03F5D12B-1CF3-4A7A-BC59-7940739F6BDB}
+		{A738F123-CA23-47ED-8B6B-A6D33B537224} = {0D955CB8-7677-4E31-92D7-328DD400EF4A}
+		{F61375E7-7CDF-4AB2-96EA-D0125D06A1A5} = {3C1C5806-9BE4-4A63-8AD1-7C52F1BB92E3}
+	EndGlobalSection
+EndGlobal

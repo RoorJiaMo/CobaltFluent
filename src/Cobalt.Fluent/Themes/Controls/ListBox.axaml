@@ -1,0 +1,153 @@
+<!-- ListBox / ListBoxItem。
+
+     本组是全库唯一必须重写 Template 的地方：Avalonia 内置 ListBoxItem 模板里
+     只有一只 ContentPresenter，没有左侧那根选中指示条，
+     所以模板改成 Panel 叠三层 —— 底片 Border + 指示条 Rectangle + 内容 ContentPresenter。
+     指示条尺寸走 Metrics/Shared 里的共用键，和 ComboBoxItem / NavigationViewItem 同一根。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <ControlTheme x:Key="{x:Type ListBox}" TargetType="ListBox">
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <!-- 容器观感：
+         card-bg + 1px card-stroke + radius-control。想要「贴在页面上」的清单
+         （比如导航目录）在使用处覆盖 Background/BorderThickness 即可。
+         阴影只给悬浮层，这只框一律靠描边。 -->
+    <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource ControlBorderThickness}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <!-- 内边距 4。Metrics 里 Space1 是 x:Double，Thickness 位上转不过去，写字面量 -->
+    <Setter Property="Padding" Value="4" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <!-- 列表项自己会横向省略号，不让整片内容横滚 -->
+    <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+    <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+    <Setter Property="ScrollViewer.IsScrollChainingEnabled" Value="True" />
+    <Setter Property="ScrollViewer.IsScrollInertiaEnabled" Value="True" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="ListBox">
+        <Border x:Name="PART_Root"
+                ClipToBounds="{TemplateBinding ClipToBounds}"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}">
+          <ScrollViewer x:Name="PART_ScrollViewer"
+                        VerticalSnapPointsType="{TemplateBinding (ScrollViewer.VerticalSnapPointsType)}"
+                        HorizontalSnapPointsType="{TemplateBinding (ScrollViewer.HorizontalSnapPointsType)}"
+                        HorizontalScrollBarVisibility="{TemplateBinding (ScrollViewer.HorizontalScrollBarVisibility)}"
+                        VerticalScrollBarVisibility="{TemplateBinding (ScrollViewer.VerticalScrollBarVisibility)}"
+                        IsScrollChainingEnabled="{TemplateBinding (ScrollViewer.IsScrollChainingEnabled)}"
+                        IsScrollInertiaEnabled="{TemplateBinding (ScrollViewer.IsScrollInertiaEnabled)}"
+                        IsDeferredScrollingEnabled="{TemplateBinding (ScrollViewer.IsDeferredScrollingEnabled)}"
+                        AllowAutoHide="{TemplateBinding (ScrollViewer.AllowAutoHide)}"
+                        BringIntoViewOnFocusChange="{TemplateBinding (ScrollViewer.BringIntoViewOnFocusChange)}">
+            <!-- 容器的 Padding 落在这里：内置模板就是拿它当 ItemsPresenter 的 Margin -->
+            <ItemsPresenter x:Name="PART_ItemsPresenter"
+                            ItemsPanel="{TemplateBinding ItemsPanel}"
+                            Margin="{TemplateBinding Padding}" />
+          </ScrollViewer>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^:disabled">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+    </Style>
+  </ControlTheme>
+
+  <!-- ListBoxItem —— 40 高、左右 12、下留 2、4px 圆角，
+       hover / selected 同一档 subtle-hover，pressed 走 subtle-pressed，
+       选中时左边多一根 3×16 的强调色指示条。 -->
+  <ControlTheme x:Key="{x:Type ListBoxItem}" TargetType="ListBoxItem">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <!-- 左右各 12。左边这 12 同时给指示条让出位置 -->
+    <Setter Property="Padding" Value="12,0,12,0" />
+    <!-- 项与项之间留 2 -->
+    <Setter Property="Margin" Value="0,0,0,2" />
+    <!-- 行高 40。写 MinHeight 而不是 Height，两行内容时不会被裁 -->
+    <Setter Property="MinHeight" Value="{DynamicResource ListBoxItemHeight}" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <!-- 工步 / 配方清单里常带编号和量程，等宽才不会逐行横移 -->
+    <Setter Property="FontFeatures" Value="{StaticResource TabularNumbers}" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <!-- 不变手型：列表项是内容不是链接 -->
+    <Setter Property="Cursor" Value="Arrow" />
+    <Setter Property="FocusAdorner" Value="{StaticResource FluentFocusAdorner}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="ListBoxItem">
+        <Panel>
+          <Border x:Name="PART_Root"
+                  Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  CornerRadius="{TemplateBinding CornerRadius}" />
+
+          <!-- 选中指示条：
+               3×16、圆角 1.5、贴左边垂直居中。内置模板没有这只部件，
+               这是本组必须重写 Template 的原因。默认隐藏，由 ^:selected 打开。 -->
+          <Rectangle x:Name="PART_SelectionIndicator"
+                     Width="{DynamicResource SelectionIndicatorWidth}"
+                     Height="{DynamicResource SelectionIndicatorHeight}"
+                     RadiusX="{DynamicResource SelectionIndicatorRadius}"
+                     RadiusY="{DynamicResource SelectionIndicatorRadius}"
+                     Fill="{DynamicResource AccentFillColorDefaultBrush}"
+                     HorizontalAlignment="Left"
+                     VerticalAlignment="Center"
+                     IsHitTestVisible="False"
+                     IsVisible="False" />
+
+          <ContentPresenter x:Name="PART_ContentPresenter"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            Padding="{TemplateBinding Padding}"
+                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+        </Panel>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- 只过渡颜色，不过渡位移 -->
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="0:0:0.083" />
+      </Transitions>
+    </Setter>
+
+    <!-- 选中项不吃 hover 底，否则指示条那行会闪 -->
+    <Style Selector="^:pointerover:not(:selected)">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+    </Style>
+
+    <Style Selector="^:pressed">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorTertiaryBrush}" />
+    </Style>
+
+    <!-- :selected 写在 :pressed 后面，
+         所以按住选中项时底色仍停在选中那一档，不会闪一下深色 -->
+    <Style Selector="^:selected">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+      <Style Selector="^ /template/ Rectangle#PART_SelectionIndicator">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+    </Style>
+
+    <!-- 禁用项只掉文字色 -->
+    <Style Selector="^:disabled">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+      <Style Selector="^ /template/ Rectangle#PART_SelectionIndicator">
+        <Setter Property="Fill" Value="{DynamicResource AccentFillColorDisabledBrush}" />
+      </Style>
+    </Style>
+  </ControlTheme>
+
+</ResourceDictionary>

@@ -1,0 +1,104 @@
+<!-- 第 9 组：ChartFrame · TrendChart · Gauge · BarChart · Sparkline · ChartLegend。
+     第 9 组，图表。
+
+     这一组不是给第三方图表库喂配置，是自绘。
+     本库选了「自绘 DrawingContext」那条路（README 里列的第四个选项），
+     所以视觉规格是直接实现的，不是喂给别的库的配置。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:fc="using:Cobalt.Fluent.Controls">
+
+  <ControlTheme x:Key="{x:Type fc:ChartFrame}" TargetType="fc:ChartFrame">
+    <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <Setter Property="Padding" Value="16" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:ChartFrame">
+        <Border Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Padding="{TemplateBinding Padding}">
+          <Grid RowDefinitions="Auto,*,Auto">
+
+            <!-- 抬头。坐标轴单位放这儿，不画进绘图区。 -->
+            <Grid Grid.Row="0" ColumnDefinitions="Auto,Auto,*,Auto" Margin="0,0,0,12">
+              <TextBlock Grid.Column="0"
+                         Text="{TemplateBinding Title}"
+                         FontWeight="SemiBold"
+                         VerticalAlignment="Bottom" />
+              <TextBlock Grid.Column="1"
+                         Text="{TemplateBinding Subtitle}"
+                         Margin="12,0,0,0"
+                         FontSize="{DynamicResource CaptionFontSize}"
+                         VerticalAlignment="Bottom"
+                         Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+              <ContentPresenter Grid.Column="3"
+                                Content="{TemplateBinding Actions}"
+                                VerticalAlignment="Center" />
+            </Grid>
+
+            <ContentPresenter Grid.Row="1"
+                              Content="{TemplateBinding Content}"
+                              ContentTemplate="{TemplateBinding ContentTemplate}" />
+
+            <ContentPresenter Grid.Row="2"
+                              Content="{TemplateBinding Legend}"
+                              Margin="0,12,0,0"
+                              IsVisible="{TemplateBinding Legend,
+                                          Converter={x:Static ObjectConverters.IsNotNull}}" />
+          </Grid>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type fc:ChartLegend}" TargetType="fc:ChartLegend">
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:ChartLegend">
+        <WrapPanel x:Name="PART_Items" Orientation="Horizontal" />
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+  <!-- Gauge：读数绝对居中在环心。用负 margin 会随字号错位。 -->
+  <ControlTheme x:Key="{x:Type fc:Gauge}" TargetType="fc:Gauge">
+    <Setter Property="Width" Value="140" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:Gauge">
+        <StackPanel HorizontalAlignment="Center">
+          <Panel Width="{TemplateBinding Width}" Height="{TemplateBinding Width}">
+            <fc:GaugeArcs Thickness="10" />
+            <!-- 普通居中，不算基线 -->
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="0">
+              <TextBlock Text="{TemplateBinding DisplayValue}"
+                         FontFamily="{DynamicResource DisplayControlThemeFontFamily}"
+                         FontSize="{DynamicResource ReadoutFontSizeSmall}"
+                         FontWeight="SemiBold"
+                         LineHeight="26"
+                         FontFeatures="{StaticResource TabularNumbers}"
+                         HorizontalAlignment="Center"
+                         Foreground="{TemplateBinding Foreground}" />
+              <TextBlock Text="{TemplateBinding Unit}"
+                         FontSize="{DynamicResource CaptionFontSize}"
+                         HorizontalAlignment="Center"
+                         Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+          </Panel>
+          <TextBlock Text="{TemplateBinding Caption}"
+                     Margin="0,8,0,0"
+                     FontSize="{DynamicResource CaptionFontSize}"
+                     HorizontalAlignment="Center"
+                     Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                     IsVisible="{TemplateBinding Caption,
+                                 Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        </StackPanel>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+</ResourceDictionary>

@@ -1,0 +1,362 @@
+<!-- ComboBox / ComboBoxItem —— 下拉项不另立规格，按列表项那一套走。
+
+     这个文件里有两套规格，别混：
+       收起态（.ComboBox）走**控件**规格 —— 4px 圆角 + ControlElevationBorderBrush（底边深一档）
+       展开面板（.ComboBoxDropdown）走**弹出层**规格 —— 8px 圆角 + 亚克力底 + flyout 描边 + 阴影
+     阴影只给悬浮层，收起态那只框一律靠描边。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:fc="using:Cobalt.Fluent.Controls">
+
+  <!-- 可编辑态那只输入框专用的裸模板。外框由 ComboBox 的 PART_Root 画，
+       所以这里显式指定 Theme，本库 TextBox 那支就完全不参与 ——
+       否则它的 :pointerover / :focus 会把自己的底色（control-fill-hover /
+       control-fill-input-active）顶回来，而且它模板里那条独立的
+       PART_UnderlineElement 底边是写死的 1px，靠 BorderThickness="0" 关不掉，
+       收起态这只框就会出现双线。同 DateTime 的 CalendarDatePickerTextBox。 -->
+  <ControlTheme x:Key="ComboBoxEditableTextBox" TargetType="TextBox">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="CaretBrush" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="SelectionBrush" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+    <Setter Property="SelectionForegroundBrush" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="MinWidth" Value="0" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <Setter Property="FontFeatures" Value="{StaticResource TabularNumbers}" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <!-- 聚焦框挂在外面那只 ComboBox 上 -->
+    <Setter Property="FocusAdorner" Value="{x:Null}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="TextBox">
+        <DockPanel Margin="{TemplateBinding Padding}">
+          <ScrollViewer x:Name="PART_ScrollViewer"
+                        HorizontalScrollBarVisibility="Hidden"
+                        VerticalScrollBarVisibility="Disabled">
+            <Panel>
+              <!-- 占位符走 text-tertiary -->
+              <TextBlock x:Name="PART_Watermark"
+                         Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                         Text="{TemplateBinding Watermark}"
+                         TextWrapping="NoWrap"
+                         TextTrimming="CharacterEllipsis"
+                         HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                         VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                         IsVisible="{Binding Text, RelativeSource={RelativeSource TemplatedParent},
+                                             Converter={x:Static StringConverters.IsNullOrEmpty}}" />
+              <TextPresenter x:Name="PART_TextPresenter"
+                             Text="{TemplateBinding Text, Mode=TwoWay}"
+                             CaretBlinkInterval="{TemplateBinding CaretBlinkInterval}"
+                             CaretIndex="{TemplateBinding CaretIndex}"
+                             SelectionStart="{TemplateBinding SelectionStart}"
+                             SelectionEnd="{TemplateBinding SelectionEnd}"
+                             TextAlignment="{TemplateBinding TextAlignment}"
+                             LineHeight="{TemplateBinding LineHeight}"
+                             LetterSpacing="{TemplateBinding LetterSpacing}"
+                             PasswordChar="{TemplateBinding PasswordChar}"
+                             RevealPassword="{TemplateBinding RevealPassword}"
+                             SelectionBrush="{TemplateBinding SelectionBrush}"
+                             SelectionForegroundBrush="{TemplateBinding SelectionForegroundBrush}"
+                             CaretBrush="{TemplateBinding CaretBrush}"
+                             HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                             VerticalAlignment="{TemplateBinding VerticalContentAlignment}" />
+            </Panel>
+            <ScrollViewer.Styles>
+              <Style Selector="ScrollContentPresenter#PART_ContentPresenter">
+                <Setter Property="Cursor" Value="IBeam" />
+              </Style>
+            </ScrollViewer.Styles>
+          </ScrollViewer>
+        </DockPanel>
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^:disabled">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+      <Style Selector="^ /template/ TextBlock#PART_Watermark">
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+      </Style>
+    </Style>
+  </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type ComboBox}" TargetType="ComboBox">
+    <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <!-- 描边 1px control-stroke-default，底边深一档到 control-stroke-secondary ——
+         就是这支渐变描边。Win11 控件的签名细节，收起态必须有。 -->
+    <Setter Property="BorderBrush" Value="{DynamicResource ControlElevationBorderBrush}" />
+    <Setter Property="BorderThickness" Value="{DynamicResource ControlBorderThickness}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <!-- 内边距 11,5,32,6。右边那 32 由模板的第二列出，所以这里右边留 0 -->
+    <Setter Property="Padding" Value="11,5,0,6" />
+    <Setter Property="MinHeight" Value="{DynamicResource ControlHeight}" />
+    <!-- 最小宽 120，比按钮的 64 宽，选项文字才不会一上来就省略号 -->
+    <Setter Property="MinWidth" Value="120" />
+    <Setter Property="MaxDropDownHeight" Value="504" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <!-- 选项常是量程 / 波特率这类数字，等宽才不会在 9600 → 115200 之间横移 -->
+    <Setter Property="FontFeatures" Value="{StaticResource TabularNumbers}" />
+    <Setter Property="PlaceholderForeground" Value="{DynamicResource TextFillColorTertiaryBrush}" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+    <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+    <Setter Property="Cursor" Value="Arrow" />
+    <Setter Property="FocusAdorner" Value="{StaticResource FluentFocusAdorner}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="ComboBox">
+        <DataValidationErrors>
+          <!-- 第二列固定 32：右边让出来给 chevron 的那一格 -->
+          <Grid ColumnDefinitions="*,32">
+
+            <Border x:Name="PART_Root"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="2"
+                    Background="{TemplateBinding Background}"
+                    BorderBrush="{TemplateBinding BorderBrush}"
+                    BorderThickness="{TemplateBinding BorderThickness}"
+                    CornerRadius="{TemplateBinding CornerRadius}" />
+
+            <!-- 占位符走 text-tertiary -->
+            <TextBlock x:Name="PART_Placeholder"
+                       Grid.Column="0"
+                       Margin="{TemplateBinding Padding}"
+                       Text="{TemplateBinding PlaceholderText}"
+                       Foreground="{TemplateBinding PlaceholderForeground}"
+                       TextTrimming="CharacterEllipsis"
+                       TextWrapping="NoWrap"
+                       HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                       VerticalAlignment="{TemplateBinding VerticalContentAlignment}">
+              <TextBlock.IsVisible>
+                <MultiBinding Converter="{x:Static BoolConverters.And}">
+                  <Binding Path="SelectionBoxItem" RelativeSource="{RelativeSource TemplatedParent}"
+                           Converter="{x:Static ObjectConverters.IsNull}" />
+                  <Binding Path="!IsEditable" RelativeSource="{RelativeSource TemplatedParent}" />
+                </MultiBinding>
+              </TextBlock.IsVisible>
+            </TextBlock>
+
+            <!-- 选中值 —— 单行、溢出省略号 -->
+            <ContentControl x:Name="PART_SelectionBox"
+                            Grid.Column="0"
+                            Margin="{TemplateBinding Padding}"
+                            Content="{TemplateBinding SelectionBoxItem}"
+                            ContentTemplate="{TemplateBinding SelectionBoxItemTemplate}"
+                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                            ClipToBounds="True"
+                            IsVisible="{TemplateBinding IsEditable, Converter={x:Static BoolConverters.Not}}">
+              <!-- 选中值单行不换行、溢出省略号。
+                   SelectionBoxItem 装的是任意内容，够不着它里面的 TextBlock，
+                   所以在这一层挂一条 Styles 把单行省略号铺下去（字符串选项走 ContentPresenter
+                   自动生成的 TextBlock，使用方的 ItemTemplate 里的 TextBlock 也一起吃到）。 -->
+              <ContentControl.Styles>
+                <Style Selector="TextBlock">
+                  <Setter Property="TextWrapping" Value="NoWrap" />
+                  <Setter Property="TextTrimming" Value="CharacterEllipsis" />
+                </Style>
+              </ContentControl.Styles>
+            </ContentControl>
+
+            <!-- 可编辑态：外框由 PART_Root 画，这只输入框走上面那支裸模板，
+                 本库 TextBox 的底色和独立底边都不参与，否则会出现双线 -->
+            <TextBox x:Name="PART_EditableTextBox"
+                     Grid.Column="0"
+                     Theme="{StaticResource ComboBoxEditableTextBox}"
+                     Padding="{TemplateBinding Padding}"
+                     Text="{TemplateBinding Text, Mode=TwoWay}"
+                     Watermark="{TemplateBinding PlaceholderText}"
+                     Foreground="{TemplateBinding Foreground}"
+                     Background="Transparent"
+                     BorderThickness="0"
+                     MinHeight="0"
+                     HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                     VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                     IsVisible="{TemplateBinding IsEditable}" />
+
+            <!-- chevron 走矢量不走图标字体（嵌入式设备上不能假设有 Segoe Fluent Icons）。
+                 全库的 chevron 共用 Symbol.ChevronDown 这一支，手画一条 Path 会和
+                 Expander / SplitButton / DatePicker 的字形对不齐。
+                 FontSize 12 = 字形边长；右边距 11 把它摆在那一格的中间。 -->
+            <fc:SymbolIcon x:Name="PART_Chevron"
+                           Grid.Column="1"
+                           Symbol="ChevronDown"
+                           FontSize="12"
+                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                           Margin="0,0,11,0"
+                           HorizontalAlignment="Right"
+                           VerticalAlignment="Center"
+                           IsHitTestVisible="False" />
+
+            <!-- 展开面板 —— 从这里往下是弹出层规格，和上面那只框不是一套 -->
+            <Popup x:Name="PART_Popup"
+                   WindowManagerAddShadowHint="False"
+                   IsOpen="{TemplateBinding IsDropDownOpen, Mode=TwoWay}"
+                   MinWidth="{Binding Bounds.Width, RelativeSource={RelativeSource TemplatedParent}}"
+                   MaxHeight="{TemplateBinding MaxDropDownHeight}"
+                   PlacementTarget="PART_Root"
+                   IsLightDismissEnabled="True"
+                   InheritsTransform="True">
+              <!-- 下拉面板：亚克力底 + surface-stroke-flyout + 8px 圆角 + flyout 阴影 + padding 4。
+                   阴影是本文件唯一出现字面色值的地方：BoxShadow 语法收的是颜色不是画刷，
+                   而 shadow-flyout 的两层黑是固定不透明度、不随主题变的。 -->
+              <Border x:Name="PART_PopupBorder"
+                      Background="{DynamicResource AcrylicBackgroundFillColorDefaultBrush}"
+                      BorderBrush="{DynamicResource SurfaceStrokeColorFlyoutBrush}"
+                      BorderThickness="1"
+                      CornerRadius="{DynamicResource OverlayCornerRadius}"
+                      Padding="4"
+                      HorizontalAlignment="Stretch"
+                      BoxShadow="0 8 16 0 #24000000, 0 0 2 0 #1F000000">
+                <ScrollViewer HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
+                              VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}"
+                              IsScrollChainingEnabled="False"
+                              IsDeferredScrollingEnabled="{TemplateBinding (ScrollViewer.IsDeferredScrollingEnabled)}">
+                  <ItemsPresenter x:Name="PART_ItemsPresenter"
+                                  ItemsPanel="{TemplateBinding ItemsPanel}" />
+                </ScrollViewer>
+              </Border>
+            </Popup>
+          </Grid>
+        </DataValidationErrors>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- 只过渡颜色，不过渡位移 -->
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="0:0:0.083" />
+      </Transitions>
+    </Setter>
+
+    <Style Selector="^:pointerover">
+      <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+    </Style>
+
+    <Style Selector="^:pressed">
+      <Setter Property="Background" Value="{DynamicResource ControlFillColorTertiaryBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    </Style>
+
+    <!-- 面板开着的时候收起态保持按下相，看得出是它开的 -->
+    <Style Selector="^:dropdownopen">
+      <Setter Property="Background" Value="{DynamicResource ControlFillColorTertiaryBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    </Style>
+
+    <Style Selector="^:disabled">
+      <Setter Property="Background" Value="{DynamicResource ControlFillColorDisabledBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+      <!-- 底边渐变拍平成实色 control-stroke-default -->
+      <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+      <Style Selector="^ /template/ fc|SymbolIcon#PART_Chevron">
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+      </Style>
+      <Style Selector="^ /template/ TextBlock#PART_Placeholder">
+        <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+      </Style>
+    </Style>
+
+    <Style Selector="^:error /template/ Border#PART_Root">
+      <Setter Property="BorderBrush" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+    </Style>
+
+    <!-- 可编辑态下 Tab 落到内部输入框，外壳不再单独占一站 -->
+    <Style Selector="^[IsEditable=true]">
+      <Setter Property="IsTabStop" Value="False" />
+      <Setter Property="KeyboardNavigation.TabNavigation" Value="Local" />
+    </Style>
+  </ControlTheme>
+
+  <!-- ComboBoxItem —— 和列表项同一套规格：
+       40 高、左右 12、下留 2、4px 圆角，选中时左侧一根 3×16 的强调色指示条。 -->
+  <ControlTheme x:Key="{x:Type ComboBoxItem}" TargetType="ComboBoxItem">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <!-- 左右各 12。左边这 12 同时给指示条让出位置 -->
+    <Setter Property="Padding" Value="12,0,12,0" />
+    <!-- 项与项之间留 2 -->
+    <Setter Property="Margin" Value="0,0,0,2" />
+    <Setter Property="MinHeight" Value="{DynamicResource ListBoxItemHeight}" />
+    <Setter Property="FontFamily" Value="{DynamicResource ContentControlThemeFontFamily}" />
+    <Setter Property="FontSize" Value="{DynamicResource BodyFontSize}" />
+    <Setter Property="FontWeight" Value="Normal" />
+    <!-- 和收起态同一套数字宽度，选中前后读数不跳 -->
+    <Setter Property="FontFeatures" Value="{StaticResource TabularNumbers}" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="Cursor" Value="Arrow" />
+    <Setter Property="FocusAdorner" Value="{StaticResource FluentFocusAdorner}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="ComboBoxItem">
+        <Panel>
+          <Border x:Name="PART_Root"
+                  Background="{TemplateBinding Background}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness}"
+                  CornerRadius="{TemplateBinding CornerRadius}" />
+
+          <!-- 选中指示条：3×16、圆角 1.5、贴左边垂直居中。
+               内置模板没有这个部件，是本库必须重写 Template 的原因。 -->
+          <Rectangle x:Name="PART_SelectionIndicator"
+                     Width="{DynamicResource SelectionIndicatorWidth}"
+                     Height="{DynamicResource SelectionIndicatorHeight}"
+                     RadiusX="{DynamicResource SelectionIndicatorRadius}"
+                     RadiusY="{DynamicResource SelectionIndicatorRadius}"
+                     Fill="{DynamicResource AccentFillColorDefaultBrush}"
+                     HorizontalAlignment="Left"
+                     VerticalAlignment="Center"
+                     IsHitTestVisible="False"
+                     IsVisible="False" />
+
+          <ContentPresenter x:Name="PART_ContentPresenter"
+                            Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            Padding="{TemplateBinding Padding}"
+                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                            VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}" />
+        </Panel>
+      </ControlTemplate>
+    </Setter>
+
+    <Setter Property="Transitions">
+      <Transitions>
+        <BrushTransition Property="Background" Duration="0:0:0.083" />
+      </Transitions>
+    </Setter>
+
+    <!-- 选中项不吃 hover 底，否则指示条那行会闪 -->
+    <Style Selector="^:pointerover:not(:selected)">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+    </Style>
+
+    <Style Selector="^:pressed">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorTertiaryBrush}" />
+    </Style>
+
+    <!-- :selected 写在 :pressed 后面，所以按住选中项时底色仍是选中那一档 -->
+    <Style Selector="^:selected">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+      <Style Selector="^ /template/ Rectangle#PART_SelectionIndicator">
+        <Setter Property="IsVisible" Value="True" />
+      </Style>
+    </Style>
+
+    <Style Selector="^:disabled">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+      <Style Selector="^ /template/ Rectangle#PART_SelectionIndicator">
+        <Setter Property="Fill" Value="{DynamicResource AccentFillColorDisabledBrush}" />
+      </Style>
+    </Style>
+  </ControlTheme>
+
+</ResourceDictionary>

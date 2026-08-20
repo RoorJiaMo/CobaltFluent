@@ -1,0 +1,59 @@
+<!-- 控件库入口。Themes/Controls 下的合并列表由 tools/gen_theme_index.py 生成。 -->
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:sty="using:Avalonia.Themes.Fluent"
+        x:Class="Cobalt.Fluent.CobaltFluentTheme">
+
+  <!-- 基座。ScrollBar / ScrollViewer / ContextMenu 这些本库不重做模板的控件靠它出模板。
+       Avalonia 自带的 FluentTheme 属于框架本体，不是第三方依赖。
+       它排在最前：后面 Styles.Resources 里的 token 会整体覆盖它的同名键，
+       所以连没被重做模板的控件也会跟着换成本库的配色。 -->
+  <sty:FluentTheme />
+
+  <Styles.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+
+        <!-- 变量层（Tokens.axaml 由 tools/gen_tokens.py 从 tools/palette.json 生成） -->
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Tokens.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Metrics.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Typography.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Shared.axaml" />
+
+        <!-- 控件层 -->
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/Button.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/TextBox.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/ListBox.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/CardTheme.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/ChartTheme.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/CheckRadio.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/ComboBox.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/CommandBarTheme.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/CommonTheme.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/DataGrid.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/DateTime.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/DialogTheme.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/Expander.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/FeedbackTheme.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/Flyout.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/HmiActuator.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/HmiAlarm.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/HmiParameter.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/HmiReadout.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/HmiStatusBar.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/Misc.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/NavigationTheme.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/ProgressBar.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/Slider.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/SplitButton.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/StepperTheme.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/TabControl.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/TabViewTheme.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/ToggleButton.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/ToggleSwitch.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/TreeView.axaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </Styles.Resources>
+
+</Styles>
