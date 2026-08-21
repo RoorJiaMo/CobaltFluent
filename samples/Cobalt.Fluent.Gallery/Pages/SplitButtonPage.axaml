@@ -63,7 +63,7 @@
       </g:SpecMatrix.Sample>
     </g:SpecMatrix>
 
-    <TextBlock Classes="sub" Text="试玩" />
+    <TextBlock Classes="sub" Text="交互演示" />
     <Border Classes="play">
       <StackPanel Spacing="12">
         <StackPanel Orientation="Horizontal" Spacing="12">
@@ -85,13 +85,13 @@
             </DropDownButton.Flyout>
           </DropDownButton>
         </StackPanel>
-        <TextBlock Classes="note" Text="点右半展开菜单；点左半直接执行默认动作。展开面板走弹出层规格（8px 圆角 + 亚克力 + 阴影），和收起态的 4px 不是一套规格。" />
+        <TextBlock Classes="note" Text="点击右半展开菜单；点击左半直接执行默认动作。展开面板遵循弹出层规格（8px 圆角 + 亚克力 + 阴影），与收起态的 4px 分属两套规格。" />
       </StackPanel>
     </Border>
 
-    <g:MapBlock Note="CornerRadius 拆分在 XAML 里写死：左 4,0,0,4，右 0,4,4,0。不要用 ControlCornerRadius 绑定，否则改全局圆角时相接处会裂开。">
+    <g:MapBlock Note="CornerRadius 拆分在 XAML 中以固定值写出：左 4,0,0,4，右 0,4,4,0。不应使用 ControlCornerRadius 绑定，否则修改全局圆角时相接处会出现缝隙。">
       <g:MapRow Key="控件" Value="SplitButton · ToggleSplitButton · DropDownButton" />
-      <g:MapRow Key="Template" Value="自定义：两个 Button + 中间 Rectangle 分隔，CornerRadius 分别写死左右" />
+      <g:MapRow Key="Template" Value="自定义：两个 Button + 中间 Rectangle 分隔，CornerRadius 左右分别为固定值" />
       <g:MapRow Key="资源键" Value="ControlStrokeColorDefaultBrush（分隔线）· accent 变体用 ControlStrokeColorOnAccentSecondaryBrush" />
     </g:MapBlock>
 

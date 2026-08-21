@@ -12,7 +12,7 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="常驻底栏。操作员靠它判断「系统还活着」。心跳灯由实际通信事件驱动，不是固定周期动画——通信断了心跳还在跳，比没有心跳灯更危险。" />
+               Text="常驻底栏。操作员依据它判断系统是否仍在运行。心跳灯由实际通信事件驱动，而非固定周期动画——若通信已中断而心跳仍在闪烁，比没有心跳灯更危险。" />
 
     <TextBlock Classes="sub" Text="三个连接状态" />
     <StackPanel Spacing="12">
@@ -34,9 +34,9 @@
     </StackPanel>
 
     <TextBlock Classes="note" MaxWidth="880"
-               Text="注意第三条的心跳灯是红色常亮：它没收到 Beat()，超时后自己判定停跳。这不是画上去的状态——心跳灯只反映真实通信。" />
+               Text="第三条的心跳灯为红色常亮：该实例未收到 Beat()，超时后由控件自行判定停跳。此状态并非静态绘制——心跳灯仅反映真实通信。" />
 
-    <TextBlock Classes="sub" Text="试玩 — 心跳由通信事件驱动" />
+    <TextBlock Classes="sub" Text="交互演示 — 心跳由通信事件驱动" />
     <Border Classes="play" HorizontalAlignment="Stretch">
       <StackPanel Spacing="12">
         <Border BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}" BorderThickness="1"
@@ -48,16 +48,16 @@
         <StackPanel Orientation="Horizontal" Spacing="12">
           <Button x:Name="ToggleComms" Content="模拟通信中断" />
           <TextBlock Classes="note" VerticalAlignment="Center" MaxWidth="640"
-                     Text="每次「收到响应」调一次 Beat()，灯闪一下。停止调用后，超过 3 秒心跳灯自己转成红色常亮——不需要谁去告诉它断了。" />
+                     Text="每次「收到响应」调用一次 Beat()，指示灯闪烁一次。停止调用后，超过 3 秒心跳灯自动转为红色常亮——无需外部通知断连。" />
         </StackPanel>
       </StackPanel>
     </Border>
 
-    <g:MapBlock Note="心跳动画由实际通信事件驱动，不要用固定周期的 XAML 动画假装——那样通信断了心跳还在跳，比没有心跳灯更危险。收到响应就调 Beat()，超时未收到就自己停。">
+    <g:MapBlock Note="心跳动画由实际通信事件驱动，不得以固定周期的 XAML 动画模拟——否则通信中断后心跳仍在闪烁，比没有心跳灯更危险。收到响应即调用 Beat()，超时未收到则自动停跳。">
       <g:MapRow Key="类型" Value="DeviceStatusBar : TemplatedControl（内含 Heartbeat）" />
       <g:MapRow Key="属性" Value="ConnectionState:{Connected,Degraded,Disconnected} · Endpoint · LastResponse · PollRate · CurrentUser · ShowClock · Items（自定义段）" />
-      <g:MapRow Key="方法" Value="Beat() —— 每次收到设备响应调一次" />
-      <g:MapRow Key="伪类" Value=":connected :degraded :disconnected（Heartbeat 自己有 :beating / :stopped）" />
+      <g:MapRow Key="方法" Value="Beat() —— 每次收到设备响应调用一次" />
+      <g:MapRow Key="伪类" Value=":connected :degraded :disconnected（Heartbeat 自身有 :beating / :stopped）" />
     </g:MapBlock>
 
   </StackPanel>

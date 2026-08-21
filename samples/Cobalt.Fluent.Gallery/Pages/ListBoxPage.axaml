@@ -11,7 +11,7 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="项高 40，圆角 4，项间 2px。选中态不是整行变蓝，而是左侧一条 3×16 的圆角指示条 + 淡底。这是第 2–6 组里唯一必须动 ControlTemplate 的地方——Avalonia 内置的 ListBoxItem 模板没有指示条。" />
+               Text="项高 40，圆角 4，项间 2px。选中态不是整行变蓝，而是左侧一条 3×16 的圆角指示条 + 淡底。这是第 2–6 组里唯一必须修改 ControlTemplate 之处——Avalonia 内置的 ListBoxItem 模板没有指示条。" />
 
     <TextBlock Classes="sub" Text="状态矩阵" />
     <g:SpecMatrix States="rest,pointerover,pressed,selected,disabled">
@@ -31,7 +31,7 @@
       </ListBox>
     </Border>
 
-    <TextBlock Classes="sub" Text="试玩" />
+    <TextBlock Classes="sub" Text="交互演示" />
     <Border Classes="play">
       <StackPanel Spacing="12">
         <ListBox Width="280" Height="200" SelectedIndex="0">
@@ -43,11 +43,11 @@
           <ListBoxItem Content="Recipe-046 · 标定专用" />
         </ListBox>
         <TextBlock Classes="note" MaxWidth="700"
-                   Text="指示条高度约为行高的 40%，撑满会立刻显得不像 Win11。悬停未选中项看淡底，选中项左侧出现指示条。" />
+                   Text="指示条高度约为行高的 40%，若撑满整行会明显偏离 Win11 的样式。悬停未选中项时显示淡底，选中项左侧出现指示条。" />
       </StackPanel>
     </Border>
 
-    <g:MapBlock Note="Avalonia 内置 ListBoxItem 模板没有左侧指示条，需要自定义 ControlTheme：在模板里加一个 Border，Width=3 Height=16 圆角 1.5，绑 :selected 显隐。这是本组唯一必须动 Template 的地方。">
+    <g:MapBlock Note="Avalonia 内置 ListBoxItem 模板没有左侧指示条，需要自定义 ControlTheme：在模板里加一个 Border，Width=3 Height=16 圆角 1.5，由 :selected 控制显隐。这是本组唯一必须修改 Template 之处。">
       <g:MapRow Key="控件" Value="ListBox · ListBoxItem" />
       <g:MapRow Key="选择器" Value="ListBoxItem:selected · ListBoxItem:selected:pointerover · ListBoxItem:pressed" />
       <g:MapRow Key="资源键" Value="SubtleFillColorSecondaryBrush（hover / selected 底）· AccentFillColorDefaultBrush（指示条）" />

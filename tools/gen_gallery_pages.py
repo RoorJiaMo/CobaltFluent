@@ -143,7 +143,7 @@ def main():
         "        {",
         "            return new TextBlock",
         "            {",
-        "                Text = $\"「{section.Title}」这一页构造失败：{ex}\",",
+        "                Text = $\"章节「{section.Title}」构造失败：{ex}\",",
         "                TextWrapping = Avalonia.Media.TextWrapping.Wrap,",
         "            };",
         "        }",

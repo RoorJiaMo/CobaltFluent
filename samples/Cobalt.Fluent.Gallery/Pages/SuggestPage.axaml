@@ -12,7 +12,7 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="三只补位控件，各管一句话：AutoSuggestBox 管「名字记不全」，BreadcrumbBar 管「我在第几层」，SegmentedControl 管「现在是哪个模式」。第一只是 Avalonia 内置的 AutoCompleteBox，后两只本库自己做。" />
+               Text="三个补充控件各解决一个问题：AutoSuggestBox 解决「名称无法完整回忆」，BreadcrumbBar 解决「当前处于第几层」，SegmentedControl 解决「当前处于哪个模式」。第一个是 Avalonia 内置的 AutoCompleteBox，后两个由本库自行实现。" />
 
     <TextBlock Classes="sub" Text="AutoSuggestBox — 框是控件规格，建议列表是弹出层规格" />
     <Border Classes="panel">
@@ -29,7 +29,7 @@
       </StackPanel>
     </Border>
     <TextBlock Classes="note" MaxWidth="700"
-               Text="框、悬停底、聚焦那道 2px 底边全由 TextBox 主题出，这里只往框内右侧压了一枚放大镜（不吃指针事件，点它等于点框）。建议列表是另一套规格：8px 圆角 + 亚克力 + flyout 阴影 + 4px 内边距。两套规格别混——把弹出层的圆角搬到框上，立刻不像原生。" />
+               Text="框、悬停底、聚焦的 2px 底边全部由 TextBox 主题提供，此处仅在框内右侧放置一枚放大镜图标（不接收指针事件，点击它等同于点击输入框）。建议列表是另一套规格：8px 圆角 + 亚克力 + flyout 阴影 + 4px 内边距。两套规格不可混用——把弹出层的圆角应用到输入框上，立即偏离原生外观。" />
 
     <TextBlock Classes="sub" Text="BreadcrumbBar — 末级是当前位置" />
     <Border Classes="panel">
@@ -40,7 +40,7 @@
       </fc:BreadcrumbBar>
     </Border>
     <TextBlock Classes="note" MaxWidth="700"
-               Text="末级加粗且不可点：点自己什么也不会发生，做成可点只会让人怀疑是不是没点中。层级超过 4 级时中间要折叠成「…」——这一步得在数据层做，控件不替你折。" />
+               Text="末级加粗且不可点击：点击当前位置不产生任何效果，做成可点击只会使操作员怀疑点击未生效。层级超过 4 级时中间应折叠为「…」——这一步需在数据层完成，控件不提供折叠。" />
 
     <g:SpecMatrix States="rest,pointerover,current">
       <g:SpecMatrix.Sample>
@@ -62,7 +62,7 @@
       </fc:SegmentedControl>
     </Border>
     <TextBlock Classes="note" MaxWidth="700"
-               Text="互斥模式选择。比 RadioButton 醒目，适合「手动/自动/维护」这种全局状态——它一直摆在那儿，操作员不用点开才知道现在在哪个模式。" />
+               Text="互斥模式选择。比 RadioButton 醒目，适合「手动/自动/维护」这类全局状态——控件常驻显示，操作员无需展开即可获知当前模式。" />
 
     <g:SpecMatrix States="rest,pointerover,selected,disabled">
       <g:SpecMatrix.Sample>
@@ -70,9 +70,9 @@
       </g:SpecMatrix.Sample>
     </g:SpecMatrix>
     <TextBlock Classes="note" MaxWidth="700"
-               Text="段本身是透明的，那条凹槽底是 SegmentedControl 出的，所以单拎一段出来看不见底。选中态是「浮起来」：实色填充 + 一圈 elevation 描边 + Semibold。" />
+               Text="段本身是透明的，凹槽底由 SegmentedControl 绘制，因此单独展示一段时看不到底色。选中态为「浮起」效果：实色填充 + 一圈 elevation 描边 + Semibold。" />
 
-    <TextBlock Classes="sub" Text="试玩 — 输入过滤 / 模式切换 / 点面包屑回上一层" />
+    <TextBlock Classes="sub" Text="交互演示 — 输入过滤 / 模式切换 / 点击面包屑返回上级" />
     <Border Classes="play">
       <StackPanel Spacing="20">
 
@@ -98,16 +98,16 @@
         </StackPanel>
 
         <TextBlock Classes="note" MaxWidth="700"
-                   Text="输入时实时过滤并高亮匹配段，点条目回填。SegmentedControl 点击互斥切换。点面包屑的上级会砍掉它后面的层级，末级点不动。高亮在 Avalonia 里用 TextBlock.Inlines 拼 Run，不要用富文本控件。" />
+                   Text="输入时实时过滤并高亮匹配段，点击条目回填。SegmentedControl 点击互斥切换。点击面包屑的上级会移除其后的层级，末级不响应点击。高亮在 Avalonia 中用 TextBlock.Inlines 组合 Run 实现，不应使用富文本控件。" />
       </StackPanel>
     </Border>
 
-    <g:MapBlock Note="高亮匹配段在 Avalonia 里用 TextBlock.Inlines 拼 Run。ListBox 会复用容器，光换数据不重跑 ItemTemplate，所以每次输入要换一张新模板，高亮才跟得上光标。">
+    <g:MapBlock Note="高亮匹配段在 Avalonia 中用 TextBlock.Inlines 组合 Run。ListBox 会复用容器，仅更换数据不会重新执行 ItemTemplate，因此每次输入需更换一张新模板，高亮才能与输入保持同步。">
       <g:MapRow Key="控件" Value="AutoCompleteBox（Avalonia 内置）· BreadcrumbBar / BreadcrumbItem · SegmentedControl / SegmentedItem（后两组本库自定义）" />
       <g:MapRow Key="AutoCompleteBox" Value="ItemsSource · FilterMode=&quot;Contains&quot; · Watermark · ItemTemplate · MinimumPrefixLength · MaxDropDownHeight=504" />
-      <g:MapRow Key="BreadcrumbBar" Value="ItemsControl + WrapPanel(ItemSpacing=2)；末级由 RefreshStates() 打 IsCurrent，改完 Items 要自己再调一次 · ItemClicked(Index, Item)" />
-      <g:MapRow Key="SegmentedControl" Value="SelectingItemsControl + 横向 StackPanel(Spacing=2)，SelectionMode 默认就是单选；外观差异全在 ControlTheme 里" />
-      <g:MapRow Key="伪类" Value="BreadcrumbItem: :current（末级，加粗且吞掉自己那个分隔符）· SegmentedItem: :selected · :pointerover:not(:selected)" />
+      <g:MapRow Key="BreadcrumbBar" Value="ItemsControl + WrapPanel(ItemSpacing=2)；末级由 RefreshStates() 标记 IsCurrent，修改 Items 后需再次调用 · ItemClicked(Index, Item)" />
+      <g:MapRow Key="SegmentedControl" Value="SelectingItemsControl + 横向 StackPanel(Spacing=2)，SelectionMode 默认即单选；外观差异全部在 ControlTheme 中" />
+      <g:MapRow Key="伪类" Value="BreadcrumbItem: :current（末级，加粗且隐藏自身的分隔符）· SegmentedItem: :selected · :pointerover:not(:selected)" />
       <g:MapRow Key="资源键" Value="SubtleFillColorSecondaryBrush（悬停底）· TextFillColorTertiaryBrush（分隔符）· ControlAltFillColorSecondaryBrush（凹槽）· ControlSolidFillColorDefaultBrush + ControlElevationBorderBrush（选中段）· AccentFillColorDefaultBrush（匹配段）" />
     </g:MapBlock>
 

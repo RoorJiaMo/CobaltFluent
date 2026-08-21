@@ -12,7 +12,7 @@
     </StackPanel>
 
     <TextBlock Classes="lead" MaxWidth="820"
-               Text="两种形态用途不同：TabControl（下划线式）用于固定的功能分区；TabView（浏览器式，带关闭）用于用户可开关的文档。工业上位机绝大多数场景该用前者。" />
+               Text="两种形态用途不同：TabControl（下划线式）用于固定的功能分区；TabView（浏览器式，带关闭）用于用户可开关的文档。工业上位机绝大多数场景应使用前者。" />
 
     <TextBlock Classes="sub" Text="TabControl — 选中指示条 2px" />
     <Border Classes="panel">
@@ -35,7 +35,7 @@
       </TabControl>
     </Border>
     <TextBlock Classes="note" MaxWidth="820"
-               Text="tab 高 48，两侧 padding 12，tab 之间 4。下面那根 1px 分隔线紧贴 tab 条，和内容之间再留 12px 呼吸位。指示条 2px、圆角 1（半个厚度，把两端收成圆头）。" />
+               Text="tab 高 48，两侧 padding 12，tab 之间 4。下方的 1px 分隔线紧贴 tab 条，与内容之间另留 12px 间距。指示条 2px、圆角 1（厚度的一半，两端呈圆头）。" />
 
     <TextBlock Classes="sub" Text="TabItem 状态" />
     <g:SpecMatrix States="rest,pointerover,selected,disabled,focus">
@@ -44,7 +44,7 @@
       </g:SpecMatrix.Sample>
     </g:SpecMatrix>
     <TextBlock Classes="note" MaxWidth="820"
-               Text="未选中走 text-secondary，选中才升到 primary 并加粗——颜色和字重是「哪一页是当前页」的主要信号，指示条只是补强。选中项不吃 hover 底，不然指针扫过时那一格会闪。" />
+               Text="未选中项使用 text-secondary，选中后提升为 primary 并加粗——颜色与字重是标识当前页的主要信号，指示条仅作补强。选中项不叠加 hover 底色，以免指针掠过时选中项出现闪烁。" />
 
     <TextBlock Classes="sub" Text="TabView — 浏览器式" />
     <Border Classes="panel">
@@ -61,7 +61,7 @@
       </fc:TabView>
     </Border>
     <TextBlock Classes="note" MaxWidth="820"
-               Text="标签高 36，最宽 200（超出省略），标签之间 2px。选中的那张和内容区同底色、共用一圈描边并去掉下边框，视觉上连成一整块——这是「这张标签就是下面这份文档」的说法。TabControl 靠指示条说同一件事，两套别混着用。" />
+               Text="标签高 36，最宽 200（超出省略），标签之间 2px。选中标签与内容区同底色、共用一圈描边并去除下边框，视觉上连为一体——以此表达「该标签即下方文档」的语义。TabControl 以指示条传达同一语义，两套机制不应混用。" />
 
     <TextBlock Classes="sub" Text="TabViewItem 状态" />
     <g:SpecMatrix States="rest,pointerover,selected">
@@ -72,33 +72,33 @@
       </g:SpecMatrix.Sample>
     </g:SpecMatrix>
     <TextBlock Classes="note" MaxWidth="820"
-               Text="没有禁用态：文档要么开着要么关掉，一张点不动的标签解释不了自己为什么在那儿。关闭按钮的图标用 fc:SymbolIcon 画，嵌入式 Linux 上没有 Segoe Fluent Icons。" />
+               Text="没有禁用态：文档只有打开与关闭两种状态，不可交互的标签无法传达其存在的含义。关闭按钮的图标由 fc:SymbolIcon 绘制，嵌入式 Linux 上没有 Segoe Fluent Icons。" />
 
-    <TextBlock Classes="sub" Text="试玩 — 指示条跟着 header 走" />
+    <TextBlock Classes="sub" Text="交互演示 — 指示条宽度跟随 header" />
     <Border Classes="play">
       <StackPanel Spacing="12">
         <TabControl Width="600">
           <TabItem Header="总览">
-            <TextBlock Classes="note" Text="切到「报警与事件记录」，比一比两条指示条的长度。" />
+            <TextBlock Classes="note" Text="切换到「报警与事件记录」，对比两条指示条的长度。" />
           </TabItem>
           <TabItem Header="报警与事件记录">
-            <TextBlock Classes="note" Text="指示条变长了，但两端离 header 文字仍然各是 12px。" />
+            <TextBlock Classes="note" Text="指示条随之变长，两端与 header 文字的间距仍各为 12px。" />
           </TabItem>
           <TabItem Header="轴 3">
-            <TextBlock Classes="note" Text="短标签下面是一小截。" />
+            <TextBlock Classes="note" Text="短标签下方的指示条相应较短。" />
           </TabItem>
         </TabControl>
         <TextBlock Classes="note" MaxWidth="700"
-                   Text="指示条宽度跟随 header 内容，左右各缩进 12px，不是铺满整个 TabItem。要是跟着 TabItem 走，长标签下面会拖出一条大横杠，一排 tab 的节奏就散了。" />
+                   Text="指示条宽度跟随 header 内容，左右各缩进 12px，而非铺满整个 TabItem。若跟随 TabItem 宽度，长标签下方会出现过长的横条，破坏整行 tab 的视觉节奏。" />
       </StackPanel>
     </Border>
 
-    <TextBlock Classes="sub" Text="试玩 — 开标签、关标签" />
+    <TextBlock Classes="sub" Text="交互演示 — 新建与关闭标签" />
     <Border Classes="play">
       <StackPanel Spacing="12">
         <fc:TabView x:Name="PlayTabs" Width="560">
           <fc:TabViewItem Header="总览" Icon="Home" IsClosable="False">
-            <TextBlock Classes="note" Text="钉住的首页，不给关——右边没有 × 。" />
+            <TextBlock Classes="note" Text="固定的首页标签，不可关闭——右侧无 ×。" />
           </fc:TabViewItem>
           <fc:TabViewItem Header="Recipe-042" Icon="Document">
             <TextBlock Classes="note" Text="预热 → 恒温保持 → 降温结晶，共 3 段。" />
@@ -108,11 +108,11 @@
           </fc:TabViewItem>
         </fc:TabView>
         <TextBlock Classes="note" MaxWidth="700"
-                   Text="「+」开一份新配方并立刻切过去，「×」关掉。控件只发 TabCloseRequested，删不删由使用方决定——真实场景这里要先问一句「未保存的改动要丢吗」，不能点一下就没了。" />
+                   Text="「+」新建一份配方并立即切换到该标签，「×」发起关闭。控件仅引发 TabCloseRequested，是否移除由使用方决定——真实场景应先确认「是否丢弃未保存的改动」，不应单击后立即移除。" />
       </StackPanel>
     </Border>
 
-    <g:MapBlock Note="TabControl 的指示条在 TabStripPlacement=Top 时是水平的，宽度跟随 header 内容而不是整个 TabItem——两侧要留出 12px。内置模板的 PART_SelectedPipe 在 Padding 之内，横向 Stretch 会把 TabItem 的 padding 一起铺满，所以这里把它提到 Padding 外面当兄弟节点，再用 Margin 显式留 12。">
+    <g:MapBlock Note="TabControl 的指示条在 TabStripPlacement=Top 时为水平方向，宽度跟随 header 内容而非整个 TabItem——两侧需留出 12px。内置模板的 PART_SelectedPipe 位于 Padding 之内，横向 Stretch 会连同 TabItem 的 padding 一起铺满，故此处将其移到 Padding 之外作为兄弟节点，再以 Margin 显式保留 12。">
       <g:MapRow Key="控件" Value="TabControl / TabItem（Avalonia 内置）· fc:TabView / fc:TabViewItem（本库自带，不依赖 FluentAvalonia）" />
       <g:MapRow Key="属性" Value="TabControl.TabStripPlacement=Top/Bottom/Left/Right · TabItem.Header · TabView.IsAddButtonVisible / AddCommand / TabCloseRequested 事件 · TabViewItem.Icon:Symbol / IsClosable" />
       <g:MapRow Key="选择器" Value="TabItem:selected · TabItem:pointerover:not(:selected) · TabItem:disabled · fc|TabViewItem:selected · fc|TabViewItem:closable" />

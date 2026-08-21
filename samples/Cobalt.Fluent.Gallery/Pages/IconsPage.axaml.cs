@@ -59,10 +59,10 @@ public partial class IconsPage : UserControl
                 new TextBlock
                 {
                     Classes = { "lead" },
-                    Text = "这 36 个字形本库不走字体——"
-                         + "嵌入式 Linux（RK3568 这类）上装不到，会渲染成豆腐块。"
-                         + "所以图标全部改画矢量路径，16×16 设计尺寸，线型字形描边 1.2px 圆头圆角。"
-                         + "手上有那套字体的话，把 SymbolIcon.UseGlyphFont 打开即可切回字体渲染。",
+                    Text = "这 36 个字形在本库中不使用字体渲染——"
+                         + "嵌入式 Linux（如 RK3568）上无法安装所需字体，字形会渲染为缺字方块。"
+                         + "因此图标全部改以矢量路径绘制，16×16 设计尺寸，线型字形描边 1.2px 圆头圆角。"
+                         + "若目标系统具备该字体，开启 SymbolIcon.UseGlyphFont 即可切回字体渲染。",
                 },
                 wrap,
             },

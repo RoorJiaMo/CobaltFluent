@@ -12,7 +12,7 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="点动：按住动作，松开停止。视觉上必须区别于普通 Button（描边更重、底边 2px），否则操作员会当成开关按一下就走。:jogging 就是「正在动作」，是本控件唯一有意义的活跃态。" />
+               Text="点动：按住执行动作，松开停止。视觉上必须区别于普通 Button（描边更重、底边 2px），否则操作员可能将其误认为开关，按下一次即离开。:jogging 表示「正在动作」，是本控件唯一有意义的活跃态。" />
 
     <TextBlock Classes="sub" Text="状态矩阵" />
     <g:SpecMatrix States="rest,pointerover,jogging,disabled,focus">
@@ -21,7 +21,7 @@
       </g:SpecMatrix.Sample>
     </g:SpecMatrix>
 
-    <TextBlock Classes="sub" Text="成对 — 相接处不圆、不双线" />
+    <TextBlock Classes="sub" Text="成对 — 相接处无圆角、无双线" />
     <Border Classes="panel">
       <StackPanel Spacing="16">
         <fc:JogGroup>
@@ -32,7 +32,7 @@
       </StackPanel>
     </Border>
 
-    <TextBlock Classes="sub" Text="试玩 —— 注意安全行为" />
+    <TextBlock Classes="sub" Text="交互演示 —— 注意安全行为" />
     <Border Classes="play" HorizontalAlignment="Stretch">
       <StackPanel Spacing="16">
         <fc:JogGroup>
@@ -42,16 +42,16 @@
         <TextBlock x:Name="Output" Classes="note" FontFamily="{DynamicResource MonospaceFontFamily}"
                    Text="■ 已停止" />
         <TextBlock Classes="note" MaxWidth="820"
-                   Text="按住会一直计时。试试按住后把指针拖出按钮再松开——普通实现在这里会漏掉停止事件，设备一直动；本控件走 PointerCaptureLost / 指针离开两条路都能停。按住不动超过 5 秒会被看门狗强制停止。" />
+                   Text="按住期间持续计时。按住后将指针拖出按钮再松开的场景下，普通实现会丢失停止事件，设备持续动作；本控件经 PointerCaptureLost / 指针离开两条路径均可停止。持续按住超过 5 秒会被看门狗强制停止。" />
       </StackPanel>
     </Border>
 
-    <g:MapBlock Note="必须挂满停止触发点才安全：只监听 PointerReleased 不够——按住后把指针拖出按钮，释放事件可能根本不在这个控件上触发。再加一个看门狗定时器兜底，防止 UI 线程卡死时设备失控。StopCommand 会被重复调用（多个触发点可能同时命中），下游必须做成幂等的。">
+    <g:MapBlock Note="必须注册全部停止触发点才能保证安全：仅监听 PointerReleased 不足——按住后将指针拖出按钮时，释放事件可能不在该控件上触发。另需看门狗定时器作最后保障，防止 UI 线程卡死时设备失控。StopCommand 会被重复调用（多个触发点可能同时命中），下游实现必须幂等。">
       <g:MapRow Key="类型" Value="JogButton : Button（容器 JogGroup : StackPanel）" />
       <g:MapRow Key="属性" Value="Direction:enum · StartCommand · StopCommand · Speed · RequiresConfirm=false · WatchdogTimeout=5s" />
-      <g:MapRow Key="停止触发点" Value="PointerReleased · PointerCaptureLost · PointerExited · LostFocus · KeyUp · 摘出视觉树 / 被禁用 · 看门狗超时" />
+      <g:MapRow Key="停止触发点" Value="PointerReleased · PointerCaptureLost · PointerExited · LostFocus · KeyUp · 移出视觉树 / 被禁用 · 看门狗超时" />
       <g:MapRow Key="伪类" Value=":jogging" />
-      <g:MapRow Key="事件" Value="JogStarted · JogStopped(Reason) —— 建议把 Reason 记进操作日志，出事后要靠它复盘" />
+      <g:MapRow Key="事件" Value="JogStarted · JogStopped(Reason) —— 建议将 Reason 写入操作日志，事故复盘时需要该信息" />
     </g:MapBlock>
 
   </StackPanel>

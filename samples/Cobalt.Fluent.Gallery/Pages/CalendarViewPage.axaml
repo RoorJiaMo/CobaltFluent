@@ -12,7 +12,7 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="日期格 36px 圆形。今天=accent 描边，选中=accent 实心，非本月=tertiary。「有记录的日子」用底部小圆点——工业界面查历史批次时，这个点能直接告诉操作员哪天有数据，省掉一次无效查询。" />
+               Text="日期格 36px 圆形。今天=accent 描边，选中=accent 实心，非本月=tertiary。「有记录的日子」以底部小圆点标记——工业界面查询历史批次时，该标记直接指示有数据的日期，避免一次无效查询。" />
 
     <TextBlock Classes="sub" Text="日期格 — 状态矩阵" />
     <!-- CalendarDayButton 单独立起来也吃 ControlTheme，所以这里能把一格一格的规格
@@ -24,18 +24,18 @@
       </g:SpecMatrix.Sample>
     </g:SpecMatrix>
     <TextBlock Classes="note"
-               Text=":today 是 1px accent 内描边，:selected 是 accent 实底。两个同时命中时选中相赢、today 那圈收掉——实心圆上再套一圈同色描边只会看着脏。:inactive（相邻月）和 :blackout（禁选日）都只压文字色，格子形状一律不动，否则一屏日历上会冒出几种不同的方圆。" />
+               Text=":today 为 1px accent 内描边，:selected 为 accent 实底。两者同时命中时以选中态优先、today 描边收起——实心填充上叠加同色描边会降低视觉清晰度。:inactive（相邻月）与 :blackout（禁选日）均仅弱化文字色，格子形状保持不变，否则同一屏日历中会出现多种不同的外形。" />
 
     <TextBlock Classes="sub" Text="月视图 — SelectionMode=SingleRange" />
     <Border Classes="panel">
       <fc:RangeCalendar x:Name="SpecCalendar" FirstDayOfWeek="Monday" />
     </Border>
     <TextBlock Classes="note"
-               Text="区间落在「今天往回两天」，今天既是区间末端又是 :today；今天之后整段禁选——查历史批次时未来的日子点了也没有数据，不如直接关掉。日期不写死在某年某月，展柜哪天打开，:today 都得亮在该亮的位置。" />
+               Text="区间设定为「今天之前两天至今天」，今天既是区间末端又是 :today；今天之后整段禁选——查询历史批次时未来日期不存在数据，故直接禁用。日期不固定在特定年月，无论展柜何时打开，:today 均出现在正确的位置。" />
     <TextBlock Classes="note"
-               Text="未来那段用 BlackoutDates 关，不用 DisplayDateEnd。后者按「年月」比大小，卡不住本月剩下的那几天，只会让整个月一起消失。DisplayDateStart/End 管的是能翻到哪个月，BlackoutDates 管的才是哪一天能点。" />
+               Text="未来日期通过 BlackoutDates 禁用，而非 DisplayDateEnd。后者按「年月」粒度比较，无法限制本月剩余的日期，只会使整个月一并不可见。DisplayDateStart/End 控制可翻页到的月份范围，BlackoutDates 才控制单日是否可选。" />
 
-    <TextBlock Classes="sub" Text="DateRangePicker — 两个 CalendarDatePicker 中间一个「至」" />
+    <TextBlock Classes="sub" Text="DateRangePicker — 两个 CalendarDatePicker 以「至」连接" />
     <Border Classes="panel">
       <StackPanel Spacing="12">
         <StackPanel Orientation="Horizontal" Spacing="8">
@@ -66,13 +66,13 @@
       </StackPanel>
     </Border>
     <TextBlock Classes="note"
-               Text="两个选择器互相卡范围：选了起点，终点那台日历就翻不到起点之前；反过来也一样。倒序区间在业务上没有意义，与其等查询回来报「结束早于开始」，不如让它在日历上根本点不出来。键盘直接敲进去的日期不走日历那层限制，所以代码里还兜了一手——拨反了就把另一头跟过去，不弹提示。" />
+               Text="两个选择器互相约束可选范围：选定起点后，终点侧日历无法翻页到起点之前；反之亦然。倒序区间在业务上没有意义，与其等待查询返回「结束早于开始」的错误，不如使该选择在日历层面不可达。经键盘直接输入的日期不受日历层限制，代码中另有兜底处理——出现倒序时将另一端同步跟随，不弹出提示。" />
     <TextBlock Classes="note"
-               Text="快捷预设按钮不带选中态——它们是「跳到这个窗口」的动作，按完区间还能接着手动微调，做成常亮的选中相会让人以为区间被锁死了。真要一眼看出「现在用的是哪个窗口」，该换成 SegmentedControl，那才是互斥单选。" />
+               Text="快捷预设按钮不带选中态——它们是「跳转到该时间窗」的动作，执行后区间仍可手动微调，常亮的选中态会被误读为区间已锁定。若需要明确显示「当前使用的时间窗」，应改用 SegmentedControl——互斥单选正是其语义。" />
     <TextBlock Classes="note"
-               Text="「本批次」这里写死成最近三天。实际产线上这个窗口要从当前选中的批次记录里取，而且整排预设都该可配置——连续生产线关心的是近 24 小时，做小批量的关心的是上一批到这一批。" />
+               Text="「本批次」在本页固定为最近三天。实际产线上该窗口应取自当前选中的批次记录，且整组预设应可配置——连续生产线关注近 24 小时，小批量生产关注上一批次至本批次。" />
 
-    <TextBlock Classes="sub" Text="试玩 — 点一天选起点，再点一天选终点" />
+    <TextBlock Classes="sub" Text="交互演示 — 单击选定起点日期，再次单击选定终点日期" />
     <Border Classes="play">
       <StackPanel Orientation="Horizontal" Spacing="24">
         <fc:RangeCalendar x:Name="PlayCalendar" FirstDayOfWeek="Monday" />
@@ -81,20 +81,20 @@
                      Theme="{StaticResource BodyStrongTextBlockStyle}" />
           <Button x:Name="PlayClear" Classes="subtle" Content="清空" HorizontalAlignment="Left" />
           <TextBlock Classes="note" Margin="0"
-                     Text="按住拖过去也能一次拉出区间，和 Win11 一样。第三次点击不是「扩大区间」，是重新起一段——SingleRange 只保留一段，这点比「点错了得先清空」省事。" />
+                     Text="按住并拖动同样可一次划定区间，与 Win11 行为一致。第三次点击不是「扩大区间」，而是开始新的一段——SingleRange 仅保留一段，无需先清除既有选择即可直接开始新的区间。" />
         </StackPanel>
       </StackPanel>
     </Border>
     <TextBlock Classes="note"
-               Text="区间中段方角连成一条，只有首尾各圆一边——给每天都画个圆圈看起来是断开的一串，读不出「这是一个连续区间」。Avalonia 的 Calendar 在 SingleRange 下只会把区间里每一天都标成 :selected，拿不到首尾，所以本页两只日历都是 fc:RangeCalendar：它按 SelectedDates 的首尾补出 :rangestart / :inrange / :rangeend 三个伪类，样式接在 CalendarDayButton 的 ControlTheme 上。" />
+               Text="区间中段以方角连接成连续条带，仅首尾各保留一侧圆角——区间内逐日绘制独立圆形选中态时，视觉上呈断续排列，无法传达区间的连续性。Avalonia 的 Calendar 在 SingleRange 下仅把区间内每一天标记为 :selected，不提供首尾信息，因此本页两个日历均为 fc:RangeCalendar：它依据 SelectedDates 的首尾补充 :rangestart / :inrange / :rangeend 三个伪类，样式挂接在 CalendarDayButton 的 ControlTheme 上。" />
     <TextBlock Classes="note"
-               Text="首尾两天保留 accent 实底和 text-on-accent，中段走 subtle-hover 底 + 常规文字色——中段不是「也被选中了」，是「被区间盖住了」，两者视觉上得分得开。区间缩成一天时三个伪类全撤掉，回到原本那颗圆点。格与格之间那 2px 缝隙是网格本身的间距（每格 Margin 1 各出一半），中段因此是断续的一条，不另做补偿。" />
+               Text="首尾两天保留 accent 实底和 text-on-accent，中段使用 subtle-hover 底色 + 常规文字色——中段并非「也被选中」，而是「被区间覆盖」，两种状态在视觉上必须可区分。区间缩减为单日时三个伪类全部移除，恢复为原本的圆形。格与格之间 2px 的缝隙来自网格本身的间距（每格 Margin 1，各承担一半），中段因此呈断续条带，不另做补偿。" />
 
-    <g:MapBlock Note="「有记录的日子」那个小圆点要自定义 CalendarDayButton 的 ControlTheme，在模板里塞一个 Ellipse 绑 :marked，本页没有它——Avalonia 的 Calendar 不认识 MarkedDates，得连日期集合一起自己加。区间的首尾半圆 / 中段方角已经由 fc:RangeCalendar 补上。快捷预设按钮建议做成可配置——不同产线关心的时间窗不一样。">
-      <g:MapRow Key="控件" Value="Calendar · CalendarItem · CalendarDayButton · CalendarButton（年 / 十年视图）——都是 Avalonia 内置；fc:RangeCalendar 是 Calendar 的子类，只补区间伪类，沿用同一套 ControlTheme；DateRangePicker 内置没有，两个 CalendarDatePicker 拼" />
-      <g:MapRow Key="属性" Value="SelectionMode:{None,SingleDate,SingleRange,MultipleRange}（不是 Range）· SelectedDate · SelectedDates.AddRange(start,end) · BlackoutDates:CalendarDateRange 集合 · DisplayDate · DisplayDateStart/End（按年月比，管翻页不管单天）· FirstDayOfWeek · IsTodayHighlighted · DisplayMode:{Month,Year,Decade}" />
-      <g:MapRow Key="伪类" Value=":today · :selected · :inactive（相邻月）· :blackout（禁选日）· :pointerover · :pressed · :disabled — 内置这些之外，:rangestart :inrange :rangeend 由 fc:RangeCalendar 补；「有记录的日子」那个 :marked 还没有" />
-      <g:MapRow Key="资源键" Value="CalendarDayButtonSize=36 · CalendarDayButtonCornerRadius=18（圆形）· AccentFillColorDefaultBrush（today 描边 / selected 实底）· TextOnAccentFillColorPrimaryBrush（选中日文字）· TextFillColorTertiaryBrush（相邻月）· TextFillColorDisabledBrush（禁选日）· TabularNumbers（日期数字等宽，否则网格里两位数对不齐）" />
+    <g:MapBlock Note="「有记录的日子」的小圆点需要自定义 CalendarDayButton 的 ControlTheme，在模板中加入一个 Ellipse 并绑定 :marked，本页未实现——Avalonia 的 Calendar 不支持 MarkedDates，日期集合也需一并自行实现。区间的首尾半圆 / 中段方角已由 fc:RangeCalendar 提供。快捷预设按钮建议实现为可配置——不同产线关注的时间窗不同。">
+      <g:MapRow Key="控件" Value="Calendar · CalendarItem · CalendarDayButton · CalendarButton（年 / 十年视图）——均为 Avalonia 内置；fc:RangeCalendar 是 Calendar 的子类，仅补充区间伪类，沿用同一套 ControlTheme；DateRangePicker 无内置实现，由两个 CalendarDatePicker 组合" />
+      <g:MapRow Key="属性" Value="SelectionMode:{None,SingleDate,SingleRange,MultipleRange}（并非 Range）· SelectedDate · SelectedDates.AddRange(start,end) · BlackoutDates:CalendarDateRange 集合 · DisplayDate · DisplayDateStart/End（按年月粒度比较，限制翻页而非单日）· FirstDayOfWeek · IsTodayHighlighted · DisplayMode:{Month,Year,Decade}" />
+      <g:MapRow Key="伪类" Value=":today · :selected · :inactive（相邻月）· :blackout（禁选日）· :pointerover · :pressed · :disabled — 以上为内置；:rangestart :inrange :rangeend 由 fc:RangeCalendar 补充；「有记录的日子」的 :marked 尚未实现" />
+      <g:MapRow Key="资源键" Value="CalendarDayButtonSize=36 · CalendarDayButtonCornerRadius=18（圆形）· AccentFillColorDefaultBrush（today 描边 / selected 实底）· TextOnAccentFillColorPrimaryBrush（选中日文字）· TextFillColorTertiaryBrush（相邻月）· TextFillColorDisabledBrush（禁选日）· TabularNumbers（日期数字等宽，否则网格中两位数字无法对齐）" />
     </g:MapBlock>
 
   </StackPanel>

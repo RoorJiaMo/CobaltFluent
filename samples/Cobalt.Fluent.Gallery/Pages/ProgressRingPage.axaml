@@ -12,7 +12,7 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="线宽跟直径走，不用手填。嵌入式（Mali GPU）上这个持续动画是常驻开销，长时间加载建议改用 ProgressBar 的 indeterminate——那个只动 transform，代价低得多。" />
+               Text="线宽随直径自动缩放，无需手动指定。嵌入式（Mali GPU）上该持续动画为常驻开销，长时间加载建议改用 ProgressBar 的 indeterminate——后者仅对 transform 做动画，开销显著更低。" />
 
     <TextBlock Classes="sub" Text="三档尺寸" />
     <Border Classes="panel">
@@ -32,9 +32,9 @@
       </StackPanel>
     </Border>
 
-    <g:MapBlock Note="嵌入式（Mali GPU）上这个持续动画是常驻开销。一屏多个转圈会明显掉帧，长时间加载改用 ProgressBar 的 indeterminate。">
-      <g:MapRow Key="控件" Value="ProgressRing（本库自定义，Avalonia 本体没有）" />
-      <g:MapRow Key="属性" Value="IsIndeterminate · Value / Minimum / Maximum · Width/Height（线宽自动按比例）· StrokeThickness（想手填时用）" />
+    <g:MapBlock Note="嵌入式（Mali GPU）上该持续动画为常驻开销。同屏多个旋转动画会明显掉帧，长时间加载应改用 ProgressBar 的 indeterminate。">
+      <g:MapRow Key="控件" Value="ProgressRing（本库自定义，Avalonia 本体未提供）" />
+      <g:MapRow Key="属性" Value="IsIndeterminate · Value / Minimum / Maximum · Width/Height（线宽自动按比例）· StrokeThickness（需手动指定线宽时使用）" />
       <g:MapRow Key="资源键" Value="AccentFillColorDefaultBrush（值弧）· ControlAltFillColorSecondaryBrush（底环）" />
     </g:MapBlock>
 

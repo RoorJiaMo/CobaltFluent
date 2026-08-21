@@ -50,7 +50,7 @@ public partial class CalendarViewPage : UserControl
         {
             if (from.SelectedDate is not { } a || to.SelectedDate is not { } b)
             {
-                echo.Text = "选一段区间";
+                echo.Text = "选择一段区间";
                 return;
             }
 
@@ -108,7 +108,7 @@ public partial class CalendarViewPage : UserControl
         {
             if (calendar.SelectedDates.Count == 0)
             {
-                echo.Text = "点一天选起点，再点一天选终点";
+                echo.Text = "单击选定起点日期，再次单击选定终点日期";
                 return;
             }
 

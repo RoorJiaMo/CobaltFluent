@@ -12,7 +12,7 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="三重编码：颜色 + 形状/动效 + 文字。任何一种单独都不够——男性约 8% 有色觉障碍，强光下的工业屏幕颜色也会失真。所以 offline 是空心圈、running 带脉冲环、warning/fault 各有自己的字形。" />
+               Text="三重编码：颜色 + 形状/动效 + 文字。任一通道单独使用均不可靠——男性约 8% 有色觉障碍，强光下的工业屏幕颜色也会失真。因此 offline 为空心圈、running 带脉冲环、warning/fault 分别使用独立字形。" />
 
     <TextBlock Classes="sub" Text="五个状态" />
     <Border Classes="panel">
@@ -25,17 +25,17 @@
       </StackPanel>
     </Border>
 
-    <TextBlock Classes="sub" Text="嵌入式：关掉脉冲动画" />
+    <TextBlock Classes="sub" Text="嵌入式：关闭脉冲动画" />
     <Border Classes="panel">
       <StackPanel Spacing="12">
         <fc:StatusIndicator State="Running" Label="运行中（脉冲开）" />
-        <fc:StatusIndicator State="Running" Label="运行中（脉冲关，留静态外环）" IsPulseEnabled="False" />
+        <fc:StatusIndicator State="Running" Label="运行中（脉冲关，保留静态外环）" IsPulseEnabled="False" />
         <TextBlock Classes="note" MaxWidth="560"
-                   Text="一屏十几个 running 指示灯就是十几个并发动画，Mali 这类 GPU 上会掉帧。关掉后外环变静态，形状编码不丢。" />
+                   Text="单屏十几个 running 指示灯即对应十几个并发动画，在 Mali 这类 GPU 上会掉帧。关闭脉冲后外环变为静态，形状编码不受影响。" />
       </StackPanel>
     </Border>
 
-    <TextBlock Classes="sub" Text="试玩 — 循环切状态" />
+    <TextBlock Classes="sub" Text="交互演示 — 循环切换状态" />
     <Border Classes="play">
       <StackPanel Spacing="16">
         <fc:StatusIndicator x:Name="Live" State="Running" Label="运行中" />
@@ -46,10 +46,10 @@
       </StackPanel>
     </Border>
 
-    <g:MapBlock Note="脉冲环用 Animation + ScaleTransform，只动 transform/opacity。嵌入式上如果一屏有十几个 running 指示灯，把 IsPulseEnabled 关掉——十几个并发动画在 Mali 上会掉帧。">
+    <g:MapBlock Note="脉冲环使用 Animation + ScaleTransform，仅作用于 transform/opacity。嵌入式环境下若单屏有十几个 running 指示灯，应关闭 IsPulseEnabled——十几个并发动画在 Mali 上会掉帧。">
       <g:MapRow Key="类型" Value="StatusIndicator : TemplatedControl" />
       <g:MapRow Key="属性" Value="State:{Offline,Idle,Running,Warning,Fault} · Label · ShowLabel=true · IsPulseEnabled=true" />
-      <g:MapRow Key="伪类" Value=":offline :idle :running :warning :fault（在属性变化里 PseudoClasses.Set）" />
+      <g:MapRow Key="伪类" Value=":offline :idle :running :warning :fault（属性变化时通过 PseudoClasses.Set 设置）" />
     </g:MapBlock>
 
   </StackPanel>

@@ -20,6 +20,6 @@ public partial class EStopButtonPage : UserControl
                          : $"（{live.HardwareLocationHint}）");
 
         live.Released += (_, _) =>
-            log.Text = $"已复位 · {DateTime.Now:HH:mm:ss} —— 复位不等于恢复运行，还要显式启动。";
+            log.Text = $"已复位 · {DateTime.Now:HH:mm:ss} —— 复位不等于恢复运行，仍需显式启动。";
     }
 }

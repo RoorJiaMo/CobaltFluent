@@ -13,7 +13,7 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="表头 40 / 行高 40，只有横向分隔线，没有竖线，不用斑马纹。数值列必须右对齐 + tabular-nums，否则数字刷新时会左右横跳。" />
+               Text="表头 40 / 行高 40，只有横向分隔线，没有竖线，不使用斑马纹。数值列必须右对齐 + tabular-nums，否则数字刷新时会产生水平位移。" />
 
     <TextBlock Classes="sub" Text="批次记录" />
     <!-- Padding 覆成 0,8：表格本体不带底色也不带外框，外框由这只 panel 出，
@@ -70,13 +70,13 @@
       </DataGrid>
     </Border>
     <TextBlock Classes="note"
-               Text="状态列用 InfoBadge 而不是纯色文字——颜色 + 底色 + 文字三重编码，色觉障碍和戴防护镜时都能读。" />
+               Text="状态列使用 InfoBadge 而非纯色文字——颜色 + 底色 + 文字三重编码，色觉障碍与佩戴防护镜的场景下均可辨识。" />
     <TextBlock Classes="note"
-               Text="数值列挂 CellStyleClasses=&quot;num&quot;：右对齐 + tnum。中断那批没有峰值，填「—」而不是 0——0 会被当成一个真读数，而且它还会参与排序和求平均。" />
+               Text="数值列应用 CellStyleClasses=&quot;num&quot;：右对齐 + tnum。中断的批次没有峰值，填「—」而非 0——0 会被视为真实读数，且会参与排序与求平均。" />
     <TextBlock Classes="note"
-               Text="选中态和悬停态同一档底色，靠左边的选择框区分，所以按住选中行时不会闪一下更深的底。" />
+               Text="选中态与悬停态使用同一档底色，由左侧选择框区分，因此按压选中行时不会出现更深底色的闪变。" />
 
-    <TextBlock Classes="sub" Text="试玩 — 表头 CheckBox 三态联动" />
+    <TextBlock Classes="sub" Text="交互演示 — 表头 CheckBox 三态联动" />
     <Border Classes="play" Padding="0,8">
       <StackPanel Spacing="0">
         <DataGrid x:Name="PlayGrid"
@@ -114,13 +114,13 @@
           </DataGrid.Columns>
         </DataGrid>
         <TextBlock Classes="note" Margin="16,10,16,0"
-                   Text="勾选部分行 → 表头自动变 indeterminate；全选 → 变 checked；点表头一次性全选 / 全不选。这个三态联动是 CheckBox 三态在实际项目里最主要的用途。" />
+                   Text="勾选部分行 → 表头自动变 indeterminate；全选 → 变 checked；点击表头可一次性全选 / 全不选。该三态联动是 CheckBox 三态在实际项目中最主要的用途。" />
         <TextBlock Classes="note" Margin="16,6,16,0"
-                   Text="表头处于 indeterminate 时点一下是「全选」而不是「全不选」：那一档表示的是当前选了多少，是结果，不该成为用户点得出来的一个态。" />
+                   Text="表头处于 indeterminate 时，单击执行「全选」而非「全不选」：该档表示当前的选中数量，属于结果状态，不应成为用户可直接点选出的状态。" />
       </StackPanel>
     </Border>
 
-    <g:MapBlock Note="需要单独引 Avalonia.Controls.DataGrid 这个包。本库把 DataGrid / Row / Cell / ColumnHeader 四份 ControlTheme 连模板一起重写了——官方主题的根节点是 &lt;Styles&gt;（只能 StyleInclude），并不进本库这份 ResourceDictionary，也就没法 BasedOn 它；两份都 include 的话同名键会打架，尤其 DataGridCellTextBlockTheme 的 12px。所以消费方只 include 本库一份主题就够，不要再 include avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml。">
+    <g:MapBlock Note="需要单独引用 Avalonia.Controls.DataGrid 包。本库将 DataGrid / Row / Cell / ColumnHeader 四份 ControlTheme 连同模板一并重写——官方主题的根节点是 &lt;Styles&gt;（只能 StyleInclude），不进入本库这份 ResourceDictionary，因此无法对其 BasedOn；两份同时 include 会导致同名键冲突，尤其是 DataGridCellTextBlockTheme 的 12px。因此消费方仅 include 本库这一份主题即可，不应再 include avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml。">
       <g:MapRow Key="控件" Value="DataGrid · DataGridTextColumn · DataGridTemplateColumn（Avalonia.Controls.DataGrid 包）" />
       <g:MapRow Key="属性" Value="GridLinesVisibility=Horizontal · CanUserSortColumns · RowHeight=40 · ColumnHeaderHeight=40 · HeadersVisibility=Column · FrozenColumnCount" />
       <g:MapRow Key="列级类" Value="DataGridColumn.CellStyleClasses: num（右对齐 + tnum）· editable（左右留 4 给就地编辑的 TextBox）· frozen（冻结列的实底 + 右描边）" />

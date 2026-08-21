@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+        xmlns:fc="using:Cobalt.Fluent.Controls"
         x:Class="Cobalt.Fluent.Gallery.MainWindow"
         Title="Cobalt.Fluent —— Avalonia 控件库展柜"
         Width="1440" Height="960"
@@ -8,43 +9,74 @@
         FontFamily="{DynamicResource ContentControlThemeFontFamily}"
         FontSize="{DynamicResource BodyFontSize}">
 
-  <Grid RowDefinitions="56,*">
+  <!-- 最外层套 Panel：源码覆层要盖住包括顶栏在内的整个窗口 -->
+  <Panel>
+    <Grid RowDefinitions="56,*">
 
-    <!-- 顶栏属于 base layer，不加背景 -->
-    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="20,0">
-      <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-        <TextBlock Text="Cobalt.Fluent" Theme="{StaticResource SubtitleTextBlockStyle}" />
-        <Border Classes="tag" VerticalAlignment="Center">
-          <TextBlock Text="Avalonia 11.3 · 57 控件" />
+      <!-- 顶栏属于 base layer，不加背景 -->
+      <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="20,0">
+        <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+          <!-- 应用标：accent 圆角方块，Win11 任务栏图标的画法 -->
+          <Border Width="24" Height="24"
+                  CornerRadius="{DynamicResource ControlCornerRadius}"
+                  Background="{DynamicResource AccentFillColorDefaultBrush}">
+            <TextBlock Text="Co" FontSize="11" FontWeight="SemiBold"
+                       Foreground="{DynamicResource TextOnAccentFillColorPrimaryBrush}"
+                       HorizontalAlignment="Center" VerticalAlignment="Center" />
+          </Border>
+          <TextBlock Text="Cobalt.Fluent" Theme="{StaticResource SubtitleTextBlockStyle}" />
+          <Border Classes="tag" VerticalAlignment="Center">
+            <TextBlock Text="Avalonia 11.3 · 57 控件" />
+          </Border>
+        </StackPanel>
+
+        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+          <!-- 每一页都能看：本页示例 + 这一节控件在库里的 ControlTheme / 控件类 -->
+          <Button x:Name="ViewSourceButton" Classes="subtle" VerticalAlignment="Center">
+            <StackPanel Orientation="Horizontal" Spacing="6">
+              <fc:SymbolIcon Symbol="Document" FontSize="13" VerticalAlignment="Center" />
+              <TextBlock Text="本页源码" VerticalAlignment="Center" />
+            </StackPanel>
+          </Button>
+          <Border Width="1" Height="16" Margin="8,0"
+                  Background="{DynamicResource DividerStrokeColorDefaultBrush}" />
+          <!-- 开关文字写在轨道右侧（On/Off 两态同文），不占 Content 那行抬头 -->
+          <ToggleSwitch x:Name="ThemeToggle" OnContent="深色主题" OffContent="深色主题"
+                        VerticalAlignment="Center" />
+          <ToggleSwitch x:Name="MotionToggle" OnContent="动效 0.25×" OffContent="动效 0.25×"
+                        Margin="12,0,0,0" VerticalAlignment="Center" />
+        </StackPanel>
+      </Grid>
+
+      <Grid Grid.Row="1" ColumnDefinitions="280,*">
+
+        <!-- 左侧：搜索 + 11 组目录，都骑在 base layer 上 -->
+        <Grid Grid.Column="0" RowDefinitions="Auto,*">
+          <TextBox x:Name="TocSearch"
+                   Grid.Row="0"
+                   Margin="12,2,12,8"
+                   Watermark="搜索控件 (Ctrl+F)" />
+          <ScrollViewer Grid.Row="1" Padding="4,0,4,16">
+            <ListBox x:Name="Toc"
+                     Background="Transparent"
+                     BorderThickness="0"
+                     SelectionMode="Single" />
+          </ScrollViewer>
+        </Grid>
+
+        <!-- content layer：从右下角贴上来，只圆左上角 —— Win11 设置界面的做法 -->
+        <Border Grid.Column="1"
+                Background="{DynamicResource LayerFillColorDefaultBrush}"
+                BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+                BorderThickness="1,1,0,0"
+                CornerRadius="8,0,0,0">
+          <ScrollViewer x:Name="ContentScroll" Padding="32,24,32,64">
+            <ContentControl x:Name="PageHost" />
+          </ScrollViewer>
         </Border>
-      </StackPanel>
-
-      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
-        <CheckBox x:Name="ThemeToggle" Content="深色主题" />
-        <CheckBox x:Name="MotionToggle" Content="动效 0.25×" />
-      </StackPanel>
+      </Grid>
     </Grid>
 
-    <Grid Grid.Row="1" ColumnDefinitions="280,*">
-
-      <!-- 左侧目录：11 组分类 -->
-      <ScrollViewer Grid.Column="0" Padding="4,0,4,16">
-        <ListBox x:Name="Toc"
-                 Background="Transparent"
-                 BorderThickness="0"
-                 SelectionMode="Single" />
-      </ScrollViewer>
-
-      <!-- content layer：从右下角贴上来，只圆左上角 —— Win11 设置界面的做法 -->
-      <Border Grid.Column="1"
-              Background="{DynamicResource LayerFillColorDefaultBrush}"
-              BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
-              BorderThickness="1,1,0,0"
-              CornerRadius="8,0,0,0">
-        <ScrollViewer x:Name="ContentScroll" Padding="32,24,32,64">
-          <ContentControl x:Name="PageHost" />
-        </ScrollViewer>
-      </Border>
-    </Grid>
-  </Grid>
+    <g:SourceViewer x:Name="SourceOverlay" />
+  </Panel>
 </Window>

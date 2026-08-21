@@ -11,7 +11,7 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="高 32 · 最小宽 64 · 内边距 11,5,11,6（上下不对称，补偿 Segoe 基线）。底边比其余三边深一档，按下时底边变平——这是最能决定「像不像原生」的细节。" />
+               Text="高 32 · 最小宽 64 · 内边距 11,5,11,6（上下不对称，补偿 Segoe 基线）。底边比其余三边深一档，按下时底边变平——这是最能决定原生观感还原度的细节。" />
 
     <TextBlock Classes="sub" Text="Standard — 状态矩阵" />
     <g:SpecMatrix>
@@ -34,7 +34,7 @@
       </g:SpecMatrix.Sample>
     </g:SpecMatrix>
 
-    <TextBlock Classes="sub" Text="试玩" />
+    <TextBlock Classes="sub" Text="交互演示" />
     <Border Classes="play">
       <StackPanel Spacing="12">
         <StackPanel Orientation="Horizontal" Spacing="12">
@@ -43,15 +43,15 @@
           <Button Classes="subtle" Content="刷新" />
         </StackPanel>
         <TextBlock Classes="note"
-                   Text="按住任意按钮体会 :pressed 时底边从 2 色变 1 色的「按平」效果。右上角「动效 0.25×」可以慢放看清 83ms 里发生了什么。" />
+                   Text="按住任意按钮可观察 :pressed 时底边从 2 色变为 1 色、视觉上被按平的效果。右上角「动效 0.25×」可慢放查看 83ms 内的完整过渡。" />
       </StackPanel>
     </Border>
 
-    <g:MapBlock Note="底边渐变描边用 ControlElevationBorderBrush（上浅下深的 LinearGradientBrush），accent 版用 AccentControlElevationBorderBrush，不用自己拼上下两档描边色。">
+    <g:MapBlock Note="底边渐变描边用 ControlElevationBorderBrush（上浅下深的 LinearGradientBrush），accent 版用 AccentControlElevationBorderBrush，无需手动组合上下两档描边色。">
       <g:MapRow Key="控件" Value="Button · RepeatButton · HyperlinkButton" />
       <g:MapRow Key="Classes" Value="accent · subtle · icon" />
       <g:MapRow Key="资源键" Value="ControlFillColorDefault/Secondary/TertiaryBrush · ControlElevationBorderBrush · AccentFillColorDefault/Secondary/TertiaryBrush · TextOnAccentFillColorPrimaryBrush" />
-      <g:MapRow Key="Template" Value="ContentPresenter 单层，状态全部走 Setter" />
+      <g:MapRow Key="Template" Value="ContentPresenter 单层，状态全部由 Setter 实现" />
     </g:MapBlock>
 
   </StackPanel>

@@ -11,7 +11,7 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="轨道 4px，拇指 20×20 圆形，内点 12×12。内点跟着状态缩放：悬停 14、按下 10。工业界面里 Slider 通常要配一个 NumberBox 做精确输入——纯拖拽调不到精确值，操作员会烦。" />
+               Text="轨道 4px，拇指 20×20 圆形，内点 12×12。内点随状态缩放：悬停 14、按下 10。工业界面中 Slider 通常需搭配 NumberBox 提供精确输入——纯拖拽难以调至精确值，会对操作员造成不便。" />
 
     <TextBlock Classes="sub" Text="状态矩阵" />
     <g:SpecMatrix>
@@ -34,7 +34,7 @@
       <Slider Orientation="Vertical" Height="160" Minimum="0" Maximum="100" Value="70" />
     </Border>
 
-    <TextBlock Classes="sub" Text="试玩 — Slider 配 NumberBox" />
+    <TextBlock Classes="sub" Text="交互演示 — Slider 搭配 NumberBox" />
     <Border Classes="play">
       <StackPanel Spacing="12">
         <StackPanel Orientation="Horizontal" Spacing="16" VerticalAlignment="Center">
@@ -45,11 +45,11 @@
                      Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
         </StackPanel>
         <TextBlock Classes="note" MaxWidth="700"
-                   Text="两边双向联动。悬停拇指看内点变大，按住看它缩小——83ms 的差别只能靠手感判断。" />
+                   Text="两个控件双向联动。悬停拇指时内点放大，按住时缩小——83ms 的差别仅能通过实际操作感知。" />
       </StackPanel>
     </Border>
 
-    <g:MapBlock Note="工业界面里 Slider 通常要配一个 NumberBox 做精确输入——纯拖拽调不到精确值。">
+    <g:MapBlock Note="工业界面中 Slider 通常需搭配 NumberBox 提供精确输入——纯拖拽难以调至精确值。">
       <g:MapRow Key="控件" Value="Slider（横竖两向）" />
       <g:MapRow Key="属性" Value="TickFrequency · TickPlacement · IsSnapToTickEnabled · Minimum / Maximum" />
       <g:MapRow Key="资源键" Value="ControlStrongFillColorDefaultBrush（未填充轨道）· AccentFillColorDefaultBrush（已填充 / 内点）· ControlSolidFillColorDefaultBrush（拇指底）" />

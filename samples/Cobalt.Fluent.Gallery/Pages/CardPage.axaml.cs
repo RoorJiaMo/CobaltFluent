@@ -24,7 +24,7 @@ public partial class CardPage : UserControl
             {
                 if (!card.IsClickable)
                 {
-                    log.Text = "静态卡片：没有反馈，也不该有响应。";
+                    log.Text = "静态卡片：无反馈，按设计不产生响应。";
                     return;
                 }
 
@@ -56,8 +56,8 @@ public partial class CardPage : UserControl
             }
 
             log.Text = clickable
-                ? "悬停、按下、点一张卡片试试。"
-                : "拨回静态：悬停和按下都没了底色变化，整排卡片重新变成三块分区。";
+                ? "可对任意卡片执行悬停、按下与点击操作。"
+                : "已切换回静态：悬停与按下不再改变底色，整排卡片恢复为三块分区。";
         };
     }
 }

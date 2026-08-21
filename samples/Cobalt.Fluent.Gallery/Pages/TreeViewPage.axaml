@@ -12,7 +12,7 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="项高 32（比 ListBox 矮），每级缩进 16px。展开箭头 24×24 在最左，旋转 90°，叶节点位置留空但不显示箭头——否则同级文字会对不齐。" />
+               Text="项高 32（比 ListBox 矮），每级缩进 16px。展开箭头 24×24 在最左，旋转 90°，叶节点位置留空但不显示箭头——否则同级文字无法对齐。" />
 
     <TextBlock Classes="sub" Text="设备树 — 机台 → 通道 → 传感器" />
     <Border Classes="panel">
@@ -79,11 +79,11 @@
         </TreeView>
 
         <TextBlock Classes="note" MaxWidth="700"
-                   Text="选中的「温度」在第三层，指示条仍然是 3×16 贴在整行最左——它压在行的左边缘上，不跟着缩进走，和 ListBoxItem / NavigationViewItem / ComboBoxItem 是同一根。缩进只作用在箭头和文字上。" />
+                   Text="选中的「温度」位于第三层，指示条仍为 3×16 且位于整行最左——固定在行的左边缘，不随缩进移动，与 ListBoxItem / NavigationViewItem / ComboBoxItem 的指示条为同一元素规格。缩进只作用于箭头和文字。" />
       </StackPanel>
     </Border>
 
-    <TextBlock Classes="sub" Text="状态 — hover 和选中同一档底色，靠指示条区分" />
+    <TextBlock Classes="sub" Text="状态 — hover 与选中为同一档底色，由指示条区分" />
     <Border Classes="panel">
       <StackPanel Spacing="12">
         <!-- 这一排没用 g:SpecMatrix：TreeViewItem 离开 TreeView 后 Level 会算成 -2，
@@ -108,11 +108,11 @@
         </StackPanel>
 
         <TextBlock Classes="note" MaxWidth="700"
-                   Text="选中行不再吃 hover 底，否则指针扫过一列选中项时整片都在闪。禁用那格顺手带上选中，让指示条也走一次禁用色——禁用不是只把文字调灰。:pressed 没有单独一档：树里按下去就是选中，中间那一帧没有信息量。聚焦框走 FocusAdorner，只圈 PART_LayoutRoot 那一行；展开着的节点不会把整棵子树一起圈进去。" />
+                   Text="选中行不叠加 hover 底色，否则指针掠过一列选中项时会出现成片闪烁。禁用示例同时设置了选中态，以展示指示条同样应用禁用色——禁用不只是将文字调灰。:pressed 没有单独一档：树中按压即选中，中间状态不承载信息。聚焦框由 FocusAdorner 绘制，仅框选 PART_LayoutRoot 所在的一行；已展开的节点不会将整棵子树一并框入。" />
       </StackPanel>
     </Border>
 
-    <TextBlock Classes="sub" Text="缩进与箭头 — 层级由模板按 Level 算" />
+    <TextBlock Classes="sub" Text="缩进与箭头 — 层级由模板按 Level 计算" />
     <Border Classes="panel">
       <StackPanel Spacing="12">
         <TreeView Width="320">
@@ -149,11 +149,11 @@
         </TreeView>
 
         <TextBlock Classes="note" MaxWidth="700"
-                   Text="四级 = 0 / 16 / 32 / 48，一路是模板拿 TreeViewItem.Level 乘 16 算出来的，任意深度自动成立。「搅拌」是叶子，箭头那 24px 留着不画，所以它和同级的「温度」文字起点对齐——箭头真收起来的话这一行会整体左移 24。" />
+                   Text="四级 = 0 / 16 / 32 / 48，均由模板以 TreeViewItem.Level 乘 16 计算得出，任意深度自动成立。「搅拌」是叶节点，箭头的 24px 位置保留但不绘制，因此与同级「温度」的文字起点对齐——若该位置整体收起，此行会整体左移 24。" />
       </StackPanel>
     </Border>
 
-    <TextBlock Classes="sub" Text="试玩 — 展开 / 收起 / 选中路径" />
+    <TextBlock Classes="sub" Text="交互演示 — 展开 / 收起 / 选中路径" />
     <Border Classes="play">
       <StackPanel Spacing="12">
         <StackPanel Orientation="Horizontal" Spacing="24">
@@ -208,13 +208,13 @@
             </StackPanel>
             <TextBlock x:Name="PathText" TextWrapping="Wrap" Text="选中路径：（未选）" />
             <TextBlock Classes="note"
-                       Text="点节点选中，点箭头只展开不选中——两件事分开，工程师展开一路找传感器时不会顺手把当前选中项换掉。方向键 ← → 也能收展当前行。" />
+                       Text="点击节点执行选中，点击箭头仅展开、不选中——两种操作相互独立，逐级展开查找传感器时不会意外更改当前选中项。方向键 ← → 同样可收起 / 展开当前行。" />
           </StackPanel>
         </StackPanel>
       </StackPanel>
     </Border>
 
-    <g:MapBlock Note="缩进由模板的 Margin 按 Level 算，别一层一个写死的类——那样只能撑到你写到的那一层。展开态没有 :expanded 伪类可用——11.3 的 TreeViewItem 只有 :pressed / :selected / :empty，箭头那 90° 挂在 PART_ExpandCollapseChevron 的 IsChecked 上（和 IsExpanded 双向绑，等价）。叶子的箭头用 Opacity=0 而不是 IsVisible=False：那 24px 一塌，同级文字就对不齐。">
+    <g:MapBlock Note="缩进由模板的 Margin 按 Level 计算，不应为每一层单独写死一个类——该做法仅能覆盖已写出的层级。展开态没有 :expanded 伪类可用——11.3 的 TreeViewItem 只有 :pressed / :selected / :empty，箭头的 90° 旋转挂在 PART_ExpandCollapseChevron 的 IsChecked 上（与 IsExpanded 双向绑定，等价）。叶节点的箭头用 Opacity=0 而非 IsVisible=False：该 24px 空间一旦塌陷，同级文字将无法对齐。">
       <g:MapRow Key="控件" Value="TreeView · TreeViewItem（层级数据走 TreeDataTemplate，大表走 HierarchicalTreeDataGridSource）" />
       <g:MapRow Key="缩进" Value="PART_Header.Margin ← TreeViewItem.Level × 16（MarginMultiplierConverter，Left=True）" />
       <g:MapRow Key="选择器" Value="TreeViewItem:selected（指示条）· TreeViewItem:pointerover:not(:selected)· TreeViewItem:empty /template/ ToggleButton#PART_ExpandCollapseChevron（叶子，留位不画）· ToggleButton#PART_ExpandCollapseChevron:checked（展开转 90°）" />

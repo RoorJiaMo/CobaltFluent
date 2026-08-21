@@ -12,7 +12,7 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="高 48，AppBarButton 40×40（带标签时更宽）。属于 base layer——不要把它放进 content layer 再套卡片，那样层级就错了。" />
+               Text="高 48，AppBarButton 40×40（带标签时更宽）。属于 base layer——不应放入 content layer 再包裹卡片，否则层级错误。" />
 
     <TextBlock Classes="sub" Text="主命令栏 — 图标上、文字下" />
 
@@ -45,7 +45,7 @@
     </Border>
 
     <TextBlock Classes="note"
-               Text="「停止」灰着是因为没在跑，不是摆设——命令栏上的按钮该禁用就禁用，别用弹提示代替。分隔线把「过程控制」和「数据」两组隔开，一条栏里超过三组就该考虑拆栏了。" />
+               Text="「停止」呈禁用态是因为当前未在运行，并非装饰——命令栏上的按钮应在不可用时禁用，而非以弹出提示代替。分隔线将「过程控制」与「数据」两组分开，同一条栏超过三组时应考虑拆分。" />
 
     <TextBlock Classes="sub" Text="DefaultLabelPosition — Bottom / Right / Collapsed" />
     <Border Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
@@ -61,7 +61,7 @@
           <fc:AppBarSeparator />
           <fc:AppBarButton Icon="Save" Label="保存" />
         </fc:CommandBar>
-        <TextBlock Classes="note" Margin="12,0,12,8" Text="Bottom — 默认。标签 11px，按钮按文字撑宽。" />
+        <TextBlock Classes="note" Margin="12,0,12,8" Text="Bottom — 默认。标签 11px，按钮宽度随文字扩展。" />
 
         <fc:CommandBar DefaultLabelPosition="Right">
           <fc:AppBarButton Icon="Play" Label="运行" />
@@ -69,7 +69,7 @@
           <fc:AppBarSeparator />
           <fc:AppBarButton Icon="Save" Label="保存" />
         </fc:CommandBar>
-        <TextBlock Classes="note" Margin="12,0,12,8" Text="Right — 标签升到正文字号，一行放不下几个，适合命令少而名字长的场合。" />
+        <TextBlock Classes="note" Margin="12,0,12,8" Text="Right — 标签升至正文字号，单行可容纳的数量有限，适合命令少而名称长的场合。" />
 
         <fc:CommandBar DefaultLabelPosition="Collapsed">
           <fc:AppBarButton Icon="Play" Label="运行" ToolTip.Tip="运行" />
@@ -77,14 +77,14 @@
           <fc:AppBarSeparator />
           <fc:AppBarButton Icon="Save" Label="保存" ToolTip.Tip="保存" />
         </fc:CommandBar>
-        <TextBlock Classes="note" Margin="12,0,12,4" Text="Collapsed — Label 照写不删，只是不显示；ToolTip 和读屏还得靠它。" />
+        <TextBlock Classes="note" Margin="12,0,12,4" Text="Collapsed — Label 仍须填写，仅不显示；ToolTip 与读屏依赖该值。" />
       </StackPanel>
     </Border>
 
     <TextBlock Classes="note"
-               Text="子项没单独设过 LabelPosition 才跟着栏走，挂上可视树的那一刻取一次值。要让整栏跟着运行时切换，得逐个按钮改 LabelPosition。" />
+               Text="子项仅在未单独设置 LabelPosition 时跟随栏的默认值，且仅在挂入可视树时取值一次。要使整栏在运行时切换，需逐个按钮修改 LabelPosition。" />
 
-    <TextBlock Classes="sub" Text="AppBarButton 状态 — 无底色，全靠 subtle 层反馈" />
+    <TextBlock Classes="sub" Text="AppBarButton 状态 — 无底色，反馈完全由 subtle 层提供" />
     <g:SpecMatrix States="rest,pointerover,pressed,disabled,focus">
       <g:SpecMatrix.Sample>
         <DataTemplate>
@@ -94,7 +94,7 @@
     </g:SpecMatrix>
 
     <TextBlock Classes="note"
-               Text="rest 完全透明，:pointerover 才浮出 SubtleFillColorSecondary。命令栏一排十几个按钮，各带一块底色就成了色块墙——所以底色只在指针底下那一个上出现。" />
+               Text="rest 完全透明，:pointerover 时才显示 SubtleFillColorSecondary。命令栏中一排十几个按钮若各带底色，会连成大片色块——因此底色仅出现在指针所在的按钮上。" />
 
     <TextBlock Classes="sub" Text="仅图标（紧凑）" />
     <Border Background="{DynamicResource SolidBackgroundFillColorBaseBrush}"
@@ -113,9 +113,9 @@
     </Border>
 
     <TextBlock Classes="note"
-               Text="紧凑模式每个按钮都要配 ToolTip。溢出的命令收进右端「…」按钮的 MenuFlyout，不要横向滚动。" />
+               Text="紧凑模式下每个按钮均须配 ToolTip。溢出的命令收入右端「…」按钮的 MenuFlyout，不使用横向滚动。" />
 
-    <TextBlock Classes="sub" Text="试玩 — 标签位置切换 + 溢出菜单" />
+    <TextBlock Classes="sub" Text="交互演示 — 标签位置切换 + 溢出菜单" />
     <Border Classes="play">
       <StackPanel Spacing="16">
 
@@ -164,14 +164,14 @@
         <TextBlock x:Name="StatusText" Classes="note" Margin="0" Text="状态：待机" />
 
         <TextBlock Classes="note" MaxWidth="700"
-                   Text="切到 Collapsed 时整栏一下子窄一大截，右端的「更多」跟着往左收——命令栏的宽度是算出来的，别在外面写死。运行 / 暂停 / 停止 互相禁用：能不能点由状态决定，点了不该点的再弹提示是下策。" />
+                   Text="切换到 Collapsed 时整栏宽度明显收窄，右端的「更多」随之左移——命令栏宽度由内容计算得出，不应在外部硬编码。运行 / 暂停 / 停止 相互禁用：可用性由状态决定，先允许点按再以提示告知无效是较差的方案。" />
       </StackPanel>
     </Border>
 
-    <g:MapBlock Note="本库的 CommandBar 是个 ItemsControl，没有 PrimaryCommands / SecondaryCommands 和 IsOpen——溢出自己在右端摆一个 Icon=More 的 AppBarButton 挂 MenuFlyout。子项的 LabelPosition 只在挂上可视树时取一次栏上的默认值，运行时切换要逐个按钮改。">
+    <g:MapBlock Note="本库的 CommandBar 为 ItemsControl，不含 PrimaryCommands / SecondaryCommands 与 IsOpen——溢出由调用方在右端放置一个 Icon=More 的 AppBarButton 并挂接 MenuFlyout。子项的 LabelPosition 仅在挂入可视树时读取一次栏上的默认值，运行时切换需逐个按钮修改。">
       <g:MapRow Key="控件" Value="fc:CommandBar : ItemsControl · fc:AppBarButton : Button · fc:AppBarSeparator : TemplatedControl" />
       <g:MapRow Key="属性" Value="CommandBar.DefaultLabelPosition={Bottom,Right,Collapsed} · AppBarButton.Icon:Symbol · AppBarButton.Label · AppBarButton.LabelPosition" />
-      <g:MapRow Key="伪类" Value="AppBarButton:label-bottom · :label-right · :label-collapsed（由 LabelPosition 推出来）" />
+      <g:MapRow Key="伪类" Value="AppBarButton:label-bottom · :label-right · :label-collapsed（由 LabelPosition 推导）" />
       <g:MapRow Key="资源键" Value="CommandBar.Background → Transparent（继承 base layer）· CommandBarHeight=48 · SubtleFillColorSecondaryBrush（:pointerover）· SubtleFillColorTertiaryBrush（:pressed）· DividerStrokeColorDefaultBrush（分隔线）" />
     </g:MapBlock>
 

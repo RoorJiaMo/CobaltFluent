@@ -12,7 +12,7 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="带 beak（尖角）指向目标元素的引导浮层。实色底不是亚克力——它要压住底下的内容才读得清。用于首次使用引导，不要用它做常规提示。" />
+               Text="带 beak（尖角）指向目标元素的引导浮层。实色底而非亚克力——须遮蔽下层内容以保证文字可读。用于首次使用引导，不用于常规提示。" />
 
     <TextBlock Classes="sub" Text="本体 — 标题 + 一句正文 + 最多两个按钮" />
     <Border Classes="panel">
@@ -29,9 +29,9 @@
       </StackPanel>
     </Border>
     <TextBlock Classes="note"
-               Text="beak 位置要对准触发元素，默认离左边 24px。同一次会话里最多出现一个 TeachingTip——连着弹两个就成了骚扰，第三个开始没人看。标题一行、正文一句，说不完的东西该进文档或 ContentDialog，不该往这里塞。样张里点「知道了」会立刻弹回来：规格图不能被点没。" />
+               Text="beak 位置须对准触发元素，默认距左边 24px。同一会话内最多出现一个 TeachingTip——连续弹出两个即构成打扰，自第三个起不再被阅读。标题一行、正文一句，容纳不下的内容应放入文档或 ContentDialog，不应放在此处。样张中点按「知道了」会立即重新打开：规格样张不应因点按而消失。" />
 
-    <TextBlock Classes="sub" Text="四个方向 — Placement 说的是提示在目标的哪一侧，beak 画在对侧" />
+    <TextBlock Classes="sub" Text="四个方向 — Placement 指提示位于目标的哪一侧，beak 绘制在对侧" />
     <Border Classes="panel">
       <!-- 中间那颗按钮是唯一的目标，四条提示各占一边，beak 都对着它。
            上下两条跨列、左右两条跨行：不跨的话，220 宽的提示会把中间那格撑到 220，
@@ -70,37 +70,37 @@
       </Grid>
     </Border>
     <TextBlock Classes="note"
-               Text="这四条把关闭按钮留空只是为了排得下——真正弹给用户看的那条必须留一个出口。选哪个方向看的是空间：提示绝不能盖住它正在介绍的那个东西，宁可换边也别压上去。" />
+               Text="这四条示例将关闭按钮留空仅为排版所需——实际向用户弹出的提示必须保留关闭出口。方向的选择取决于可用空间：提示不得遮盖其所介绍的目标元素，空间不足时应改换方向。" />
 
-    <TextBlock Classes="sub" Text="和 ToolTip 的区别 — 不是「小提示」和「大提示」" />
+    <TextBlock Classes="sub" Text="与 ToolTip 的区别 — 并非「小提示」与「大提示」之分" />
     <Border Classes="panel">
       <StackPanel Orientation="Horizontal" Spacing="40">
 
         <StackPanel Spacing="10" Width="280">
-          <TextBlock Classes="note" Margin="0" Text="ToolTip — 悬停即现，移开即走" />
+          <TextBlock Classes="note" Margin="0" Text="ToolTip — 悬停即显示，移开即消失" />
           <Button Content="下发配方" HorizontalAlignment="Left"
                   ToolTip.Tip="把当前配方写入设备，运行中不可下发" />
           <TextBlock Classes="note"
-                     Text="用户自己去问才有，没有按钮、不用关、也不记录看没看过；同一个按钮悬停一百次弹一百次。它答的是「这东西是什么」。" />
+                     Text="仅在用户主动悬停时出现，无按钮、无需关闭、不记录已读状态；同一按钮悬停一百次即显示一百次。其回答的问题是「这是什么」。" />
         </StackPanel>
 
         <StackPanel Spacing="10" Width="300">
-          <TextBlock Classes="note" Margin="0" Text="TeachingTip — 主动弹出，要用户确认" />
+          <TextBlock Classes="note" Margin="0" Text="TeachingTip — 程序主动弹出，需用户确认" />
           <fc:TeachingTip x:Name="CompareTip" Width="300"
                           Title="配方现在能下发到多台设备"
                           Subtitle="选中多台设备后再点下发，参数一次写到底。"
                           ActionButtonContent="试一次"
                           CloseButtonContent="知道了" />
           <TextBlock Classes="note"
-                     Text="程序自己弹出来的，不点掉不会走；点掉了就得记下来，下次不再弹。它讲的是「这儿新增了什么、去哪儿用」——用户本来没在找它。" />
+                     Text="由程序主动弹出，未经点按关闭不会消失；关闭后须记录已读，下次不再弹出。其说明的是「新增了什么、在何处使用」——用户原本并未寻找该信息。" />
         </StackPanel>
 
       </StackPanel>
     </Border>
     <TextBlock Classes="note"
-               Text="分界线很清楚：这句话能不能等用户想起来再看？能，就是 ToolTip。反过来把常驻说明塞进 TeachingTip，用户一关，那句话就再也找不回来了——引导是一次性的，说明不是。" />
+               Text="判定标准明确：内容若可等到用户需要时再查看，即适用 ToolTip。反之，将常驻说明放入 TeachingTip，用户关闭后该信息无法再次获取——引导是一次性的，说明不是。" />
 
-    <TextBlock Classes="sub" Text="试玩 — 一次性引导的完整一轮" />
+    <TextBlock Classes="sub" Text="交互演示 — 一次性引导的完整流程" />
     <Border Classes="play">
       <StackPanel Spacing="16">
 
@@ -119,22 +119,22 @@
                           CloseButtonContent="知道了" />
         </StackPanel>
 
-        <Button x:Name="Rearm" Content="清掉「已读」再弹一次" HorizontalAlignment="Left" />
+        <Button x:Name="Rearm" Content="清除「已读」标记并再次弹出" HorizontalAlignment="Left" />
 
         <TextBlock x:Name="PlayLog" Classes="note" MaxWidth="700" />
         <TextBlock Classes="note" MaxWidth="700"
-                   Text="两个按钮点哪个都算已读，没有第三条出路——「以后再说」这种选项只会让同一条引导天天回来。动作按钮是「点完就带我过去」，不是「点完再关一次」：ActionCommand 跑完控件自己就关了。" />
+                   Text="两个按钮点按任一均记为已读，不设第三种出路——「以后再说」类选项会导致同一条引导反复出现。动作按钮的语义是「点按后直接前往目标」，而非「点按后还需再关闭一次」：ActionCommand 执行完毕后控件自动关闭。" />
 
       </StackPanel>
     </Border>
 
-    <g:MapBlock Note="WinUI 的 Target / PreferredPlacement / IsLightDismissEnabled 本库都没有：这个 TeachingTip 就地放进布局，位置由调用方摆——嵌入式全屏应用没有窗口边界要躲，多套一层 Popup 在 X11 下反而会闪。轻关闭也是故意不做的，点旁边就消失的引导等于没弹过。">
-      <g:MapRow Key="类型" Value="TeachingTip : TemplatedControl（Avalonia 本体没有，本库自带）" />
-      <g:MapRow Key="属性" Value="Title · Subtitle · ActionButtonContent · CloseButtonContent（默认「知道了」）· ActionCommand · Placement={Top,Bottom,Left,Right}（默认 Bottom）· IsOpen（双向，跟 IsVisible 联动）" />
-      <g:MapRow Key="成员" Value="Close()（幂等）· Closed 事件——两个按钮都走它，动作按钮先执行 ActionCommand 再关" />
-      <g:MapRow Key="伪类" Value=":top / :bottom / :left / :right —— 从 Placement 推出来，主题拿它把 beak 挪到对侧、换掉留边的那两条" />
-      <g:MapRow Key="资源键" Value="WinUI 的 TeachingTipTransientBackground 在本库落到 SolidBackgroundFillColorQuarternaryBrush（实色，不是亚克力）· SurfaceStrokeColorFlyoutBrush · OverlayCornerRadius（8px）" />
-      <g:MapRow Key="阴影" Value="BoxShadow=&quot;0 8 16 0 #24000000, 0 0 2 0 #1F000000&quot;（shadow-flyout，和 Flyout 同档；全库只有弹出层能用阴影）" />
+    <g:MapBlock Note="WinUI 的 Target / PreferredPlacement / IsLightDismissEnabled 本库均未实现：该 TeachingTip 就地置于布局中，位置由调用方确定——嵌入式全屏应用无需规避窗口边界，多套一层 Popup 在 X11 下反而会闪烁。轻关闭同为有意不实现：点按旁侧即消失的引导等同于未弹出。">
+      <g:MapRow Key="类型" Value="TeachingTip : TemplatedControl（Avalonia 本体未提供，本库自带）" />
+      <g:MapRow Key="属性" Value="Title · Subtitle · ActionButtonContent · CloseButtonContent（默认「知道了」）· ActionCommand · Placement={Top,Bottom,Left,Right}（默认 Bottom）· IsOpen（双向，与 IsVisible 联动）" />
+      <g:MapRow Key="成员" Value="Close()（幂等）· Closed 事件——两个按钮均经由该事件，动作按钮先执行 ActionCommand 再关闭" />
+      <g:MapRow Key="伪类" Value=":top / :bottom / :left / :right——由 Placement 推导，主题据此将 beak 移至对侧、并更换留边的那两条" />
+      <g:MapRow Key="资源键" Value="WinUI 的 TeachingTipTransientBackground 在本库映射为 SolidBackgroundFillColorQuarternaryBrush（实色，非亚克力）· SurfaceStrokeColorFlyoutBrush · OverlayCornerRadius（8px）" />
+      <g:MapRow Key="阴影" Value="BoxShadow=&quot;0 8 16 0 #24000000, 0 0 2 0 #1F000000&quot;（shadow-flyout，与 Flyout 同档；全库仅弹出层可使用阴影）" />
     </g:MapBlock>
 
   </StackPanel>

@@ -12,7 +12,7 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="项高 40（对齐 WinUI）—— 早前 starter.html 里写的是 36，以本库为准。选中项左侧是 3×16 的指示条，不是整行变色。展开 280 / 紧凑 48。" />
+               Text="项高 40，对齐 WinUI。选中项以左侧 3×16 指示条标识，而非整行变色。展开态宽 280，紧凑态宽 48。" />
 
     <TextBlock Classes="sub" Text="展开态" />
     <Border Classes="panel" Padding="0">
@@ -34,7 +34,7 @@
       </fc:NavigationView>
     </Border>
 
-    <TextBlock Classes="sub" Text="紧凑态 — 48 宽，只留图标" />
+    <TextBlock Classes="sub" Text="紧凑态 — 48 宽，仅显示图标" />
     <Border Classes="panel" Padding="0">
       <fc:NavigationView x:Name="Compact" Width="480" Height="280"
                          PaneDisplayMode="LeftCompact">
@@ -46,15 +46,15 @@
       </fc:NavigationView>
     </Border>
 
-    <TextBlock Classes="sub" Text="试玩 — 切换形态" />
+    <TextBlock Classes="sub" Text="交互演示 — 切换形态" />
     <Border Classes="play">
       <StackPanel Spacing="12">
         <Button x:Name="TogglePane" Content="切换展开 / 紧凑" />
-        <TextBlock x:Name="NavLog" Classes="note" Text="点导航项看左侧指示条。" />
+        <TextBlock x:Name="NavLog" Classes="note" Text="点击导航项，左侧显示选中指示条。" />
       </StackPanel>
     </Border>
 
-    <g:MapBlock Note="选中指示条是模板里的一个 Border（3×16，圆角 1.5），绑 :selected 显隐。整行变色是 Fluent v1 的做法，Win11 不是这样。紧凑态由 NavigationView 逐项转达给子项——ControlTheme 里不允许写后代选择器。">
+    <g:MapBlock Note="选中指示条是模板里的一个 Border（3×16，圆角 1.5），由 :selected 控制显隐。整行变色是 Fluent v1 的做法，Win11 已不采用。紧凑态由 NavigationView 逐项传递给子项——ControlTheme 里不允许写后代选择器。">
       <g:MapRow Key="控件" Value="NavigationView · NavigationViewItem · NavigationViewItemHeader · NavigationViewItemSeparator" />
       <g:MapRow Key="属性" Value="PaneDisplayMode=Left/LeftCompact · OpenPaneLength=280 · CompactPaneLength=48 · MenuItems / FooterItems · Header · Content · SelectedItem" />
       <g:MapRow Key="伪类" Value="NavigationView:compact · NavigationViewItem:selected / :compact" />

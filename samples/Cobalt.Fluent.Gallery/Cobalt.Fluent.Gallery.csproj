@@ -20,4 +20,18 @@
     <ProjectReference Include="../../src/Cobalt.Fluent/Cobalt.Fluent.csproj" />
   </ItemGroup>
 
+  <!-- 「查看源码」的原文。axaml 会被编译成二进制资源，运行时拿不回文本，
+       所以把原文再嵌一份进程序集：页面示例 + 控件层 ControlTheme + 控件类。
+       LogicalName 里的 %(RecursiveDir) 在 Windows 上出反斜杠，SourceIndex 读的时候统一成 /。 -->
+  <ItemGroup>
+    <EmbeddedResource Include="Pages/*.axaml" LogicalName="src://pages/%(Filename)%(Extension)" />
+    <EmbeddedResource Include="Pages/*.axaml.cs" LogicalName="src://pages/%(Filename)%(Extension)" />
+    <EmbeddedResource Include="../../src/Cobalt.Fluent/Themes/**/*.axaml"
+                      LogicalName="src://themes/%(RecursiveDir)%(Filename)%(Extension)"
+                      Visible="false" />
+    <EmbeddedResource Include="../../src/Cobalt.Fluent/Controls/**/*.cs"
+                      LogicalName="src://controls/%(RecursiveDir)%(Filename)%(Extension)"
+                      Visible="false" />
+  </ItemGroup>
+
 </Project>

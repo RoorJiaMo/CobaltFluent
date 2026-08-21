@@ -65,5 +65,5 @@ public partial class SettingsCardPage : UserControl
     }
 
     private static string Tag(SettingsCard card) =>
-        card.Classes.FirstOrDefault(c => c.StartsWith("settings-")) ?? "（未打类）";
+        card.Classes.FirstOrDefault(c => c.StartsWith("settings-")) ?? "（未施加类）";
 }

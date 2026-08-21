@@ -1,8 +1,27 @@
-<!-- 展柜自身的样式：页面标题、小节标题、说明小字、展示面板、试玩区那些。
+<!-- 展柜自身的样式：页面标题、小节标题、说明文字、展示面板、交互演示区。
      不属于控件库，用库的项目不需要它。 -->
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure">
+
+  <Styles.Resources>
+    <!-- 源码查看器的代码行容器：没有悬停底、没有选中指示条、没有 40 高——
+         它是逐行虚拟化的文本，不是可选列表。行高由内容出（12px 等宽 ≈ 18）。 -->
+    <ControlTheme x:Key="CodeLineContainer" TargetType="ListBoxItem">
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Margin" Value="0" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Focusable" Value="False" />
+      <Setter Property="Template">
+        <ControlTemplate TargetType="ListBoxItem">
+          <ContentPresenter Content="{TemplateBinding Content}"
+                            ContentTemplate="{TemplateBinding ContentTemplate}"
+                            Background="Transparent" />
+        </ControlTemplate>
+      </Setter>
+    </ControlTheme>
+  </Styles.Resources>
 
   <Style Selector="TextBlock.page-title">
     <Setter Property="Theme" Value="{StaticResource TitleTextBlockStyle}" />
@@ -55,7 +74,7 @@
     <Setter Property="HorizontalAlignment" Value="Left" />
   </Style>
 
-  <!-- 试玩区：蓝框。这一块是可操作实例，不是规格。 -->
+  <!-- 交互演示区：accent 描边。此区域为可操作实例，区别于状态矩阵的静态规格。 -->
   <Style Selector="Border.play">
     <Setter Property="Background" Value="{DynamicResource CardBackgroundFillColorDefaultBrush}" />
     <Setter Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}" />

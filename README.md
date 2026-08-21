@@ -2,9 +2,9 @@
 
 # Cobalt.Fluent
 
-**Windows 11 Fluent 控件库 for Avalonia**
+**Windows 11 Fluent 设计语言的 Avalonia 实现**
 
-57 个控件 · 11 组 · 明暗双主题 · **零第三方依赖** · 含一组工业 HMI 专用控件
+57 个控件 · 11 个分组 · 明暗双主题 · 零第三方依赖 · 内置工业 HMI 控件组
 
 [![build](https://github.com/RoorJiaMo/CobaltFluent/actions/workflows/build.yml/badge.svg)](https://github.com/RoorJiaMo/CobaltFluent/actions/workflows/build.yml)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -17,11 +17,11 @@
 
 ---
 
-## 它解决什么
+## 概述
 
-做过程控制、设备上位机这类界面时，通用控件库总差一层：读数刷新会抖、报警靠闪烁、点动按钮松手不停、参数下发后显示的是你输进去的值而不是设备真正接受的值。这些不是审美问题，是**会出事故的问题**。
+Cobalt.Fluent 在 Avalonia 11.3 上完整实现 Windows 11 Fluent 的视觉规格，并在此基础上提供一组面向过程控制界面的专用控件。
 
-Cobalt.Fluent 把 Windows 11 Fluent 的视觉规格完整实现了一遍，然后在上面补了一组过程界面真正需要的控件，并且把安全语义写死在控件里、用回归测试钉住。
+通用控件库在工业上位机场景中普遍存在以下不足：数值刷新引起布局抖动、报警依赖闪烁、点动按钮的停止条件不完备、参数下发后回显输入值而非设备实际接受值。这些问题直接影响操作安全，而非单纯的视觉问题。本库将相应的安全语义实现在控件内部，并以回归测试固定。
 
 <table>
 <tr>
@@ -29,28 +29,28 @@ Cobalt.Fluent 把 Windows 11 Fluent 的视觉规格完整实现了一遍，然�
 
 ### 零第三方依赖
 
-只用 Avalonia 本体、`Avalonia.Themes.Fluent`、`Avalonia.Controls.DataGrid` —— 三个都属于框架本体。图表是自绘的，图标是矢量路径。
+仅引用 Avalonia 本体、`Avalonia.Themes.Fluent` 与 `Avalonia.Controls.DataGrid` 三个框架自带包。图表自绘，图标为内置矢量路径。
 
 </td>
 <td width="25%" valign="top">
 
 ### 规格可验收
 
-每个控件都有状态矩阵，48 个章节在 CI 里逐页无头渲染，96 张截图渲染不出来就算失败。
+每个控件提供状态矩阵；CI 对 48 个章节逐页无头渲染共 96 张截图，渲染失败即构建失败。
 
 </td>
 <td width="25%" valign="top">
 
-### 嵌入式友好
+### 面向嵌入式
 
-不依赖 Segoe Fluent Icons，动效只动 transform 和 opacity，亚克力和微光都能一键关掉。
+不依赖 Segoe Fluent Icons 字体；动效仅作用于 transform 与 opacity；亚克力与微光效果均可关闭。
 
 </td>
 <td width="25%" valign="top">
 
-### 安全有测试
+### 安全语义有测试
 
-急停自锁、点动七重停止、心跳由事件驱动、读数过期保留最后值 —— 每条都有回归测试。
+急停自锁、点动多重停止、事件驱动心跳、读数过期保值等安全行为均由回归测试覆盖。
 
 </td>
 </tr>
@@ -74,8 +74,8 @@ dotnet add package Cobalt.Fluent
 </Application>
 ```
 
-切主题走 `Application.Current.RequestedThemeVariant`（`Light` / `Dark` / `Default`）。
-本库新写的控件都在 `Cobalt.Fluent.Controls`：
+主题切换使用 `Application.Current.RequestedThemeVariant`（`Light` / `Dark` / `Default`）。
+本库新增控件位于 `Cobalt.Fluent.Controls` 命名空间：
 
 ```xml
 xmlns:fc="using:Cobalt.Fluent.Controls"
@@ -93,7 +93,9 @@ xmlns:fc="using:Cobalt.Fluent.Controls"
 
 ---
 
-## 看一眼
+## 展柜
+
+展柜应用包含 48 个章节，每章节由四部分组成：视觉规格说明、状态矩阵、交互演示、资源键与伪类对照。
 
 <table>
 <tr>
@@ -101,44 +103,44 @@ xmlns:fc="using:Cobalt.Fluent.Controls"
 <td width="50%"><img src="docs/images/gallery-dark.png" alt="深色主题 —— HMI 读数" /></td>
 </tr>
 <tr>
-<td align="center"><sub>浅色 · 第 9 组 图表</sub></td>
-<td align="center"><sub>深色 · 第 7 组 工业 HMI</sub></td>
+<td align="center"><sub>浅色主题 · 第 9 组 图表</sub></td>
+<td align="center"><sub>深色主题 · 第 7 组 工业 HMI</sub></td>
 </tr>
 </table>
 
-每一节都先摆状态矩阵、再给可操作的试玩实例，最后一块是这一节用到的资源键和伪类：
+每一页均提供「本页源码」：当前页面的示例 XAML 与 C#，以及该章节控件在库中的 ControlTheme 与控件类实现，带行号与语法着色，支持一键复制。
 
-<img src="docs/images/state-matrix.png" width="640" alt="Button 的三档变体 × 五个状态" />
+<img src="docs/images/source-viewer.png" width="720" alt="源码查看器 —— 展示示例与 ControlTheme 原文" />
 
 ```bash
-dotnet run --project samples/Cobalt.Fluent.Gallery    # 打开展柜
+dotnet run --project samples/Cobalt.Fluent.Gallery
 ```
 
 ---
 
-## 覆盖范围
+## 控件覆盖
 
-11 组，桌面基准 32px。
+11 个分组，桌面基准控件高度 32px。
 
 <details>
-<summary><b>展开完整清单（57 个控件）</b></summary>
+<summary><b>完整清单（57 个控件）</b></summary>
 
 <br>
 
 | 组 | 控件 | 来源 |
 |---|---|---|
 | **2** 基础输入 | Button · ToggleButton · SplitButton · DropDownButton · HyperlinkButton · TextBox · NumberBox · ComboBox · CheckBox · RadioButton · ToggleSwitch · Slider | Avalonia 内置 + 本库 ControlTheme |
-| **3** 容器 | Card · SettingsCard · SettingsGroup · Expander · TabControl · TabView · NavigationView | Card / SettingsCard / TabView / NavigationView 本库新写 |
-| **4** 集合 | ListBox · DataGrid · TreeView | ListBoxItem 重做 Template（加选中指示条） |
-| **5** 反馈 | InfoBar · InfoBadge · ProgressBar · ProgressRing · ToolTip | InfoBar / InfoBadge / ProgressRing 本库新写 |
-| **6** 弹出 | Flyout · MenuFlyout · ContentDialog · TeachingTip · CommandBar | ContentDialog / TeachingTip / CommandBar 本库新写 |
-| **7** HMI 专用 | Readout · StatusIndicator · AlarmBanner · ParameterRow · JogButton · EStopButton · DeviceStatusBar | 全部本库新写 |
-| **8** 日期时间 | CalendarDatePicker · TimePicker · Calendar · RangeCalendar · DateRangePicker | 内置 + 本库 ControlTheme；RangeCalendar 补区间首尾伪类 |
-| **9** 图表 | ChartFrame · TrendChart · Gauge · BarChart · Sparkline · ChartLegend | 全部本库自绘 |
-| **10** 表格增强 | DataGridToolbar · Pagination · EmptyState · Skeleton | 全部本库新写 |
-| **11** 常用补充 | AutoSuggestBox · BreadcrumbBar · SegmentedControl · Chip · Stepper · GridSplitter · Toast · PersonPicture | 除 AutoCompleteBox / GridSplitter 外本库新写 |
+| **3** 容器 | Card · SettingsCard · SettingsGroup · Expander · TabControl · TabView · NavigationView | Card / SettingsCard / TabView / NavigationView 为本库实现 |
+| **4** 集合 | ListBox · DataGrid · TreeView | ListBoxItem 重写模板（增加选中指示条） |
+| **5** 反馈 | InfoBar · InfoBadge · ProgressBar · ProgressRing · ToolTip | InfoBar / InfoBadge / ProgressRing 为本库实现 |
+| **6** 弹出 | Flyout · MenuFlyout · ContentDialog · TeachingTip · CommandBar | ContentDialog / TeachingTip / CommandBar 为本库实现 |
+| **7** HMI 专用 | Readout · StatusIndicator · AlarmBanner · ParameterRow · JogButton · EStopButton · DeviceStatusBar | 全部为本库实现 |
+| **8** 日期时间 | CalendarDatePicker · TimePicker · Calendar · RangeCalendar · DateRangePicker | 内置 + 本库 ControlTheme；RangeCalendar 为本库实现（补充区间端点伪类） |
+| **9** 图表 | ChartFrame · TrendChart · Gauge · BarChart · Sparkline · ChartLegend | 全部为本库自绘实现 |
+| **10** 表格增强 | DataGridToolbar · Pagination · EmptyState · Skeleton | 全部为本库实现 |
+| **11** 常用补充 | AutoSuggestBox · BreadcrumbBar · SegmentedControl · Chip · Stepper · GridSplitter · Toast · PersonPicture | 除 AutoCompleteBox / GridSplitter 外为本库实现 |
 
-完整 API 见 [`docs/CONTROLS.md`](docs/CONTROLS.md)（73 个类型，从源码抽取）。
+完整 API 参见 [`docs/CONTROLS.md`](docs/CONTROLS.md)（73 个类型，由脚本从源码抽取）。
 
 </details>
 
@@ -146,78 +148,78 @@ dotnet run --project samples/Cobalt.Fluent.Gallery    # 打开展柜
 
 ## 设计基线
 
-四条硬规则，全库共用。它们不是风格偏好 —— 单看一个控件怎么画都说得通，十几个凑在一屏上，只有一致的层、圆角、阴影和字重才不会互相打架。
+以下四条规则贯穿全库。单个控件的画法存在多种合理选择；多个控件同屏时，只有统一的层级、圆角、阴影与字重才能维持可读的视觉秩序。
 
-| | |
+| 规则 | 内容 |
 |---|---|
-| **画面只有两层** | base layer（窗口底，导航和命令栏住这儿）+ content layer（内容区）。Card 是 content layer 内部的分区，不是第三层。 |
-| **圆角只有 8 / 4 / 0** | 8 给弹出面板，4 给控件，0 给相接处。唯一例外是日历格的正圆。 |
-| **阴影只给悬浮层** | ToolTip / Flyout / MenuFlyout / ContentDialog / TeachingTip，五个。页面内元素一律靠描边。 |
-| **字重只有 400 / 600** | 没有 Bold，没有斜体 —— 中文没有真正的斜体，合成出来的小字号下糊成一团。 |
+| **画面仅两层** | base layer（窗口底，承载导航与命令栏）与 content layer（内容区）。Card 是 content layer 内部的分区，不构成第三层。 |
+| **圆角仅 8 / 4 / 0** | 8 用于弹出面板，4 用于控件，0 用于元素相接处。唯一例外为日历日期格的正圆。 |
+| **阴影仅用于悬浮层** | ToolTip / Flyout / MenuFlyout / ContentDialog / TeachingTip 五处。页面内元素一律以描边区分层次。 |
+| **字重仅 400 / 600** | 不使用 Bold 与斜体——中文无原生斜体，合成斜体在小字号下可读性差。 |
 
-控件层**零裸色值**，颜色全部走 `DynamicResource`。换主题色、做高对比度、给不同产线定制外观，只动变量层，控件层一行不改。
+控件层不包含任何字面色值，颜色全部通过 `DynamicResource` 引用变量层。更换主题色、实现高对比度、按产品线定制外观时，仅需修改变量层，控件层无需改动。
 
 ---
 
-## 工业 HMI（第 7 组）
+## 工业 HMI 控件组（第 7 组）
 
-WinUI 和 FluentAvalonia 里都没有这一组。它涉及人身和设备安全，所以下面每条都实现在控件里、并有回归测试钉着：
+该组在 WinUI 与 FluentAvalonia 中均无对应实现。以下约束涉及人身与设备安全，已实现在控件内部并由回归测试固定：
 
 <details>
-<summary><b>展开七条硬约束</b></summary>
+<summary><b>七条安全约束</b></summary>
 
 <br>
 
-- **安全色不跟随主题。** 急停和 Alarm 级报警用 `SafetyRedBrush`，不用 `SystemFillColorCriticalBrush` —— 后者在深色主题下是浅粉 `#FF99A4`，对需要立即处置的级别是错的。
-- **报警用呼吸不用闪烁**（1.5s，opacity 1↔.62）。高频闪烁引发疲劳，且有光敏性癫痫风险。关掉动画后自动补安全黄描边，否则降级后 Alarm 和 Warning 分不出来。
-- **`JogButton` 挂满七个停止触发点** —— 松手 / 捕获丢失 / 指针离开 / 失焦 / 松键 / 摘除 / 看门狗超时。只监听 `PointerReleased` 不够：按住后把指针拖出按钮，释放事件可能根本不在这个控件上触发，设备会一直动。
-- **心跳灯由 `Beat()` 驱动**，不是固定周期动画。不喂就自己停跳 —— 通信断了心跳还在跳，操作员会以为系统活着，**比没有心跳灯更危险**。
-- **`Readout` 过期时保留最后已知值**，只变灰 + 标注多久没更新。换成「—」是错的：通信断了，但设备上的反应还在跑，操作员需要知道断开前的最后一个值。
-- **`ParameterRow` 下发成功后填回读值**，不是输入值 —— 设备可能限幅或量化。失败回滚到上次成功值。
-- **软件急停不能替代硬件急停回路。** `EStopButton.HardwareLocationHint` 用来在界面上标注硬件急停的物理位置。
+- **安全色不随主题变化。** 急停与 Alarm 级报警使用 `SafetyRedBrush`，而非 `SystemFillColorCriticalBrush`——后者在深色主题下为浅粉色 `#FF99A4`，不适用于需要立即处置的级别。
+- **报警采用呼吸而非闪烁**（1.5s，opacity 1↔.62）。高频闪烁易引起视觉疲劳，并存在光敏性癫痫风险。动画关闭后自动补充安全黄描边，保证降级后 Alarm 与 Warning 仍可区分。
+- **`JogButton` 具备七重停止触发**——释放、指针捕获丢失、指针离开、失焦、按键抬起、控件摘除、看门狗超时。仅监听 `PointerReleased` 不充分：按住后将指针拖出按钮时，释放事件可能不在该控件上触发，导致设备持续运动。
+- **心跳灯由 `Beat()` 事件驱动**，而非固定周期动画。无事件输入时自动转为停跳态——通信中断后仍在跳动的假心跳，比没有心跳指示更危险。
+- **`Readout` 数据过期时保留最后已知值**，仅置灰并标注距上次更新的时长。替换为占位符是错误做法：通信中断时设备侧过程仍在进行，操作员需要知道中断前的最后数值。
+- **`ParameterRow` 下发成功后回填设备回读值**而非输入值——设备可能对参数限幅或量化。下发失败时回滚至上一次成功值。
+- **软件急停不能替代硬件急停回路。** `EStopButton.HardwareLocationHint` 用于在界面上标注硬件急停装置的物理位置。
 
 </details>
 
 ---
 
-## 嵌入式 / 触摸屏
+## 嵌入式与触摸屏适配
 
-几个为 Mali GPU 这类场景留的开关：
+针对 Mali GPU 等嵌入式图形环境提供以下配置项：
 
-| 场景 | 开关 |
+| 场景 | 配置 |
 |---|---|
-| 一屏十几个运行指示灯 | `StatusIndicator.IsPulseEnabled="False"`（留静态外环，形状编码不丢） |
-| 报警横幅呼吸动画 | `AlarmBanner.IsBreathingEnabled="False"`（自动补安全黄描边） |
+| 同屏多个运行指示灯 | `StatusIndicator.IsPulseEnabled="False"`（保留静态外环，形状编码不丢失） |
+| 报警横幅呼吸动画 | `AlarmBanner.IsBreathingEnabled="False"`（自动补充安全黄描边） |
 | 骨架屏微光 | `Skeleton.IsShimmerEnabled="False"` |
-| 长时间加载 | 用 `ProgressBar` 的 indeterminate 代替 `ProgressRing` —— 只动 transform |
+| 长时间加载 | 以 `ProgressBar` 的不定态代替 `ProgressRing`——仅驱动 transform |
 | 亚克力（实时模糊） | 覆盖 `AcrylicBackgroundFillColorDefaultBrush` 为实色 |
 | 触摸目标放大 | 覆盖 `ControlHeight` / `ControlCornerRadius` / `OverlayCornerRadius` |
 
-图标不依赖 Segoe Fluent Icons：36 个字形全部画成矢量路径，跨平台像素一致，安装包里也不用塞字体。手上确实有那套字体的话，`SymbolIcon.UseGlyphFont="True"` 切回字体渲染。
+图标不依赖 Segoe Fluent Icons：36 个字形全部实现为矢量路径，跨平台渲染一致，亦无需随应用分发字体。若目标环境已具备该字体，可通过 `SymbolIcon.UseGlyphFont="True"` 切换回字体渲染。
 
 ---
 
-## 开发
+## 构建与开发
 
 ```bash
-tools/check.sh                        # 编译控件库（复制到临时目录，不抢 obj 锁）
-tools/check.sh --gallery              # 连展柜一起
-tools/check.sh --only Button.axaml    # 只合并点名的控件层文件（并行开发用）
+tools/check.sh                        # 编译控件库（复制至临时目录，避免与 IDE 争用 obj）
+tools/check.sh --gallery              # 连同展柜一并编译
+tools/check.sh --only Button.axaml    # 仅合并指定控件层文件（并行开发用）
 
 dotnet test tests/Cobalt.Fluent.Tests               # 57 项回归测试
-dotnet run  --project samples/Cobalt.Fluent.Gallery # 打开展柜
+dotnet run  --project samples/Cobalt.Fluent.Gallery # 运行展柜
 ```
 
-四个生成物**必须和源码一起提交**，CI 会重跑脚本再比对，不同步就红：
+以下四个生成物必须与源码一同提交，CI 会重新执行生成脚本并比对，不同步即构建失败：
 
 ```bash
 python3 tools/gen_tokens.py          # tools/palette.json → Themes/Tokens.axaml
-python3 tools/gen_theme_index.py     # 控件层合并列表（编译前自动跑）
-python3 tools/gen_gallery_pages.py   # 展柜目录和章节骨架
+python3 tools/gen_theme_index.py     # 控件层合并列表（编译前自动执行）
+python3 tools/gen_gallery_pages.py   # 展柜目录与章节骨架
 python3 tools/gen_api_docs.py        # docs/CONTROLS.md
 ```
 
-无头渲染截图，肉眼验收用；CI 里也跑一遍，渲染不出来就是错：
+无头渲染截图用于视觉验收，CI 中同样执行，渲染失败即构建失败：
 
 ```bash
 dotnet run --project tools/Cobalt.Fluent.Shots -- artifacts/shots Button both
@@ -228,20 +230,20 @@ dotnet run --project tools/Cobalt.Fluent.Shots -- artifacts/shots "shell:Readout
 
 ## 文档
 
-| | |
+| 文档 | 内容 |
 |---|---|
-| [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md) | 写法约定 —— 分层、资源键速查、伪类清单、不能破坏的不变量，以及几个编译期发现不了的坑 |
-| [`docs/CONTROLS.md`](docs/CONTROLS.md) | 控件 API（73 个类型，由 `tools/gen_api_docs.py` 从源码抽取） |
-| 展柜 | 48 个章节，每节 = 规格 + 状态矩阵 + 试玩 + 资源键对照 |
+| [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md) | 开发约定——分层结构、资源键速查、伪类清单、不变量，以及若干编译期无法发现的问题 |
+| [`docs/CONTROLS.md`](docs/CONTROLS.md) | 控件 API 参考（73 个类型，由 `tools/gen_api_docs.py` 从源码抽取） |
+| 展柜 | 48 个章节：视觉规格 + 状态矩阵 + 交互演示 + 资源键对照 + 源码查看 |
 
-改控件之前先读 `CONVENTIONS.md`。提 PR 前本地至少跑一遍编译、测试和两个生成脚本 —— CI 跑的就是这几条，外加把 48 个章节全部无头渲染一遍。
+修改控件前请先阅读 `CONVENTIONS.md`。提交 PR 前请在本地完成编译、测试与生成脚本——CI 执行相同的检查，并额外对全部章节进行无头渲染。
 
 ---
 
-## License
+## 许可
 
 [MIT](LICENSE)
 
-依赖的 Avalonia（本体、`Avalonia.Themes.Fluent`、`Avalonia.Controls.DataGrid`）同样是 MIT，归 [AvaloniaUI OÜ](https://github.com/AvaloniaUI/Avalonia) 及其贡献者。本库不打包、不转发它们的源码，只在 `PackageReference` 里引用。
+依赖的 Avalonia（本体、`Avalonia.Themes.Fluent`、`Avalonia.Controls.DataGrid`）同为 MIT 许可，版权归 [AvaloniaUI OÜ](https://github.com/AvaloniaUI/Avalonia) 及其贡献者所有。本库仅通过 `PackageReference` 引用，不打包、不再分发其源码。
 
-设计语言参照微软的 Windows 11 Fluent Design System；实现是独立写的，不包含微软的任何代码或资源。图标是重画的矢量路径，不是 Segoe Fluent Icons 的字形文件。
+设计语言参照 Microsoft Windows 11 Fluent Design System；实现为独立编写，不包含 Microsoft 的任何代码或资源。图标为独立绘制的矢量路径，非 Segoe Fluent Icons 字形文件。

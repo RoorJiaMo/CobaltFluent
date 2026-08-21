@@ -12,7 +12,7 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="唯一用 4px 圆角的弹出层——因为尺寸太小，8px 会显得过圆。其余弹出层一律 8px。" />
+               Text="弹出层中唯一使用 4px 圆角的控件——因其尺寸较小，8px 圆角显得过圆。其余弹出层一律 8px。" />
 
     <TextBlock Classes="sub" Text="提示条本体 — 短文本 / 带快捷键 / 长文本换行" />
     <Border Classes="panel">
@@ -39,9 +39,9 @@
       </StackPanel>
     </Border>
     <TextBlock Classes="note"
-               Text="宽度封在 320，超了就换行——横穿整屏的提示条比没有还难读。快捷键直接写进那行文字里，不另开槽位：提示条只有一瞬的阅读时间，多一列就多一次找。" />
+               Text="宽度上限为 320，超出即换行——横贯整屏的提示条可读性比不显示更差。快捷键直接写入提示文字，不另设槽位：提示条的阅读时间极短，增加一列即增加一次视线定位。" />
 
-    <TextBlock Classes="sub" Text="挂上去 — ToolTip.Tip" />
+    <TextBlock Classes="sub" Text="附加到控件 — ToolTip.Tip" />
     <Border Classes="panel">
       <StackPanel Spacing="16">
 
@@ -55,7 +55,7 @@
                   ToolTip.Tip="设备运行中不能下发，停机后可用" />
         </StackPanel>
         <TextBlock Classes="note" Margin="0"
-                   Text="有文字标签的按钮，Tip 补的是「按下去会发生什么」，不是把标签再念一遍。" />
+                   Text="带文字标签的按钮，Tip 补充的是「按下后会发生什么」，而非复述标签文本。" />
 
         <StackPanel Orientation="Horizontal" Spacing="4">
           <Button Classes="subtle icon" ToolTip.Tip="刷新"><fc:SymbolIcon Symbol="Refresh" /></Button>
@@ -65,15 +65,15 @@
           <Button Classes="subtle icon" ToolTip.Tip="停止"><fc:SymbolIcon Symbol="Stop" /></Button>
           <Button Classes="subtle icon" ToolTip.Tip="筛选"><fc:SymbolIcon Symbol="Filter" /></Button>
           <TextBlock Classes="note" Margin="12,0,0,0" VerticalAlignment="Center"
-                     Text="这一排全靠 Tip 才说得清自己是谁" />
+                     Text="此排图标按钮的含义完全依赖 Tip 说明" />
         </StackPanel>
 
       </StackPanel>
     </Border>
     <TextBlock Classes="note"
-               Text="折叠导航的纯图标项、以及所有没有文字标签的图标按钮，必须配 ToolTip。这不是锦上添花，是可用性底线。" />
+               Text="折叠导航的纯图标项、以及所有无文字标签的图标按钮，必须配置 ToolTip。这是可用性的基本要求，而非可选增强。" />
 
-    <TextBlock Classes="sub" Text="试玩 — 延迟从 400 调到 250" />
+    <TextBlock Classes="sub" Text="交互演示 — 延迟由 400 调整至 250" />
     <Border Classes="play">
       <StackPanel Spacing="12">
         <StackPanel Orientation="Horizontal" Spacing="16">
@@ -84,21 +84,21 @@
                      VerticalAlignment="Center" />
           <!-- BetweenShowDelay 设 -1：默认 100ms 内换个控件是立刻弹的，
                那条捷径会把这根滑杆调的东西整个盖掉，试玩就白试了。 -->
-          <Button x:Name="DelayTarget" Content="悬停这里"
+          <Button x:Name="DelayTarget" Content="悬停此处"
                   ToolTip.BetweenShowDelay="-1"
                   ToolTip.Tip="重新读取全部通道的当前值" />
         </StackPanel>
         <TextBlock Classes="note" MaxWidth="700"
-                   Text="400ms 是桌面惯例：鼠标横穿一排工具按钮时不该一路弹提示。工业界面上手是奔着目标去的，缩到 250ms 更跟手；再往下调就成了扫过即弹，提示条自己挡住要点的东西。调到 0 试试就知道为什么不能没有延迟。" />
+                   Text="400ms 为桌面端惯例：鼠标横穿一排工具按钮时不应逐个弹出提示。工业界面的指针移动通常有明确目标，缩短到 250ms 响应更及时；进一步缩短会变为扫过即弹，提示条会遮挡即将点按的目标。将延迟调至 0 可直观验证延迟不可省略的原因。" />
       </StackPanel>
     </Border>
 
-    <g:MapBlock Note="写法就是 &lt;Button ToolTip.Tip=&quot;刷新数据&quot; /&gt;，挂在任何 Control 上都行。延迟用 ToolTip.ShowDelay（默认 400ms，工业界面可缩到 250ms）。另一半是 BetweenShowDelay（默认 100ms）：刚弹过一条，这段时间内进相邻控件会跳过延迟直接弹——量延迟、或者不想让工具栏连着弹的时候设成 -1。底走的是亚克力那一档，嵌入式 Linux 上跟 Flyout 一起换实色。">
-      <g:MapRow Key="控件" Value="ToolTip.Tip 附加属性；ToolTip 本身进可视树时就是个提示条外观的 ContentControl（上面那三条就是这么摆的）" />
+    <g:MapBlock Note="基本写法为 &lt;Button ToolTip.Tip=&quot;刷新数据&quot; /&gt;，可附加到任意 Control。延迟由 ToolTip.ShowDelay 控制（默认 400ms，工业界面可缩短到 250ms）。与之配套的是 BetweenShowDelay（默认 100ms）：刚显示过一条提示后，该时间窗内进入相邻控件会跳过延迟立即显示——测量延迟、或不希望工具栏连续弹出提示时设为 -1。背景使用亚克力档位，嵌入式 Linux 上与 Flyout 一同换用实色。">
+      <g:MapRow Key="控件" Value="ToolTip.Tip 附加属性；ToolTip 本身置入可视树时即为提示条外观的 ContentControl（上文三条静态示例即按此方式放置）" />
       <g:MapRow Key="附加属性" Value="ToolTip.Tip · ShowDelay=400 · BetweenShowDelay=100 · Placement · HorizontalOffset / VerticalOffset · ShowOnDisabled · ServiceEnabled" />
-      <g:MapRow Key="资源键" Value="WinUI 的 ToolTipBackground / ToolTipBorderBrush / ToolTipBorderThemeThickness 在本库落到 AcrylicBackgroundFillColorDefaultBrush + SurfaceStrokeColorFlyoutBrush（底和边成对）· ControlBorderThickness · ControlCornerRadius —— 4px，弹出层里唯一不走 OverlayCornerRadius 的" />
-      <g:MapRow Key="阴影" Value="BoxShadow=&quot;0 4 8 0 #24000000, 0 0 2 0 #1F000000&quot;（shadow-tooltip，比 Flyout 的 0 8 16 浅一档——它离页面更近）" />
-      <g:MapRow Key="伪类" Value=":open —— 控件自带的开合机制，主题只拿它做 167ms 淡入，不做位移" />
+      <g:MapRow Key="资源键" Value="WinUI 的 ToolTipBackground / ToolTipBorderBrush / ToolTipBorderThemeThickness 在本库映射为 AcrylicBackgroundFillColorDefaultBrush + SurfaceStrokeColorFlyoutBrush（背景与描边成对）· ControlBorderThickness · ControlCornerRadius——4px，弹出层中唯一不使用 OverlayCornerRadius 的控件" />
+      <g:MapRow Key="阴影" Value="BoxShadow=&quot;0 4 8 0 #24000000, 0 0 2 0 #1F000000&quot;（shadow-tooltip，比 Flyout 的 0 8 16 浅一档——其视觉高度更贴近页面）" />
+      <g:MapRow Key="伪类" Value=":open——控件自带的开合机制，主题仅以此实现 167ms 淡入，不做位移" />
     </g:MapBlock>
 
   </StackPanel>

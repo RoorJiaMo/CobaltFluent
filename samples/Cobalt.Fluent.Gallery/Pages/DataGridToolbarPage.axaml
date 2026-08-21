@@ -13,9 +13,9 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="工具栏和分页是表格的标配，但都不属于表格本身——它们在 base layer，表格在 content layer。别把它们套进同一个 Card 里。" />
+               Text="工具栏和分页是表格的常规配套，但都不属于表格本身——它们位于 base layer，表格位于 content layer。不应将两者与表格置于同一个 Card 内。" />
 
-    <TextBlock Classes="sub" Text="工具条 — 左边动作，右边计数" />
+    <TextBlock Classes="sub" Text="工具条 — 左侧动作，右侧计数" />
     <Border Classes="panel" Padding="0" Width="880">
       <fc:DataGridToolbar CountText="共 1 248 条">
         <TextBox Width="200" Watermark="搜索批次号">
@@ -41,11 +41,11 @@
       </fc:DataGridToolbar>
     </Border>
     <TextBlock Classes="note"
-               Text="筛选条件用 Chip 摊在工具条上，不藏进弹层——操作员随时能看到当前视图被过滤成了什么样。藏起来的筛选条件迟早会有人对着一张空表格喊「数据丢了」。" />
+               Text="筛选条件以 Chip 平铺在工具条上，不收入弹层——操作员可随时看到当前视图的过滤状态。被隐藏的筛选条件迟早导致空表格被误判为「数据丢失」。" />
     <TextBlock Classes="note"
-               Text="计数只认右端这一档，其余动作（含导出这种右侧动作）一律进 Items 排在左边。计数的宽度随筛选一直在变，钉在最右才不会推着旁边的按钮左右挪；文字本身走 tabular-nums。" />
+               Text="右端仅放置计数，其余动作（含导出这类右侧动作）一律放入 Items 排在左侧。计数宽度随筛选持续变化，固定在最右侧可避免挤动相邻按钮；文字本身使用 tabular-nums。" />
 
-    <TextBlock Classes="sub" Text="分页 — 首末页常在，中间断开处折成省略号" />
+    <TextBlock Classes="sub" Text="分页 — 首末页始终显示，中间断开处折叠为省略号" />
     <Border Classes="panel" Padding="0" Width="880">
       <StackPanel Spacing="0">
         <fc:Pagination PageCount="3" CurrentPage="1" TotalItems="58" />
@@ -54,11 +54,11 @@
       </StackPanel>
     </Border>
     <TextBlock Classes="note"
-               Text="页码总数在窗口（SiblingCount×2+5）以内就全铺开，超了才折。当前页落在中间时两头各留一个省略号，首末页任何时候都在——「跳到最后一页」是查历史记录时最常用的一下。" />
+               Text="页码总数在窗口（SiblingCount×2+5）以内时全部展开，超出后才折叠。当前页位于中间时两侧各留一个省略号，首末页任何时候均显示——「跳到最后一页」是查询历史记录时最常用的操作。" />
     <TextBlock Classes="note"
-               Text="页码按钮固定 32 宽、等宽数字：翻到两位数、三位数时按钮不会自己变宽，整条分页的位置是钉死的。" />
+               Text="页码按钮固定 32 宽、等宽数字：翻到两位数、三位数时按钮宽度不变，整条分页的位置保持固定。" />
 
-    <TextBlock Classes="sub" Text="拼在一起 — 三段各是各的，分隔线自己出" />
+    <TextBlock Classes="sub" Text="组合使用 — 三段相互独立，分隔线各自提供" />
     <Border Classes="panel" Padding="0" Width="880">
       <StackPanel Spacing="0">
 
@@ -136,13 +136,13 @@
       </StackPanel>
     </Border>
     <TextBlock Classes="note"
-               Text="工具条和分页贴着表格上下沿，中间只有一条 divider-stroke——三段共用一个 Card 的外框，各自不再套框，也不带阴影。" />
+               Text="工具条和分页紧贴表格上下沿，中间仅一条 divider-stroke——三段共用一个 Card 的外框，各自不再附加边框，也不带阴影。" />
     <TextBlock Classes="note"
-               Text="中断那行整行铺 critical 底色（LoadingRow 里打 row-error），状态列同时有 InfoBadge。颜色和文字双重编码，戴防护镜或色觉障碍时靠文字也读得出来。" />
+               Text="中断行整行使用 critical 底色（在 LoadingRow 中添加 row-error 类），状态列同时有 InfoBadge。颜色和文字双重编码，佩戴防护镜或存在色觉障碍时仅凭文字亦可读取。" />
     <TextBlock Classes="note"
-               Text="工具条右端和分页左端各有一份计数，实际项目里留一处就够。这里两处都摆着是为了看清各自的位置——分页那份由控件自己按 TotalItems 和页数拼，改不了措辞。" />
+               Text="工具条右端和分页左端各有一份计数，实际项目保留一处即可。此处两处同时展示是为了标明各自的位置——分页一侧由控件按 TotalItems 和页数自行拼接，措辞不可定制。" />
 
-    <TextBlock Classes="sub" Text="试玩 — 3 120 条模拟数据，Chip 真筛，分页真翻" />
+    <TextBlock Classes="sub" Text="交互演示 — 3 120 条模拟数据，Chip 实际参与筛选，分页实际生效" />
     <Border Classes="play" Padding="0" Width="880">
       <StackPanel Spacing="0">
 
@@ -202,22 +202,22 @@
         </Border>
 
         <TextBlock Classes="note" Margin="16,10,16,0"
-                   Text="点 Chip 上的 × 去掉一个筛选条件：命中数、页数、表格内容一起变，当前页退回第 1 页。留着旧页码是个坑——第 40 页在条件放宽后指的完全不是同一批数据。" />
+                   Text="点击 Chip 上的 × 移除一个筛选条件：命中数、页数、表格内容同步更新，当前页退回第 1 页。保留旧页码存在隐患——条件放宽后第 40 页对应的已完全不是同一批数据。" />
         <TextBlock Classes="note" Margin="16,6,16,16"
-                   Text="每页条数改了同样退回第 1 页。这里 3 120 条全在内存里，翻页只是换一段切片；真上了万条就得把页码和筛选条件一起发给服务端，本地只留当前页。" />
+                   Text="每页条数变更后同样退回第 1 页。此处 3 120 条全部位于内存，翻页只是更换一段切片；数据达到万条级时应把页码和筛选条件一并发送给服务端，本地仅保留当前页。" />
 
       </StackPanel>
     </Border>
 
     <TextBlock Classes="note"
-               Text="试玩区的表头故意关掉了排序：客户端分页下点排序只会把当前这 20 条重排一遍，看着像排好了，其实翻到下一页就露馅。排序和分页必须一起做在取数那一侧。" />
+               Text="交互演示区的表头刻意禁用了排序：客户端分页下点击排序仅会重排当前这 20 条，表面上已排序，翻到下一页即暴露不一致。排序和分页必须一并实现在取数一侧。" />
 
-    <g:MapBlock Note="数据量大时别做客户端分页——1 248 条还行，上万条要走服务端分页 + 虚拟化。Avalonia DataGrid 默认开启行虚拟化，所以「一页 200 行」本身不慢，慢的是把几万条一次性塞进内存再切片。">
+    <g:MapBlock Note="数据量大时不应做客户端分页——1 248 条尚可接受，上万条应采用服务端分页 + 虚拟化。Avalonia DataGrid 默认开启行虚拟化，因此「一页 200 行」本身不慢，慢的是把几万条一次性载入内存再切片。">
       <g:MapRow Key="控件" Value="DataGrid（Avalonia.Controls.DataGrid 包）+ fc:DataGridToolbar · fc:Pagination · fc:Chip" />
-      <g:MapRow Key="DataGrid" Value="Classes: compact（32px 行高）· frozen-first（冻结首列）；选择列自己加一列 DataGridTemplateColumn 放 CheckBox" />
-      <g:MapRow Key="冻结列" Value="Avalonia DataGrid 用 FrozenColumnCount；TreeDataGrid 不支持，要换用 DataGrid" />
-      <g:MapRow Key="属性" Value="DataGridToolbar: Items（[Content]，左侧动作）· CountText（右端计数）｜ Pagination: PageCount · CurrentPage（TwoWay）· TotalItems · SiblingCount · InfoText（只读，控件自己拼）" />
-      <g:MapRow Key="Chip" Value="Content · IsClosable · IsAccent · CloseCommand · Closed 事件（点 × 只发事件，删不删由外面决定）" />
+      <g:MapRow Key="DataGrid" Value="Classes: compact（32px 行高）· frozen-first（冻结首列）；选择列需自行添加一列 DataGridTemplateColumn 放置 CheckBox" />
+      <g:MapRow Key="冻结列" Value="Avalonia DataGrid 用 FrozenColumnCount；TreeDataGrid 不支持，需换用 DataGrid" />
+      <g:MapRow Key="属性" Value="DataGridToolbar: Items（[Content]，左侧动作）· CountText（右端计数）｜ Pagination: PageCount · CurrentPage（TwoWay）· TotalItems · SiblingCount · InfoText（只读，由控件拼接）" />
+      <g:MapRow Key="Chip" Value="Content · IsClosable · IsAccent · CloseCommand · Closed 事件（点击 × 仅触发事件，是否移除由外部决定）" />
     </g:MapBlock>
 
   </StackPanel>

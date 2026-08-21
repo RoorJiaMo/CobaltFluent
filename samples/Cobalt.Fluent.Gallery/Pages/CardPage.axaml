@@ -20,9 +20,9 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="4px 圆角（页面内元素，不是 8px），半透明底 + 1px 描边，不加阴影。Card 是 content layer 内部的分区，不是第三层。" />
+               Text="4px 圆角（页面内元素，而非 8px），半透明底 + 1px 描边，不加阴影。Card 是 content layer 内部的分区，不属于第三层。" />
 
-    <TextBlock Classes="sub" Text="静态卡片 — 三格长一个样，这是对的" />
+    <TextBlock Classes="sub" Text="静态卡片 — 三种状态外观一致，符合预期" />
     <g:SpecMatrix States="rest,pointerover,pressed">
       <g:SpecMatrix.Sample>
         <DataTemplate>
@@ -38,9 +38,9 @@
       </g:SpecMatrix.Sample>
     </g:SpecMatrix>
     <TextBlock Classes="note"
-               Text="伪类是硬加上去的，底色照样纹丝不动——ControlTheme 里那两条状态规则前面都挂了 :clickable。给点不动的东西加悬停反馈，操作员会反复去点它，然后报「卡了」。" />
+               Text="此处伪类为强制附加，底色仍无变化——ControlTheme 中两条状态规则均以 :clickable 为前置条件。为不可点击的元素添加悬停反馈，会导致操作员反复点击，并将其作为「卡死」类故障上报。" />
 
-    <TextBlock Classes="sub" Text="IsClickable=True — 打开才响应指针" />
+    <TextBlock Classes="sub" Text="IsClickable=True — 启用后才响应指针" />
     <g:SpecMatrix States="rest,pointerover,pressed">
       <g:SpecMatrix.Sample>
         <DataTemplate>
@@ -56,7 +56,7 @@
       </g:SpecMatrix.Sample>
     </g:SpecMatrix>
     <TextBlock Classes="note"
-               Text="悬停那一档底色只差 8% 不到的半透明白，高对比度主题下这点差别直接归零。所以能点的卡片必须靠那圈 1px 描边说话，别把「能不能点」全押在背景色上。" />
+               Text="悬停态底色仅相差不到 8% 的半透明白，高对比度主题下该差别完全消失。因此可点击卡片必须依靠 1px 描边传达可交互性，不应仅凭背景色区分「能否点击」。" />
 
     <TextBlock Classes="sub" Text="成组 — content layer 内部的分区" />
     <Border Classes="panel">
@@ -88,9 +88,9 @@
       </StackPanel>
     </Border>
     <TextBlock Classes="note"
-               Text="卡片坐在 content layer 上，用描边和半透明底切分区，不再往上叠一层阴影——阴影只留给真正浮起来的 ToolTip / Flyout / ContentDialog。页面内元素也加阴影，一屏就成了一堆飘着的纸片。" />
+               Text="卡片位于 content layer 之上，以描边和半透明底划分区域，不再叠加阴影——阴影仅保留给真正处于浮层的 ToolTip / Flyout / ContentDialog。若页面内元素也添加阴影，整屏元素都会呈现悬浮外观。" />
 
-    <TextBlock Classes="sub" Text="试玩 — 拨掉 IsClickable，反馈跟着消失" />
+    <TextBlock Classes="sub" Text="交互演示 — 关闭 IsClickable 后反馈随之消失" />
     <Border Classes="play">
       <StackPanel Spacing="16">
         <StackPanel Orientation="Horizontal" Spacing="12">
@@ -126,14 +126,14 @@
                       IsChecked="True" />
 
         <TextBlock x:Name="PlayLog" Classes="note" Margin="0"
-                   Text="悬停、按下、点一张卡片试试。" />
+                   Text="可对任意卡片执行悬停、按下与点击操作。" />
       </StackPanel>
     </Border>
 
-    <g:MapBlock Note="可点击的卡片在高对比度下必须有可见描边，否则操作员看不出能点。别只靠背景色区分。另外 IsClickable 只管视觉反馈，点击行为还是自己接 Tapped——两边不同步就会出现「有反馈点不动」或者「能点没反馈」，这两种操作员都会当成故障报上来。">
-      <g:MapRow Key="控件" Value="fc:Card : ContentControl —— 静态和可点击两种形态合成一个，靠 IsClickable 切" />
+    <g:MapBlock Note="可点击卡片在高对比度下必须具备可见描边，否则操作员无法识别其可点击性；不应仅以背景色区分。IsClickable 仅控制视觉反馈，点击行为需由使用方自行订阅 Tapped——两者不同步时会出现「有反馈但无响应」或「有响应但无反馈」，这两种情况都会被操作员作为故障上报。">
+      <g:MapRow Key="控件" Value="fc:Card : ContentControl —— 静态与可点击两种形态合并为同一控件，由 IsClickable 切换" />
       <g:MapRow Key="属性" Value="IsClickable · Content · Padding=16（默认）" />
-      <g:MapRow Key="伪类" Value=":clickable（IsClickable=True）。状态规则全写成 ^:clickable:pointerover / ^:clickable:pressed，静态卡片天然没有指针反馈" />
+      <g:MapRow Key="伪类" Value=":clickable（IsClickable=True）。状态规则均写作 ^:clickable:pointerover / ^:clickable:pressed，静态卡片因而没有指针反馈" />
       <g:MapRow Key="资源键" Value="CardBackgroundFillColorDefaultBrush · CardBackgroundFillColorSecondaryBrush（:pointerover）· ControlFillColorTertiaryBrush（:pressed）· CardStrokeColorDefaultBrush · ControlCornerRadius" />
     </g:MapBlock>
 

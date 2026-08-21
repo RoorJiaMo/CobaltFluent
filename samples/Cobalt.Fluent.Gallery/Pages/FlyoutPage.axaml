@@ -12,9 +12,9 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="8px 圆角 + 亚克力 + shadow-flyout，内边距 16,15,16,17。亚克力和描边是成对的：Flyout 用 SurfaceStrokeColorFlyout，常驻面板用 SurfaceStrokeColorDefault，混用视觉会错。" />
+               Text="8px 圆角 + 亚克力 + shadow-flyout，内边距 16,15,16,17。亚克力与描边成对使用：Flyout 用 SurfaceStrokeColorFlyout，常驻面板用 SurfaceStrokeColorDefault，混用会导致视觉错误。" />
 
-    <TextBlock Classes="sub" Text="面板本体 — 摊平了看" />
+    <TextBlock Classes="sub" Text="面板本体 — 平铺展示" />
     <Border Classes="panel">
       <StackPanel Orientation="Horizontal" Spacing="24">
 
@@ -38,12 +38,12 @@
         </FlyoutPresenter>
 
         <TextBlock Classes="note" Margin="0" MaxWidth="300" VerticalAlignment="Center"
-                   Text="破坏性操作的确认弹层里，主按钮位置放「取消」，危险操作用普通 Button。这里两个都是 Standard——不给「清空」加 accent，避免误触。" />
+                   Text="破坏性操作的确认弹层中，主按钮位置放置「取消」，危险操作使用普通 Button。此处两个按钮均为 Standard——不为「清空」施加 accent，以避免误触。" />
 
       </StackPanel>
     </Border>
 
-    <TextBlock Classes="sub" Text="底和边成对 — 弹出层 vs 常驻面板" />
+    <TextBlock Classes="sub" Text="背景与描边成对 — 弹出层 vs 常驻面板" />
     <Border Classes="panel">
       <StackPanel Spacing="12">
         <StackPanel Orientation="Horizontal" Spacing="24" VerticalAlignment="Top">
@@ -51,7 +51,7 @@
           <StackPanel Spacing="8">
             <FlyoutPresenter Width="220">
               <TextBlock Theme="{StaticResource BodyTextBlockStyle}" TextWrapping="Wrap"
-                         Text="浮在内容之上：亚克力底偏透，配同样偏透的 flyout 描边。" />
+                         Text="浮于内容之上：亚克力背景带透明度，搭配同样带透明度的 flyout 描边。" />
             </FlyoutPresenter>
             <TextBlock Classes="note" Margin="0"
                        Text="AcrylicBackgroundFillColorDefault + SurfaceStrokeColorFlyout" />
@@ -65,7 +65,7 @@
                     BorderThickness="1"
                     CornerRadius="{DynamicResource OverlayCornerRadius}">
               <TextBlock Theme="{StaticResource BodyTextBlockStyle}" TextWrapping="Wrap"
-                         Text="躺在页面里：实色底，配实色的 default 描边，不给阴影。" />
+                         Text="置于页面内：实色背景，搭配实色的 default 描边，不施加阴影。" />
             </Border>
             <TextBlock Classes="note" Margin="0"
                        Text="CardBackgroundFillColorDefault + SurfaceStrokeColorDefault" />
@@ -74,44 +74,44 @@
         </StackPanel>
 
         <TextBlock Classes="note"
-                   Text="拿实色描边去配亚克力底，边会比面还重，一眼看出不是一套。阴影同理：只有真正浮起来的那层才有 shadow-flyout，页面里的面靠描边分层。" />
+                   Text="以实色描边搭配亚克力背景时，描边的视觉重量会超过面板本身，明显不属于同一体系。阴影同理：仅真正悬浮的层使用 shadow-flyout，页面内的面板依靠描边区分层次。" />
         <TextBlock Classes="note"
-                   Text="嵌入式 Linux 上把亚克力整个关掉，AcrylicBackgroundFillColorDefaultBrush 改指 SolidBackgroundFillColorQuarternaryBrush 实色——实时模糊在 Mali GPU 上是每帧全屏像素操作，弹一次面板整屏掉帧。描边和圆角不动，换的只是那一层底。" />
+                   Text="嵌入式 Linux 上完全禁用亚克力，AcrylicBackgroundFillColorDefaultBrush 改指 SolidBackgroundFillColorQuarternaryBrush 实色——实时模糊在 Mali GPU 上是每帧全屏像素操作，弹出一次面板即导致整屏掉帧。描边与圆角保持不变，仅替换背景层。" />
       </StackPanel>
     </Border>
 
-    <TextBlock Classes="sub" Text="挂在哪一边 — Placement" />
+    <TextBlock Classes="sub" Text="弹出方位 — Placement" />
     <Border Classes="play">
       <StackPanel Spacing="12">
         <StackPanel Orientation="Horizontal" Spacing="12">
           <Button Content="Bottom（默认）">
             <Button.Flyout>
               <Flyout Placement="Bottom">
-                <TextBlock Text="挂在按钮下方。" />
+                <TextBlock Text="显示在按钮下方。" />
               </Flyout>
             </Button.Flyout>
           </Button>
           <Button Content="Right">
             <Button.Flyout>
               <Flyout Placement="Right">
-                <TextBlock Text="挂在按钮右侧。" />
+                <TextBlock Text="显示在按钮右侧。" />
               </Flyout>
             </Button.Flyout>
           </Button>
           <Button Content="Top">
             <Button.Flyout>
               <Flyout Placement="Top">
-                <TextBlock Text="挂在按钮上方。" />
+                <TextBlock Text="显示在按钮上方。" />
               </Flyout>
             </Button.Flyout>
           </Button>
         </StackPanel>
         <TextBlock Classes="note"
-                   Text="Placement 只是首选边，屏幕放不下时 Popup 会自己翻到对面。触摸屏上贴着屏底的按钮别硬指 Bottom——翻上来的那一下位置会跳。" />
+                   Text="Placement 仅为首选方位，屏幕空间不足时 Popup 会自动翻转到对侧。触摸屏上紧贴屏幕底部的按钮不应强制指定 Bottom——翻转到上方时弹出位置会发生跳变。" />
       </StackPanel>
     </Border>
 
-    <TextBlock Classes="sub" Text="试玩 — 破坏性操作的确认弹层" />
+    <TextBlock Classes="sub" Text="交互演示 — 破坏性操作的确认弹层" />
     <Border Classes="play">
       <StackPanel Spacing="12">
         <StackPanel Orientation="Horizontal" Spacing="12">
@@ -135,15 +135,15 @@
               </Flyout>
             </Button.Flyout>
           </Button>
-          <Button x:Name="Refill" Content="重新灌入日志" IsEnabled="False" />
+          <Button x:Name="Refill" Content="重新填充日志" IsEnabled="False" />
         </StackPanel>
         <TextBlock x:Name="PlayLog" Classes="note" Margin="0" />
         <TextBlock Classes="note"
-                   Text="点空白处或按 Esc 也算取消——轻量确认就该能这么退出。真删不掉的东西（改配方、复位报警）用 ContentDialog：那种要挡住整屏，不能一点旁边就没了。" />
+                   Text="点按空白处或按 Esc 同样视为取消——轻量确认应支持此类退出方式。后果不可挽回的操作（改配方、复位报警）应使用 ContentDialog：该形式遮挡整屏，不会因点按旁侧而关闭。" />
       </StackPanel>
     </Border>
 
-    <g:MapBlock Note="嵌入式 Linux 上关掉亚克力，AcrylicBackgroundFillColorDefaultBrush 改用 SolidBackgroundFillColorQuarternaryBrush 实色。实时模糊在 Mali GPU 上是每帧全屏像素操作。">
+    <g:MapBlock Note="嵌入式 Linux 上禁用亚克力，AcrylicBackgroundFillColorDefaultBrush 改用 SolidBackgroundFillColorQuarternaryBrush 实色。实时模糊在 Mali GPU 上是每帧全屏像素操作。">
       <g:MapRow Key="控件" Value="Flyout / FlyoutPresenter" />
       <g:MapRow Key="资源键" Value="AcrylicBackgroundFillColorDefaultBrush + SurfaceStrokeColorFlyoutBrush（必须成对）· OverlayCornerRadius · FlyoutContentPadding=16,15,16,17" />
       <g:MapRow Key="阴影" Value="BoxShadow=&quot;0 8 16 0 #24000000, 0 0 2 0 #1F000000&quot;（shadow-flyout，比 ToolTip 的 0 4 8 深一档）" />

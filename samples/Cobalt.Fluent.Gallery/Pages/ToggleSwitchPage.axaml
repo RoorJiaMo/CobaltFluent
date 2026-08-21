@@ -11,7 +11,7 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="轨道 40×20，拇指 12×12。签名手感是拇指拉伸：按下时宽度从 12 拉到 17，位移走 167ms。和 CheckBox 的区别是语义——开关立即生效，复选框要等提交。" />
+               Text="轨道 40×20，拇指 12×12。标志性交互特征是拇指拉伸：按下时宽度从 12 拉伸至 17，位移过渡 167ms。与 CheckBox 的区别在于语义——开关立即生效，复选框需等待提交。" />
 
     <TextBlock Classes="sub" Text="off" />
     <g:SpecMatrix>
@@ -27,17 +27,17 @@
       </g:SpecMatrix.Sample>
     </g:SpecMatrix>
 
-    <TextBlock Classes="sub" Text="试玩 — 慢放看 167ms 里发生了什么" />
+    <TextBlock Classes="sub" Text="交互演示 — 放慢观察 167ms 的动画过程" />
     <Border Classes="play">
       <StackPanel Spacing="12">
         <ToggleSwitch Content="自动保存" OnContent="开" OffContent="关" />
         <ToggleSwitch Content="趋势记录" IsChecked="True" OnContent="记录中" OffContent="已停止" />
         <TextBlock Classes="note" MaxWidth="700"
-                   Text="按住不放看拇指被拉长，松开时它滑到另一端。右上角「动效 0.25×」把 167ms 放慢 4 倍。" />
+                   Text="按住时拇指被拉长，松开后拇指滑动至另一端。右上角「动效 0.25×」将 167ms 放慢 4 倍。" />
       </StackPanel>
     </Border>
 
-    <g:MapBlock Note="拇指拉长在模板里靠 Width 动画实现，不用重写 Template 结构。">
+    <g:MapBlock Note="拇指拉伸在模板中通过 Width 动画实现，无需重写 Template 结构。">
       <g:MapRow Key="控件" Value="ToggleSwitch" />
       <g:MapRow Key="属性" Value="OnContent=&quot;开&quot; · OffContent=&quot;关&quot; · Content（标题）" />
       <g:MapRow Key="资源键" Value="ControlAltFillColorSecondaryBrush（off 轨道）· AccentFillColorDefaultBrush（on 轨道）· ControlStrongFillColorDefaultBrush / TextOnAccentFillColorPrimaryBrush（拇指）" />

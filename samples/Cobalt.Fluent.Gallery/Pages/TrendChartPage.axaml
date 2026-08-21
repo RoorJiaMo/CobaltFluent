@@ -12,9 +12,9 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="四通道趋势。十字线是 trackball 模式：跟随指针 X 坐标，同时给出所有系列在该时刻的值，不是 hover 最近点——触摸屏上没有 hover，鼠标场景逐点 hover 也太累。" />
+               Text="四通道趋势。十字线为 trackball 模式：跟随指针 X 坐标，同时给出所有系列在该时刻的值，而非 hover 最近点——触摸屏上不存在 hover，鼠标场景下逐点 hover 的操作成本也过高。" />
 
-    <TextBlock Classes="sub" Text="试玩 — 在图上横向移动指针" />
+    <TextBlock Classes="sub" Text="交互演示 — 在图上横向移动指针" />
     <Border Classes="play" HorizontalAlignment="Stretch">
       <fc:ChartFrame x:Name="Frame"
                      Title="腔体温度趋势"
@@ -33,9 +33,9 @@
     </Border>
 
     <TextBlock Classes="note" MaxWidth="880"
-               Text="点图例项可以把对应曲线藏起来。当前值由图例承载，不逐线标在曲线末端——四个通道末值可能非常接近（84.6 / 84.6 / 84.9），右边缘逐线标注必然叠在一起。" />
+               Text="点击图例项可隐藏对应曲线。当前值由图例承载，不逐线标在曲线末端——四个通道末值可能非常接近（84.6 / 84.6 / 84.9），右边缘逐线标注必然相互重叠。" />
 
-    <TextBlock Classes="sub" Text="Sparkline — 嵌在表格单元格里" />
+    <TextBlock Classes="sub" Text="Sparkline — 嵌入表格单元格" />
     <Border Classes="panel">
       <Grid ColumnDefinitions="140,Auto,90" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="24" RowSpacing="10">
         <TextBlock Grid.Row="0" Grid.Column="0" Text="通道 1 · 温度" VerticalAlignment="Center" />
@@ -55,12 +55,12 @@
       </Grid>
     </Border>
 
-    <g:MapBlock Note="色板刻意避开纯红纯绿：HMI 里绿=运行、红=故障已经是语义色，一条绿色曲线会被操作员读成「这条正常」，而它可能正在超温。刷新策略图表库不会替你做——数值刷新节流到 4–10 Hz，超过 2000 点做 LTTB 抽稀，实时窗口用环形缓冲。">
+    <g:MapBlock Note="色板刻意避开纯红纯绿：HMI 中绿=运行、红=故障已是语义色，绿色曲线会被操作员解读为「该通道正常」，而其数值可能正在超温。刷新策略需由应用层自行实现——数值刷新节流到 4–10 Hz，超过 2000 点做 LTTB 抽稀，实时窗口用环形缓冲。">
       <g:MapRow Key="控件" Value="TrendChart · Sparkline · ChartFrame · ChartLegend（本库自绘，零第三方依赖）" />
       <g:MapRow Key="色板" Value="ChartSeries1..8Brush，明暗两套。蓝 / 橙 / 青 / 紫 / 洋红 / 金 / 靛 / 石板" />
       <g:MapRow Key="线型层级" Value="曲线 1.5px 实线 · 设定值 1px 虚线 4-3 · 报警限 1px 虚线 3-3 红 70% · 容差带 3.5% 填充 · 十字线 1px 点线 2-2" />
       <g:MapRow Key="交互" Value="trackball 跟随 · 图例点击隐藏系列" />
-      <g:MapRow Key="换库" Value="数据量真的很大时换 ScottPlot.Avalonia（吞吐最强）或 LiveCharts2（观感最好），本库的 token 直接喂进去即可" />
+      <g:MapRow Key="换库" Value="数据量很大时换用 ScottPlot.Avalonia（吞吐最强）或 LiveCharts2（观感最好），本库的 token 可直接传入" />
     </g:MapBlock>
 
   </StackPanel>

@@ -30,14 +30,14 @@ public partial class FlyoutPage : UserControl
             detail.Text = $"此操作不可撤销，将删除 {Grouped(_records)} 条记录。";
 
         RefreshDetail();
-        log.Text = "点「清空日志」弹确认层。";
+        log.Text = "点按「清空日志」打开确认弹层。";
 
         // 两个按钮都得自己 Hide()：Flyout 不管里面被点了什么，
         // 只有点到弹层外面才算轻关闭。
         cancel.Click += (_, _) =>
         {
             trigger.Flyout!.Hide();
-            log.Text = $"取消了，{Grouped(_records)} 条记录还在。";
+            log.Text = $"已取消，{Grouped(_records)} 条记录保留。";
         };
 
         confirm.Click += (_, _) =>
@@ -60,7 +60,7 @@ public partial class FlyoutPage : UserControl
             RefreshDetail();
             trigger.IsEnabled = true;
             refill.IsEnabled = false;
-            log.Text = $"日志回到 {Grouped(FullLog)} 条，可以再来一遍。";
+            log.Text = $"日志已恢复为 {Grouped(FullLog)} 条，可重新演示。";
         };
     }
 

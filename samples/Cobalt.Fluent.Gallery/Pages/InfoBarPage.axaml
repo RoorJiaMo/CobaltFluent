@@ -49,16 +49,16 @@
       </StackPanel>
     </Border>
     <TextBlock Classes="note" MaxWidth="720"
-               Text="Error 级别不给关闭按钮——错误必须由处置动作消解，不能让用户「叉掉当没发生」。Warning 及以下可关闭。" />
+               Text="Error 级别不提供关闭按钮——错误必须由处置动作消解，不应允许直接关闭并忽略。Warning 及以下可关闭。" />
 
-    <TextBlock Classes="sub" Text="和 AlarmBanner 的分工" />
+    <TextBlock Classes="sub" Text="与 AlarmBanner 的分工" />
     <Border Classes="panel">
       <StackPanel Spacing="12" Width="720">
         <fc:InfoBar Severity="Error"
                     IsClosable="False"
                     Title="配方校验失败"
                     Message="第 3 段升温速率超出工艺上限，未下发。" />
-        <TextBlock Classes="note" Text="↑ 软件层面的错误：留在页面里，等人改完就没了" />
+        <TextBlock Classes="note" Text="↑ 软件层面的错误：驻留在页面中，问题修正后随之移除" />
 
         <!-- 呼吸在这里关掉：本页只借它做对比，AlarmBanner 那页才是它的主场，
              展柜里多一处常驻动画就是嵌入式上多一份持续开销 -->
@@ -66,35 +66,35 @@
                         IsBreathingEnabled="False"
                         Title="腔体超温 · 已联锁停机"
                         Detail="TC-02 实际 142 °C，超上限 120 °C。加热回路已断电。" />
-        <TextBlock Classes="note" Text="↑ 设备层面、要人立刻动手的：走 AlarmBanner，安全红实底 + 呼吸 + 确认动作" />
+        <TextBlock Classes="note" Text="↑ 设备层面、需要立即人工处置的：使用 AlarmBanner，安全红实底 + 呼吸 + 确认动作" />
       </StackPanel>
     </Border>
     <TextBlock Classes="note" MaxWidth="720"
-               Text="分界线是「谁来消解它」。InfoBar 占布局、不自动消失，条件不成立了它才该走，读它的人不必放下手里的活；AlarmBanner 的 Alarm/Fault 要求当场处置，所以用不跟随主题的安全红（SystemFillColorCriticalBrush 在深色下是浅粉，那个色对停机级别是错的）。飘一下就没的确认反馈是 Toast，别拿 InfoBar 当 Toast 用。" />
+               Text="分界依据是「由谁消解」。InfoBar 占布局、不自动消失，仅在触发条件不再成立时移除，阅读者无需中断当前操作；AlarmBanner 的 Alarm/Fault 要求当场处置，因此使用不跟随主题的安全红（SystemFillColorCriticalBrush 在深色下是浅粉，该颜色不适用于停机级别）。短暂显示随即消失的确认反馈属于 Toast，不应将 InfoBar 用作 Toast。" />
 
-    <TextBlock Classes="sub" Text="试玩 — 点右侧 × 关掉试试" />
+    <TextBlock Classes="sub" Text="交互演示 — 点击右侧 × 关闭" />
     <Border Classes="play">
       <StackPanel Spacing="12" Width="720">
         <fc:InfoBar x:Name="Closable"
                     Severity="Warning"
-                    Title="点右侧 × 关掉试试"
-                    Message="出场用加速曲线，比入场快——关掉的东西不该挡路。" />
+                    Title="点击右侧 × 可关闭"
+                    Message="出场使用加速曲线，快于入场——已关闭的元素不应滞留在视线中。" />
         <StackPanel Orientation="Horizontal" Spacing="12">
-          <Button x:Name="Restore" Content="再放一条" IsEnabled="False" />
+          <Button x:Name="Restore" Content="重新显示" IsEnabled="False" />
           <TextBlock Classes="note" VerticalAlignment="Center"
-                     Text="关掉后 IsOpen=False，整条不占布局（不是只隐藏内容），下面的东西会顶上来。" />
+                     Text="关闭后 IsOpen=False，整条退出布局（并非仅隐藏内容），下方内容随之上移。" />
         </StackPanel>
         <TextBlock Classes="note" MaxWidth="700"
-                   Text="出场 ease-exit（加速），入场 ease-enter（减速）。Error 级别真实实现里不给关闭按钮。" />
+                   Text="出场 ease-exit（加速），入场 ease-enter（减速）。Error 级别在实际实现中不提供关闭按钮。" />
       </StackPanel>
     </Border>
 
-    <g:MapBlock Note="Avalonia 本体没有 InfoBar，这是本库自己实现的。Close() 幂等，走 IsOpen 而不是 IsVisible——外面绑 ViewModel 的布尔量就能双向控制。Error 级别把 IsClosable 写死 False 是调用方的责任，控件不替你判断：有的项目确实需要一条可关的 Error（例如历史日志回看）。">
+    <g:MapBlock Note="Avalonia 本体没有 InfoBar，由本库自行实现。Close() 幂等，基于 IsOpen 而非 IsVisible——外部绑定 ViewModel 的布尔量即可双向控制。Error 级别将 IsClosable 固定为 False 是调用方的责任，控件不代为判断：部分项目确实需要可关闭的 Error（例如历史日志回看）。">
       <g:MapRow Key="控件" Value="fc:InfoBar : TemplatedControl" />
       <g:MapRow Key="属性" Value="Severity={Informational,Success,Warning,Error} · Title · Message · IsClosable · IsOpen（双向）· ActionContent（Content 属性）· CloseCommand" />
-      <g:MapRow Key="伪类" Value=":informational · :success · :warning · :error —— 由 Severity 推出，不用手加 Classes" />
+      <g:MapRow Key="伪类" Value=":informational · :success · :warning · :error —— 由 Severity 推出，无需手动添加 Classes" />
       <g:MapRow Key="资源键" Value="SystemFillColorAttention/Success/Caution/CriticalBackgroundBrush（四套浅底）· SystemFillColorSuccess/Caution/CriticalBrush（图标）· CardStrokeColorDefaultBrush（通用描边，四级共用）" />
-      <g:MapRow Key="图标" Value="fc:SymbolIcon —— Info / Completed / Warning / Error，由 Severity 推出的只读 Glyph 属性给出；不走图标字体" />
+      <g:MapRow Key="图标" Value="fc:SymbolIcon —— Info / Completed / Warning / Error，由 Severity 推出的只读 Glyph 属性给出；不依赖图标字体" />
     </g:MapBlock>
 
   </StackPanel>

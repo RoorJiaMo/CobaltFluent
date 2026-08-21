@@ -11,7 +11,7 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="底边用 ControlStrongStrokeColorDefault（比按钮更明显）。聚焦时底边换成 2px accent，同时底 padding 减 1px 防止文字跳动——这一步漏了的话聚焦瞬间会看到内容抖一下。" />
+               Text="底边用 ControlStrongStrokeColorDefault（比按钮更明显）。聚焦时底边换为 2px accent，同时底 padding 减 1px 防止文字跳动——缺少该补偿时，聚焦瞬间内容会出现抖动。" />
 
     <TextBlock Classes="sub" Text="状态矩阵" />
     <g:SpecMatrix States="rest,pointerover,disabled">
@@ -40,15 +40,15 @@
       </StackPanel>
     </Border>
 
-    <TextBlock Classes="sub" Text="试玩 — 聚焦看底边" />
+    <TextBlock Classes="sub" Text="交互演示 — 聚焦观察底边" />
     <Border Classes="play">
       <StackPanel Spacing="12">
-        <TextBox Width="280" Watermark="点进来看底边变成 2px accent" />
-        <TextBlock Classes="note" Text="聚焦时底边从 1px 变 2px，同时底 padding 减 1px——文字不应该抖动。右上角「动效 0.25×」可以慢放。" />
+        <TextBox Width="280" Watermark="聚焦后底边变为 2px accent" />
+        <TextBlock Classes="note" Text="聚焦时底边从 1px 变为 2px，同时底 padding 减 1px——文字不应抖动。右上角「动效 0.25×」可慢放查看。" />
       </StackPanel>
     </Border>
 
-    <g:MapBlock Note="校验态在 Avalonia 里用 TextBox:error 伪类（配合 DataValidation），不需要自己加 Classes。多行对应 AcceptsReturn=True。">
+    <g:MapBlock Note="校验态在 Avalonia 中用 TextBox:error 伪类（配合 DataValidation），无需手动添加 Classes。多行对应 AcceptsReturn=True。">
       <g:MapRow Key="控件" Value="TextBox" />
       <g:MapRow Key="属性" Value="Watermark（占位符）· AcceptsReturn（多行）· IsReadOnly" />
       <g:MapRow Key="伪类" Value=":pointerover · :focus · :error · :disabled" />

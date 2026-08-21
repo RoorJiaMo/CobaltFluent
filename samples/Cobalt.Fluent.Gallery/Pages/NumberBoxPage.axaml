@@ -12,7 +12,7 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="工业界面用得最多的输入控件。数字必须等宽（tnum），否则数值变化时右侧会横跳。微调按钮在框内右侧，30px 宽。Avalonia 这边叫 NumericUpDown。" />
+               Text="工业界面中使用频率最高的输入控件。数字必须等宽（tnum），否则数值变化时右侧会横向跳动。微调按钮在框内右侧，30px 宽。Avalonia 中对应控件为 NumericUpDown。" />
 
     <TextBlock Classes="sub" Text="状态矩阵 — rest / :disabled" />
     <g:SpecMatrix States="rest,disabled">
@@ -23,7 +23,7 @@
       </g:SpecMatrix.Sample>
     </g:SpecMatrix>
     <TextBlock Classes="note"
-               Text="矩阵里只有这两格：框、hover 底、聚焦那 2px 底边全部由模板内部那只 TextBox 出，强制伪类加在外层 NumericUpDown 上传不进去，凑出来的格子会和真主题不一样。:pointerover 和 :focus 去下面试玩区看真的。禁用是例外——IsEnabled 沿视觉树往下传，内部 TextBox 和两只微调按钮一起变灰。" />
+               Text="矩阵只有这两格：边框、hover 底色、聚焦的 2px 底边全部由模板内部的 TextBox 绘制，强制伪类加在外层 NumericUpDown 上无法传入内部，模拟出的格子会与真实主题不一致。:pointerover 和 :focus 以下方交互演示区的实际效果为准。禁用是例外——IsEnabled 沿视觉树向下传递，内部 TextBox 和两个微调按钮一起变灰。" />
 
     <TextBlock Classes="sub" Text="带单位后缀 — 单位在框外" />
     <Border Classes="panel">
@@ -47,7 +47,7 @@
       </StackPanel>
     </Border>
     <TextBlock Classes="note"
-               Text="单位放在框外做静态标签，不要塞进输入值里——否则解析和校验都要额外处理，而且用户全选修改时会连单位一起删掉。真要放进框里，用 InnerRightContent 挂一个只读的 TextBlock，它排在微调区左边，不参与文本解析。" />
+               Text="单位放在框外作为静态标签，不应并入输入值——否则解析和校验都需额外处理，且用户全选修改时会连单位一同删除。确需放入框内时，用 InnerRightContent 放置一个只读 TextBlock，它位于微调区左侧，不参与文本解析。" />
 
     <TextBlock Classes="sub" Text="量程与步进 — Minimum / Maximum / Increment / FormatString" />
     <Border Classes="panel">
@@ -72,7 +72,7 @@
                    Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
         <TextBlock Grid.Row="1" Grid.Column="3" Classes="note" Margin="8,0,0,0"
                    VerticalAlignment="Center"
-                   Text="步进 0.05 —— 步进要按仪表分辨率给，不是按「好看」给" />
+                   Text="步进 0.05 —— 步进按仪表分辨率设定，而非按视觉效果设定" />
 
         <TextBlock Grid.Row="2" Grid.Column="0" Text="主轴转速" VerticalAlignment="Center" />
         <NumericUpDown Grid.Row="2" Grid.Column="1" Width="140"
@@ -82,7 +82,7 @@
                    Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
         <TextBlock Grid.Row="2" Grid.Column="3" Classes="note" Margin="8,0,0,0"
                    VerticalAlignment="Center"
-                   Text="N0 带千位分隔 · 押着微调按钮从 1,420 冲到 6,000，千位分隔进出的那一刻数字也不横跳" />
+                   Text="N0 带千位分隔 · 长按微调按钮从 1,420 递增到 6,000，千位分隔出现与消失的瞬间数字也不横向跳动" />
 
         <TextBlock Grid.Row="3" Grid.Column="0" Text="批次编号" VerticalAlignment="Center" />
         <NumericUpDown Grid.Row="3" Grid.Column="1" Width="140"
@@ -90,13 +90,13 @@
                        FormatString="0000" Value="42" ShowButtonSpinner="False" />
         <TextBlock Grid.Row="3" Grid.Column="3" Classes="note" Margin="8,0,0,0"
                    VerticalAlignment="Center"
-                   Text="ShowButtonSpinner=False —— 四位一口气打完的字段，微调按钮只是白占 30px" />
+                   Text="ShowButtonSpinner=False —— 四位数一次性键入的字段，微调按钮并无用处，只占用 30px" />
       </Grid>
     </Border>
     <TextBlock Classes="note"
-               Text="FormatString 只管显示，不管存的值：F1 的框里存的仍是 85.53，只是画成 85.5。要真的按分辨率落值，得在提交那一层自己取整——把显示格式当成数据精度是量产事故的常见来源。" />
+               Text="FormatString 只影响显示，不影响存储值：F1 的框内实际存储的仍是 85.53，仅显示为 85.5。需按分辨率落值时，必须在提交层自行取整——把显示格式当作数据精度是量产事故的常见来源。" />
 
-    <TextBlock Classes="sub" Text="试玩 — 和 Slider 配合 · 越界钳制 · 悬停和聚焦" />
+    <TextBlock Classes="sub" Text="交互演示 — 与 Slider 配合 · 越界钳制 · 悬停和聚焦" />
     <Border Classes="play">
       <StackPanel Spacing="20">
 
@@ -113,7 +113,7 @@
                        Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
           </StackPanel>
           <TextBlock Classes="note"
-                     Text="滑杆负责粗调（拖到大概位置），数字框负责定值（键盘敲准）。两边共用同一组 Minimum/Maximum，步进也对齐到 0.5——不对齐的话拖完滑杆再看数字框会多出一串小数，用户会以为自己拖歪了。" />
+                     Text="滑杆负责粗调（拖动到近似位置），数字框负责定值（键盘精确输入）。两侧共用同一组 Minimum/Maximum，步进也对齐到 0.5——若不对齐，拖动滑杆后数字框会显示多位小数，用户会误认为拖动位置有偏差。" />
         </StackPanel>
 
         <StackPanel Spacing="8">
@@ -127,18 +127,18 @@
                            FormatString="F0" Value="60" />
           </StackPanel>
           <TextBlock Classes="note"
-                     Text="左边 ClipValueToMinMax=True：敲 999 回车会被拉回 100。右边是默认的 False：超范围直接判成无效输入，回车后弹回上一个合法值，输入的东西没了。两种都对，但同一套界面里只能选一种——用户第二次遇到不一致的行为就不再相信这个框了。" />
+                     Text="左侧 ClipValueToMinMax=True：输入 999 并回车会被钳制回 100。右侧为默认的 False：超出范围判定为无效输入，回车后恢复为上一个合法值，本次输入被丢弃。两种行为均成立，但同一套界面只能选用一种——用户再次遇到不一致的行为后，便不再信任该输入框。" />
         </StackPanel>
 
         <TextBlock Classes="note"
-                   Text="把鼠标放到框上看 hover 底，点进去看底边从 1px 变 2px accent——同时下内边距减 1，右对齐的数字不该抖。右上角「动效 0.25×」可以慢放。" />
+                   Text="指针悬停可查看 hover 底色，聚焦后底边从 1px 变为 2px accent——同时下内边距减 1，右对齐的数字不应抖动。右上角「动效 0.25×」可慢放查看。" />
       </StackPanel>
     </Border>
 
-    <g:MapBlock Note="WinUI 的 SpinButtonPlacementMode=Inline 在 Avalonia 没有对应属性：本库模板把微调区固定塞进 TextBox 的 InnerRightContent，本来就是 Inline，30px 宽。SmallChange 对应 Increment，SimpleNumberFormat 对应 FormatString。等宽数字靠 FontFeatures=&quot;tnum=1&quot;（Avalonia 11.1+），模板里已经写死在 PART_TextBox 上，使用处不用管——这一条在数值刷新的界面里不是可选项。">
-      <g:MapRow Key="控件" Value="NumericUpDown（Avalonia 内置；WinUI/FluentAvalonia 那边叫 NumberBox）" />
+    <g:MapBlock Note="WinUI 的 SpinButtonPlacementMode=Inline 在 Avalonia 没有对应属性：本库模板把微调区固定置于 TextBox 的 InnerRightContent，即为 Inline 布局，30px 宽。SmallChange 对应 Increment，SimpleNumberFormat 对应 FormatString。等宽数字由 FontFeatures=&quot;tnum=1&quot;（Avalonia 11.1+）实现，模板已在 PART_TextBox 上固定设置，使用处无需处理——该设置在数值刷新的界面中不可省略。">
+      <g:MapRow Key="控件" Value="NumericUpDown（Avalonia 内置；WinUI/FluentAvalonia 中名为 NumberBox）" />
       <g:MapRow Key="属性" Value="Minimum · Maximum · Increment · FormatString · ClipValueToMinMax · ShowButtonSpinner · AllowSpin · Watermark · IsReadOnly · InnerRightContent" />
-      <g:MapRow Key="伪类" Value="同 TextBox —— :pointerover · :focus · :error · :disabled 都落在模板内部那只 TextBox 上" />
+      <g:MapRow Key="伪类" Value="同 TextBox —— :pointerover · :focus · :error · :disabled 均作用于模板内部的 TextBox" />
       <g:MapRow Key="资源键" Value="同 TextBox，另加 NumberBoxSpinnerWidth=30 · NumberBoxPadding / NumberBoxPaddingThickUnderline（聚焦补偿）· NumberBoxSpinButtonStyle · NumberBoxSpinnerStyle" />
     </g:MapBlock>
 

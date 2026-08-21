@@ -40,9 +40,9 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="8px 圆角 + 实色底（不是亚克力）+ 深阴影 + Smoke 遮罩。页脚按钮等宽撑满——这是 Win11 对话框最明显的特征，和 Web 惯例的右对齐相反。" />
+               Text="8px 圆角 + 实色底（非亚克力）+ 深阴影 + Smoke 遮罩。页脚按钮等宽撑满——这是 Win11 对话框最显著的特征，与 Web 惯例的右对齐相反。" />
 
-    <TextBlock Classes="sub" Text="结构 — Smoke 遮罩压住下层，对话框居中" />
+    <TextBlock Classes="sub" Text="结构 — Smoke 遮罩覆盖下层，对话框居中" />
     <Border Classes="panel">
       <Panel Width="700" Height="300" ClipToBounds="True">
         <TextBlock Margin="4" VerticalAlignment="Top"
@@ -63,9 +63,9 @@
       </Panel>
     </Border>
     <TextBlock Classes="note" MaxWidth="700"
-               Text="最多三个按钮（Primary / Secondary / Close）。accent 只给安全的那个——这里是「保存并关闭」，不是「放弃更改」。" />
+               Text="最多三个按钮（Primary / Secondary / Close）。accent 仅用于安全的操作——此处为「保存并关闭」，而非「放弃更改」。" />
 
-    <TextBlock Classes="sub" Text="危险主操作 — 主按钮走 critical，不走 accent" />
+    <TextBlock Classes="sub" Text="危险主操作 — 主按钮使用 critical 而非 accent" />
     <Border Classes="panel">
       <fc:ContentDialog Width="460"
                         Title="删除配方 Recipe-042？"
@@ -79,9 +79,9 @@
       </fc:ContentDialog>
     </Border>
     <TextBlock Classes="note" MaxWidth="700"
-               Text="IsPrimaryDestructive=True 时主按钮换成 critical 红：删除不该长得像「推荐操作」。同时把 DefaultButton 挪到 Close，回车落在取消上——不可逆的操作不配当默认键。" />
+               Text="IsPrimaryDestructive=True 时主按钮改用 critical 红：删除操作在视觉上不应呈现为「推荐操作」。同时将 DefaultButton 改为 Close，回车落在取消上——不可逆操作不应作为默认键。" />
 
-    <TextBlock Classes="sub" Text="试玩 — 两种确认" />
+    <TextBlock Classes="sub" Text="交互演示 — 两种确认" />
     <Border Classes="play">
       <StackPanel Spacing="12">
         <StackPanel Orientation="Horizontal" Spacing="12">
@@ -90,12 +90,12 @@
         </StackPanel>
         <TextBlock x:Name="PlayLog" Classes="note" MaxWidth="700" />
         <TextBlock Classes="note" MaxWidth="700"
-                   Text="Esc 等于按关闭按钮，回车按 DefaultButton。点遮罩不关：模态框不做轻关闭，否则「确认停机」这类对话框一划就没了。注意页脚三个按钮等宽撑满。" />
+                   Text="Esc 等同于按下关闭按钮，回车触发 DefaultButton。点按遮罩不关闭：模态框不做轻关闭，否则「确认停机」这类对话框会因误触而消失。页脚三个按钮等宽撑满。" />
       </StackPanel>
     </Border>
 
-    <g:MapBlock Note="await dialog.ShowAsync(owner) 返回 ContentDialogResult（None / Primary / Secondary），天然适合 MVVM 的 await 流程。owner 给视觉树上任意一个元素即可，只用来找所在窗口的 OverlayLayer。">
-      <g:MapRow Key="类型" Value="ContentDialog : ContentControl（Avalonia 本体没有，本库自带）" />
+    <g:MapBlock Note="await dialog.ShowAsync(owner) 返回 ContentDialogResult（None / Primary / Secondary），适合 MVVM 的 await 流程。owner 可为视觉树上任意元素，仅用于定位所在窗口的 OverlayLayer。">
+      <g:MapRow Key="类型" Value="ContentDialog : ContentControl（Avalonia 本体未提供，本库自带）" />
       <g:MapRow Key="属性" Value="Title · PrimaryButtonText · SecondaryButtonText · CloseButtonText · DefaultButton={None,Primary,Secondary,Close}（默认 Primary）· IsPrimaryDestructive" />
       <g:MapRow Key="方法" Value="ShowAsync(Visual owner) : Task&lt;ContentDialogResult&gt; · Hide(result)" />
       <g:MapRow Key="资源键" Value="SolidBackgroundFillColorBaseBrush（实色底）· SolidBackgroundFillColorSecondaryBrush + CardStrokeColorDefaultBrush（页脚分隔）· SmokeFillColorDefaultBrush（遮罩）· SystemFillColorCriticalBrush（危险主操作）" />

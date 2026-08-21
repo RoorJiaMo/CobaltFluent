@@ -12,9 +12,9 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="面板内边距 0,2,0,2，项最小高 32、内边距 11,8,11,9、外边距 4,2,4,2。这些是 WinUI 的原值，照抄即可。" />
+               Text="面板内边距 0,2,0,2，项最小高 32、内边距 11,8,11,9、外边距 4,2,4,2。这些均为 WinUI 原值，直接沿用即可。" />
 
-    <TextBlock Classes="sub" Text="面板本体 — 摊平了看" />
+    <TextBlock Classes="sub" Text="面板本体 — 平铺展示" />
     <Border Classes="panel">
       <StackPanel Orientation="Horizontal" Spacing="24">
 
@@ -47,15 +47,15 @@
 
         <StackPanel Spacing="0" MaxWidth="320" VerticalAlignment="Center">
           <TextBlock Classes="note" Margin="0"
-                     Text="图标列固定 16px 宽并始终占位，没有图标的项也要留空——否则同一菜单里的文字会左右错位。快捷键右对齐，用 secondary 色。" />
+                     Text="图标列固定 16px 宽并始终占位，无图标的项同样保留空位——否则同一菜单内的文字会左右错位。快捷键右对齐，使用 secondary 色。" />
           <TextBlock Classes="note"
-                     Text="「导出数据」右端那个箭头是有子项才画的，不是手加的装饰。划过它子菜单就展开，往右贴着父项落。" />
+                     Text="「导出数据」右端的箭头仅在存在子项时绘制，并非手动添加的装饰。指针经过该项时子菜单展开，在右侧紧贴父项显示。" />
         </StackPanel>
 
       </StackPanel>
     </Border>
 
-    <TextBlock Classes="sub" Text="图标列 — 有没有图标，占的是同一格" />
+    <TextBlock Classes="sub" Text="图标列 — 有无图标均占用同一栏位" />
     <Border Classes="panel">
       <StackPanel Orientation="Horizontal" Spacing="24">
 
@@ -70,7 +70,7 @@
             <MenuItem Header="复位计数器" />
             <MenuItem Header="清零累计量" />
           </MenuFlyoutPresenter>
-          <TextBlock Classes="note" Margin="0" Text="混着放：后两项没图标，文字照样对齐在第三列上" />
+          <TextBlock Classes="note" Margin="0" Text="混合排列：后两项无图标，文字仍对齐在第三列" />
         </StackPanel>
 
         <StackPanel Spacing="8">
@@ -79,16 +79,16 @@
             <MenuItem Header="粘贴" InputGesture="Ctrl+V" />
             <MenuItem Header="删除" InputGesture="Delete" />
           </MenuFlyoutPresenter>
-          <TextBlock Classes="note" Margin="0" Text="整个菜单都没图标：那一列宽度归零，不白留一条空边" />
+          <TextBlock Classes="note" Margin="0" Text="整个菜单均无图标：该列宽度归零，不保留多余空边" />
         </StackPanel>
 
         <TextBlock Classes="note" Margin="0" MaxWidth="260" VerticalAlignment="Center"
-                   Text="这两种对齐都不是手写死的宽度：图标 / 快捷键 / 箭头三列都挂了 SharedSizeGroup，同一个面板里按最宽的那项统一。所以一个菜单里只要有一项带图标，全体都跟着让出这一格。" />
+                   Text="两种对齐均非硬编码宽度：图标 / 快捷键 / 箭头三列均使用 SharedSizeGroup，同一面板内按最宽项统一。因此菜单中只要有一项带图标，所有项都会保留该栏位。" />
 
       </StackPanel>
     </Border>
 
-    <TextBlock Classes="sub" Text="项的状态 — 划过和键盘走到是同一档" />
+    <TextBlock Classes="sub" Text="项的状态 — 指针悬停与键盘导航为同一档" />
     <g:SpecMatrix States="rest,pointerover,selected,disabled">
       <g:SpecMatrix.Sample>
         <DataTemplate>
@@ -99,9 +99,9 @@
       </g:SpecMatrix.Sample>
     </g:SpecMatrix>
     <TextBlock Classes="note"
-               Text="鼠标划过落 :pointerover，键盘上下走落 :selected，两条给的是同一档 SubtleFillColorSecondary——菜单里「当前在哪一项」只有一个概念，分两种深浅只会让人以为是两回事。禁用项只掉文字色，底不动：加一层灰底会让它看着像被选中。" />
+               Text="鼠标悬停触发 :pointerover，键盘上下导航触发 :selected，两者使用同一档 SubtleFillColorSecondary——菜单中「当前项」只有一个概念，区分两种深浅会被误解为两种状态。禁用项仅降低文字色，背景不变：叠加灰底会使其在视觉上近似选中态。" />
 
-    <TextBlock Classes="sub" Text="试玩 — 按钮触发" />
+    <TextBlock Classes="sub" Text="交互演示 — 按钮触发" />
     <Border Classes="play">
       <StackPanel Spacing="12">
         <DropDownButton x:Name="ActionButton" Content="操作">
@@ -122,11 +122,11 @@
         </DropDownButton>
         <TextBlock x:Name="ActionLog" Classes="note" Margin="0" />
         <TextBlock Classes="note" Margin="0"
-                   Text="点按钮打开，点面板外任意处或按 Esc 关闭——这是 light dismiss，Avalonia 的 Flyout 默认就是这个行为（IsLightDismissEnabled）。菜单项上写的 F5 / F6 只是画在那儿给人看，真要按键生效得另外挂 KeyBinding。" />
+                   Text="点按按钮打开，点按面板外任意位置或按 Esc 关闭——即 light dismiss，Avalonia 的 Flyout 默认即为该行为（IsLightDismissEnabled）。菜单项上显示的 F5 / F6 仅为文字标注，按键实际生效需另行注册 KeyBinding。" />
       </StackPanel>
     </Border>
 
-    <TextBlock Classes="sub" Text="试玩 — 右键菜单" />
+    <TextBlock Classes="sub" Text="交互演示 — 右键菜单" />
     <Border Classes="play">
       <StackPanel Spacing="12">
         <ListBox x:Name="RecipeList" Width="280" Height="148" SelectedIndex="0">
@@ -156,15 +156,15 @@
         </ListBox>
         <TextBlock x:Name="ContextLog" Classes="note" Margin="0" />
         <TextBlock Classes="note" Margin="0"
-                   Text="右键先把那一行选中，再弹菜单——Avalonia 默认右键不改选中项，不补这一下的话菜单里的「删除」删的是上一次左键点的那行，操作对象和视线对不上。触摸屏上还要给长按补同一条路径，不然这些命令在现场根本够不着。" />
+                   Text="右键先选中所在行，再弹出菜单——Avalonia 默认右键不改变选中项，若缺少该处理，菜单中的「删除」作用于上一次左键选中的行，操作对象与视觉焦点不一致。触摸屏上还需为长按提供同一路径，否则这些命令在现场无法触达。" />
       </StackPanel>
     </Border>
 
-    <g:MapBlock Note="子菜单的 Popup 上写死 HorizontalOffset=&quot;-4&quot;（对应 WinUI 的 MenuFlyoutSubItemPopupHorizontalOffset），抵掉菜单项那 4px 外距，子菜单才和父项贴合。InputGesture 只负责画字，不绑键；真快捷键挂在窗口的 KeyBindings 上。">
+    <g:MapBlock Note="子菜单的 Popup 上固定设置 HorizontalOffset=&quot;-4&quot;（对应 WinUI 的 MenuFlyoutSubItemPopupHorizontalOffset），抵消菜单项的 4px 外边距，使子菜单与父项贴合。InputGesture 仅负责绘制文字，不绑定按键；实际快捷键注册在窗口的 KeyBindings 上。">
       <g:MapRow Key="控件" Value="MenuFlyout · MenuFlyoutPresenter · MenuItem · Separator · ContextMenu" />
       <g:MapRow Key="资源键" Value="MenuFlyoutPresenterPadding=0,2,0,2 · MenuFlyoutItemPadding=11,8,11,9 · MenuFlyoutItemMargin=4,2,4,2 · MenuFlyoutItemMinHeight=32 · OverlayCornerRadius" />
-      <g:MapRow Key="选择器" Value="MenuItem:pointerover · MenuItem:selected（键盘走到）· MenuItem:disabled · MenuItem:icon（有 Icon 才画那一列）· MenuItem:empty（没子项就不画箭头）· MenuItem:separator（Header=&quot;-&quot;）" />
-      <g:MapRow Key="分隔线" Value="Separator · Height=1 · Margin=0,1,0,1 · DividerStrokeColorDefaultBrush（比 SurfaceStroke 淡一档——它分的是同一张面里的两组，不是两张面）" />
+      <g:MapRow Key="选择器" Value="MenuItem:pointerover · MenuItem:selected（键盘导航到达）· MenuItem:disabled · MenuItem:icon（存在 Icon 时才绘制该列）· MenuItem:empty（无子项时不绘制箭头）· MenuItem:separator（Header=&quot;-&quot;）" />
+      <g:MapRow Key="分隔线" Value="Separator · Height=1 · Margin=0,1,0,1 · DividerStrokeColorDefaultBrush（比 SurfaceStroke 淡一档——其分隔的是同一面板内的两组内容，而非两个面板）" />
       <g:MapRow Key="挂载" Value="&lt;Button.Flyout&gt;&lt;MenuFlyout/&gt;&lt;/Button.Flyout&gt; · &lt;X.ContextMenu&gt;&lt;ContextMenu/&gt;&lt;/X.ContextMenu&gt; · MenuFlyout.ShowAt(target) · MenuItem.Icon / InputGesture / Click" />
     </g:MapBlock>
 

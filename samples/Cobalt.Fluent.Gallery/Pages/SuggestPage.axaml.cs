@@ -62,7 +62,7 @@ public partial class SuggestPage : UserControl
 
         void Show() =>
             label.Text = "当前模式：" +
-                ((picker.SelectedItem as SegmentedItem)?.Content as string ?? "未选");
+                ((picker.SelectedItem as SegmentedItem)?.Content as string ?? "未选择");
     }
 
     private void WireTrail()

@@ -11,7 +11,7 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="这一组和前面所有控件都不一样：它不是「换套皮的内置控件」，定的是视觉规格——色板、轴线、网格、图例、十字线、刷新策略。本库把这套规格自绘实现了（DrawingContext，零第三方依赖）；数据量真压不住时换成图表库，规格照搬过去就行。" />
+               Text="本组与此前所有控件不同：它并非「重设样式的内置控件」，而是定义视觉规格——色板、轴线、网格、图例、十字线、刷新策略。本库以自绘方式实现了这套规格（DrawingContext，零第三方依赖）；数据量超出自绘承载能力时换用图表库，规格可直接迁移。" />
 
     <TextBlock Classes="sub" Text="选型（2026 年 8 月）" />
     <Border Classes="panel" HorizontalAlignment="Stretch">
@@ -45,32 +45,32 @@
         <TextBlock Grid.Row="2" Grid.Column="0" Classes="lib" Text="Avalonia Charts" />
         <TextBlock Grid.Row="2" Grid.Column="1" Classes="cell" Text="Pro 订阅（付费）" />
         <TextBlock Grid.Row="2" Grid.Column="2" Classes="cell"
-                   Text="2026-05 官方发布。走 Avalonia 自己的渲染管线和主题模型，意味着 ChartSeries1..8 这套 token 直接生效，不用手动映射颜色。内置十字线、trackball、缩放平移、图例交互。有 Pro 的话首选。" />
+                   Text="2026-05 官方发布。使用 Avalonia 自身的渲染管线和主题模型，ChartSeries1..8 这组 token 直接生效，无需手动映射颜色。内置十字线、trackball、缩放平移、图例交互。已持有 Pro 订阅时为首选。" />
 
         <TextBlock Grid.Row="3" Grid.Column="0" Classes="lib" Text="ScottPlot.Avalonia" />
         <TextBlock Grid.Row="3" Grid.Column="1" Classes="cell" Text="MIT" />
         <TextBlock Grid.Row="3" Grid.Column="2" Classes="cell"
-                   Text="大数据量吞吐最强，科学 / 工程绘图导向。缺点是自成一套主题体系，要写代码把 token 颜色喂给它。" />
+                   Text="大数据量吞吐最强，科学 / 工程绘图导向。缺点是自成一套主题体系，需要以代码将 token 颜色传入。" />
 
         <TextBlock Grid.Row="4" Grid.Column="0" Classes="lib" Text="LiveCharts2" />
         <TextBlock Grid.Row="4" Grid.Column="1" Classes="cell" Text="MIT + 付费层" />
         <TextBlock Grid.Row="4" Grid.Column="2" Classes="cell"
-                   Text="默认观感最好、API 最现代、MVVM 友好，但吞吐低于 ScottPlot。基于 SkiaSharp——嵌入式 Mali GPU 上要实测。" />
+                   Text="默认观感最好、API 最现代、MVVM 友好，但吞吐低于 ScottPlot。基于 SkiaSharp——嵌入式 Mali GPU 上需实测。" />
 
         <StackPanel Grid.Row="5" Grid.Column="0">
           <TextBlock Classes="lib" Text="自绘 DrawingContext" />
-          <TextBlock Classes="note" Margin="0,2,0,0" Text="← 本库走的这条" />
+          <TextBlock Classes="note" Margin="0,2,0,0" Text="← 本库采用的方案" />
         </StackPanel>
         <TextBlock Grid.Row="5" Grid.Column="1" Classes="cell" Text="—" />
         <TextBlock Grid.Row="5" Grid.Column="2" Classes="cell"
-                   Text="只画单通道 strip chart 的话反而最轻，RK3568 这类硬件上值得考虑。本库把 TrendChart / BarChart / Sparkline / Gauge / ChartFrame / ChartLegend 全按这条路实现了。" />
+                   Text="仅绘制单通道 strip chart 时开销最低，RK3568 这类硬件上值得考虑。本库的 TrendChart / BarChart / Sparkline / Gauge / ChartFrame / ChartLegend 均按此方案实现。" />
       </Grid>
     </Border>
 
     <TextBlock Classes="note" MaxWidth="860"
-               Text="选自绘不是因为「够用」，是因为可控：整个库只依赖 Avalonia 本体，交叉编译到 arm64 不用管第三方的 native 包和 GPU 后端；线宽、虚线段长、容差带透明度这些规格写在 Render 里，改一处全库一致，不会出现「这张图的设定值虚线和那张不一样」。代价是没有框选缩放、没有自动轴布局——真需要那些就换库。" />
+               Text="选择自绘并非因为「够用」，而是因为可控：整个库仅依赖 Avalonia 本体，交叉编译到 arm64 时无需处理第三方的 native 包和 GPU 后端；线宽、虚线段长、容差带透明度等规格写在 Render 中，修改一处即全库一致，不会出现「不同图表的设定值虚线样式不一致」。代价是没有框选缩放、没有自动轴布局——确有此类需求时应换用图表库。" />
 
-    <TextBlock Classes="sub" Text="什么时候该换 —— 以及换的时候规格怎么带走" />
+    <TextBlock Classes="sub" Text="换库时机 —— 以及规格的迁移方式" />
     <Border Classes="panel" HorizontalAlignment="Stretch">
       <StackPanel Spacing="12">
         <StackPanel.Styles>
@@ -78,12 +78,12 @@
             <Setter Property="TextWrapping" Value="Wrap" />
           </Style>
         </StackPanel.Styles>
-        <TextBlock Text="判断线在数据量和交互上，不在美观上：一屏几千点、几条通道、只要 trackball 十字线，自绘完全够；历史数据回放（几十万点）、要框选缩放、要多 Y 轴自动布局，就别硬撑，换 ScottPlot.Avalonia 或 LiveCharts2。" />
-        <TextBlock Text="换库不用重做视觉规格。八个系列色是资源，不是常量——第三方库拿 TryFindResource(&quot;ChartSeries3Brush&quot;, ActualThemeVariant) 取出来直接喂进它自己的 series 配置即可，主题翻转照样跟着走。线型层级（曲线 1.5px 实线 / 设定值 1px 虚线 4-3 / 报警限 1px 虚线 3-3 红 / 容差带 3.5% 填充 / 十字线 1px 点线）和下面三条刷新策略也照搬。" />
+        <TextBlock Text="判断的分界在数据量和交互上，不在美观上：一屏几千点、几条通道、仅需 trackball 十字线时，自绘足以胜任；历史数据回放（几十万点）、需要框选缩放、需要多 Y 轴自动布局时，应换用 ScottPlot.Avalonia 或 LiveCharts2。" />
+        <TextBlock Text="换库无需重做视觉规格。八个系列色是资源，不是常量——第三方库通过 TryFindResource(&quot;ChartSeries3Brush&quot;, ActualThemeVariant) 取出后直接传入其自身的 series 配置即可，主题切换时颜色仍随之更新。线型层级（曲线 1.5px 实线 / 设定值 1px 虚线 4-3 / 报警限 1px 虚线 3-3 红 / 容差带 3.5% 填充 / 十字线 1px 点线）和下述三条刷新策略同样可直接沿用。" />
       </StackPanel>
     </Border>
 
-    <TextBlock Classes="sub" Text="刷新策略 —— 换哪个库都得自己控制" />
+    <TextBlock Classes="sub" Text="刷新策略 —— 无论使用哪个库均需在应用层控制" />
     <Border Classes="panel" HorizontalAlignment="Stretch">
       <StackPanel Spacing="14">
         <StackPanel.Styles>
@@ -98,17 +98,17 @@
 
         <StackPanel>
           <TextBlock Classes="rule-title" Text="1 · 数值刷新节流到 4–10 Hz" />
-          <TextBlock Classes="rule" Text="Modbus 那边可能 50 Hz 在轮询，但人眼分辨不出 10 Hz 以上的变化——多出来的四十帧只是在烧 CPU。数据照单全收进缓冲，重画交给一个定时器合并触发，别每来一个报文就 InvalidateVisual。" />
+          <TextBlock Classes="rule" Text="Modbus 侧可能以 50 Hz 轮询，但人眼无法分辨 10 Hz 以上的变化——多出的四十帧只是消耗 CPU。数据全部写入缓冲，重画由定时器合并触发，不应每收到一个报文就 InvalidateVisual。" />
         </StackPanel>
 
         <StackPanel>
           <TextBlock Classes="rule-title" Text="2 · 超过 2000 点做 LTTB 抽稀" />
-          <TextBlock Classes="rule" Text="绘图区宽度就那么几百个像素，画二十万个点等于在同一列上反复涂色。用 LTTB（Largest-Triangle-Three-Buckets）——它按三角形面积挑点，尖峰和拐点会被保住；等距抽样或者取平均会把毛刺抹平，而毛刺往往正是要看的东西。" />
+          <TextBlock Classes="rule" Text="绘图区宽度仅有几百个像素，绘制二十万个点等同于在同一列上反复着色。采用 LTTB（Largest-Triangle-Three-Buckets）——按三角形面积选点，尖峰和拐点得以保留；等距抽样或取平均会将毛刺抹平，而毛刺往往正是需要观察的对象。" />
         </StackPanel>
 
         <StackPanel>
           <TextBlock Classes="rule-title" Text="3 · 实时窗口用环形缓冲" />
-          <TextBlock Classes="rule" Text="固定容量的环形缓冲，写指针往前挪，覆盖最老的一格。每帧 new 一个数组再 Copy 看着人畜无害，滚动窗口下就是持续的 GC 压力，嵌入式上表现为周期性卡顿——一秒一顿，正好和刷新周期同频，很容易被误判成通信问题。" />
+          <TextBlock Classes="rule" Text="固定容量的环形缓冲，写指针前移，覆盖最旧的一格。每帧 new 一个数组再 Copy 表面上开销不大，但在滚动窗口下构成持续的 GC 压力，嵌入式上表现为周期性卡顿——每秒一次，与刷新周期同频，容易被误判为通信问题。" />
         </StackPanel>
       </StackPanel>
     </Border>
@@ -200,13 +200,13 @@
     </Border>
 
     <TextBlock Classes="note" MaxWidth="860"
-               Text="八色里没有纯绿也没有纯红，是刻意的：HMI 里绿=运行、红=故障已经是语义色，一条绿色曲线会被操作员读成「这条正常」，而它可能正在超温。语义色只留给 StatusIndicator、AlarmBanner 和 Sparkline 的 :up / :down。深色一套不是浅色的算法反色——低饱和的深蓝在黑底上会糊掉，明度是逐条调出来的。四条以上曲线还要靠线型和粗细分层，颜色只够分四路。" />
+               Text="八色中不含纯绿与纯红，属刻意设计：HMI 中绿=运行、红=故障已是语义色，绿色曲线会被操作员解读为「该通道正常」，而其数值可能正在超温。语义色仅保留给 StatusIndicator、AlarmBanner 和 Sparkline 的 :up / :down。深色一套并非浅色的算法反色——低饱和的深蓝在黑底上清晰度不足，明度逐条单独调校。四条以上曲线还需依靠线型和粗细分层，仅凭颜色只能区分四路。" />
 
-    <g:MapBlock Note="色板一定要从资源取，别在 series 配置里写死十六进制——写死之后切深色主题，图上八条线还是浅色那套，在黑底上直接糊成一团。">
+    <g:MapBlock Note="色板必须从资源读取，不应在 series 配置中硬编码十六进制值——硬编码后切换深色主题时，图上八条线仍为浅色配色，在黑底上难以辨认。">
       <g:MapRow Key="实现" Value="Control.Render(DrawingContext) 自绘，零第三方依赖：TrendChart · BarChart · Sparkline · Gauge · ChartFrame · ChartLegend" />
       <g:MapRow Key="色板" Value="ChartSeries1..8 / ChartSeries1..8Brush，明暗两套。蓝 / 橙 / 青 / 紫 / 洋红 / 金 / 靛 / 石板，刻意避开纯红纯绿" />
-      <g:MapRow Key="换库" Value="ScottPlot.Avalonia（吞吐优先）· LiveCharts2（观感 / MVVM 优先）· Avalonia Charts（有 Pro 订阅时首选）—— 用 TryFindResource(&quot;ChartSeries{n}Brush&quot;, ActualThemeVariant) 把色板喂进去" />
-      <g:MapRow Key="刷新" Value="节流 4–10 Hz · &gt;2000 点走 LTTB 抽稀 · 实时窗口用环形缓冲。三条都在应用层，图表库不管" />
+      <g:MapRow Key="换库" Value="ScottPlot.Avalonia（吞吐优先）· LiveCharts2（观感 / MVVM 优先）· Avalonia Charts（有 Pro 订阅时首选）—— 通过 TryFindResource(&quot;ChartSeries{n}Brush&quot;, ActualThemeVariant) 传入色板" />
+      <g:MapRow Key="刷新" Value="节流 4–10 Hz · &gt;2000 点做 LTTB 抽稀 · 实时窗口用环形缓冲。三条均在应用层实现，不属于图表库职责" />
     </g:MapBlock>
 
   </StackPanel>

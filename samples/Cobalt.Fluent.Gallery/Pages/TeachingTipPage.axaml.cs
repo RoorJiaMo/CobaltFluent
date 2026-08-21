@@ -25,7 +25,7 @@ public partial class TeachingTipPage : UserControl
         var rearm = this.FindControl<Button>("Rearm")!;
         var log = this.FindControl<TextBlock>("PlayLog")!;
 
-        log.Text = "引导正开着。点掉它才能往下走——这是 TeachingTip 和 ToolTip 最实在的区别。";
+        log.Text = "引导当前处于打开状态。必须点按关闭才能继续——这是 TeachingTip 与 ToolTip 最直接的区别。";
         rearm.IsEnabled = false;
 
         // 动作按钮在模板里，外面拿不到它的 Click，只能走 ActionCommand。
@@ -37,8 +37,8 @@ public partial class TeachingTipPage : UserControl
         tip.Closed += (_, _) =>
         {
             log.Text = _actionTaken
-                ? "点了「查看示例」：跳到并行通道那一页，同时记为已读。动作和关闭是一次操作，不该让用户再点一下关。"
-                : "点了「知道了」：一样记为已读。下次进来不再弹，除非版本更新带来新东西。";
+                ? "已点按「查看示例」：跳转到并行通道页面，同时记为已读。动作与关闭为同一次操作，不应要求用户再点按一次关闭。"
+                : "已点按「知道了」：同样记为已读。下次进入不再弹出，除非版本更新引入新内容。";
 
             _actionTaken = false;
             rearm.IsEnabled = true;
@@ -48,7 +48,7 @@ public partial class TeachingTipPage : UserControl
         {
             tip.IsOpen = true;
             rearm.IsEnabled = false;
-            log.Text = "又弹了一次。真实产品里只有清掉「已读」标记才走得到这一步——每次启动都弹的引导，操作员第三天就开始无视了。";
+            log.Text = "已再次弹出。实际产品中仅在清除「已读」标记后才会到达此步骤——每次启动都弹出的引导，操作员自第三天起即会忽略。";
         };
     }
 

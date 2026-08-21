@@ -14,7 +14,8 @@ namespace Cobalt.Fluent.Shots;
 ///   dotnet run --project tools/Cobalt.Fluent.Shots -- &lt;输出目录&gt; [章节名过滤] [light|dark|both]
 ///
 /// 章节名过滤给 <c>*</c> 就是全部；给 <c>shell</c> 渲染整个展柜窗口；
-/// 给 <c>shell:Readout</c> 渲染停在指定章节的展柜窗口（截封面图用）。
+/// 给 <c>shell:Readout</c> 渲染停在指定章节的展柜窗口（截封面图用）；
+/// 给 <c>srcview:Button</c> 渲染打开了「本页源码」覆层的展柜窗口。
 ///
 /// 没有这一步的话，「1:1」就只能靠读代码判断。
 /// </summary>
@@ -43,10 +44,14 @@ internal static class Program
 
         // 单独渲染整个展柜窗口（目录 + 顶栏 + 内容区），用来验收外壳本身。
         // 写成 shell:章节名 可以指定停在哪一页，例如 shell:Readout —— 截封面图用。
-        if (filter is not null && (filter == "shell" || filter.StartsWith("shell:", StringComparison.Ordinal)))
+        if (filter is not null
+            && (filter == "shell"
+                || filter.StartsWith("shell:", StringComparison.Ordinal)
+                || filter.StartsWith("srcview:", StringComparison.Ordinal)))
         {
-            var wanted = filter.StartsWith("shell:", StringComparison.Ordinal)
-                ? filter["shell:".Length..]
+            var openSource = filter.StartsWith("srcview:", StringComparison.Ordinal);
+            var wanted = filter.Contains(':')
+                ? filter[(filter.IndexOf(':') + 1)..]
                 : null;
 
             foreach (var variant in variants)
@@ -70,6 +75,12 @@ internal static class Program
                     }
                     toc.SelectedItem = target;
                     Dispatcher.UIThread.RunJobs();
+
+                    if (openSource)
+                    {
+                        shell.ShowSourceForCurrentSection();
+                        Dispatcher.UIThread.RunJobs();
+                    }
                 }
 
                 shell.Measure(new Size(1440, 900));
@@ -83,7 +94,9 @@ internal static class Program
                     return 1;
                 }
 
-                var name = wanted is null ? "_shell" : $"_shell-{wanted}";
+                var name = wanted is null ? "_shell"
+                    : openSource ? $"_srcview-{wanted}"
+                    : $"_shell-{wanted}";
                 var file = Path.Combine(outDir, $"{name}.{suffix}.png");
                 shot.Save(file);
                 Console.WriteLine($"  {file}");

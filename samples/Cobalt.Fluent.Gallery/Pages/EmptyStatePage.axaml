@@ -12,9 +12,9 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="空和加载是两种不同的状态，视觉上必须区分。Skeleton 比转圈好——它预示了内容的形状，让等待感觉更短。" />
+               Text="空与加载是两种不同的状态，视觉上必须区分。Skeleton 优于旋转加载指示——它预示了内容的形状，使等待的主观时长更短。" />
 
-    <TextBlock Classes="sub" Text="EmptyState — 空必须给出路" />
+    <TextBlock Classes="sub" Text="EmptyState — 空状态必须给出后续操作" />
     <Border Classes="panel" Padding="0">
       <StackPanel Orientation="Horizontal">
         <fc:Card Width="340" Padding="0" BorderThickness="0">
@@ -43,7 +43,7 @@
       </StackPanel>
     </Border>
     <TextBlock Classes="note"
-               Text="空状态必须给出路——「没有数据」是废话，「试试放宽时间范围」加一个清除按钮才有用。按钮点下去要真的改变筛选条件，摆一个不做事的按钮比不摆更糟。" />
+               Text="空状态必须给出后续操作——仅提示「没有数据」不具备信息量，「试试放宽时间范围」加一个清除按钮才有实际作用。按钮按下后必须真实改变筛选条件，放置一个无实际功能的按钮比不放置更糟。" />
 
     <TextBlock Classes="sub" Text="Skeleton — 列表骨架" />
     <Border Classes="panel">
@@ -77,7 +77,7 @@
       </Grid>
     </Border>
     <TextBlock Classes="note"
-               Text="骨架的列宽、行高、对齐方式都要和真表一致，数值列同样右对齐。骨架和数据长得不一样的话，等待省下的那点焦虑会在数据到位那一刻全还回去。" />
+               Text="骨架的列宽、行高、对齐方式都要与真实表格一致，数值列同样右对齐。骨架与数据外观不一致时，等待期减轻的焦虑会在数据到位的一刻全部抵消。" />
 
     <TextBlock Classes="sub" Text="IsShimmerEnabled — 微光是常驻动画" />
     <Border Classes="panel">
@@ -97,9 +97,9 @@
       </StackPanel>
     </Border>
     <TextBlock Classes="note"
-               Text="微光每条 1.4 秒无限循环，只要控件在树上就一直跑。一屏十几条在 RK3568 那类板子上就是十几条持续重绘，画面还没出来先把 GPU 占了。要么整屏用静态灰条，要么只给前 3 行开——下面几行操作员本来也没在盯。" />
+               Text="微光每条 1.4 秒无限循环，控件位于视觉树上期间持续运行。一屏十几条在 RK3568 这类硬件上即十几条持续重绘，内容尚未呈现 GPU 已被占用。可整屏使用静态灰条，或仅为前 3 行开启——下方各行并非操作员的注视焦点。" />
 
-    <TextBlock Classes="sub" Text="试玩 — 加载 / 有数据 / 空是三种状态" />
+    <TextBlock Classes="sub" Text="交互演示 — 加载 / 有数据 / 空为三种状态" />
     <Border Classes="play">
       <StackPanel Spacing="16">
         <StackPanel Orientation="Horizontal" Spacing="16">
@@ -179,14 +179,14 @@
         </Panel>
 
         <TextBlock Classes="note" MaxWidth="700"
-                   Text="勾上筛选再加载，结果为空——这时给的是「放宽时间范围」和一个真能用的清除按钮，不是一句「无数据」。点「清除筛选」会把上面那个勾去掉并重新拉一次，数据就回来了。" />
+                   Text="勾选筛选后再加载，结果为空——此时给出的是「放宽时间范围」和一个实际生效的清除按钮，而非一句「无数据」。点击「清除筛选」会取消上方的勾选并重新加载一次，数据随之恢复显示。" />
       </StackPanel>
     </Border>
 
-    <g:MapBlock Note="Skeleton 的 shimmer 在嵌入式上是常驻动画，一屏十几条会有开销。RK3568 上建议改成静态灰条，或者只给前 3 行做动画。">
-      <g:MapRow Key="控件" Value="自定义 EmptyState · Skeleton（Avalonia 内置里都没有对应物）" />
+    <g:MapBlock Note="Skeleton 的 shimmer 在嵌入式上是常驻动画，一屏十几条会有开销。RK3568 上建议改用静态灰条，或仅为前 3 行保留动画。">
+      <g:MapRow Key="控件" Value="自定义 EmptyState · Skeleton（Avalonia 内置均无对应控件）" />
       <g:MapRow Key="属性" Value="EmptyState: Icon:Symbol · Title · Description · ActionContent · ActionCommand ；Skeleton: IsShimmerEnabled" />
-      <g:MapRow Key="伪类" Value="Skeleton:shimmer（由 IsShimmerEnabled 推出来，不用手加类）" />
+      <g:MapRow Key="伪类" Value="Skeleton:shimmer（由 IsShimmerEnabled 推导，无需手动添加类）" />
       <g:MapRow Key="资源键" Value="ControlAltFillColorSecondaryBrush（灰条底）· SubtleFillColorSecondary（微光渐变中点）· TextFillColorTertiaryBrush（空状态图标与描述）" />
     </g:MapBlock>
 

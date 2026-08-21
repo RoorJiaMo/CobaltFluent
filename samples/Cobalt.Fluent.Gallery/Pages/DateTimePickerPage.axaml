@@ -12,7 +12,7 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="收起态走控件规格，弹出的日历走弹出层规格（8px + 亚克力 + flyout 阴影）。日期数字必须 tabular-nums，否则月历网格里的两位数会对不齐。" />
+               Text="收起态遵循控件规格，弹出的日历遵循弹出层规格（8px + 亚克力 + flyout 阴影）。日期数字必须使用 tabular-nums，否则月历网格中的两位数无法对齐。" />
 
     <TextBlock Classes="sub" Text="CalendarDatePicker 收起态 — 32px 高、4px 圆角、底边深一档" />
     <!-- 日期格式钉成 yyyy-MM-dd：跟着系统区域走的话同一台机器换个 locale 就变成
@@ -27,7 +27,7 @@
       </g:SpecMatrix.Sample>
     </g:SpecMatrix>
 
-    <TextBlock Classes="sub" Text="TimePicker 收起态 — 三段，一段都不高亮" />
+    <TextBlock Classes="sub" Text="TimePicker 收起态 — 三段，均不高亮" />
     <g:SpecMatrix States="rest,pointerover,pressed,disabled,focus">
       <g:SpecMatrix.Sample>
         <DataTemplate>
@@ -40,9 +40,9 @@
       </g:SpecMatrix.Sample>
     </g:SpecMatrix>
     <TextBlock Classes="note" MaxWidth="760"
-               Text="矩阵里没有「某一段高亮」这一格，因为收起态根本不该有——分段高亮只在展开且正在编辑该列时出现，是面板中央那条 accent 选择带。把它画到收起态上，操作员会以为那一段处在待输入状态。" />
+               Text="矩阵中没有「某一段高亮」这一格，因为收起态不应存在该状态——分段高亮仅在展开且正在编辑该列时出现，即面板中央的 accent 选择带。若在收起态上绘制该高亮，操作员会误认为该段处于待输入状态。" />
 
-    <TextBlock Classes="sub" Text="DatePicker — 同一套收起态规格，段位换成日 / 月 / 年" />
+    <TextBlock Classes="sub" Text="DatePicker — 收起态规格相同，段位为日 / 月 / 年" />
     <g:SpecMatrix States="rest,pointerover,disabled">
       <g:SpecMatrix.Sample>
         <DataTemplate>
@@ -51,9 +51,9 @@
       </g:SpecMatrix.Sample>
     </g:SpecMatrix>
     <TextBlock Classes="note" MaxWidth="760"
-               Text="三段是日 / 月 / 年，顺序和月份写法跟系统区域走，所以宽度不能写死——月名那段比两位数字宽得多，它整体也就比 CalendarDatePicker 宽。要键盘直接敲日期、或者要在日历上挂「有记录的日子」标记，用 CalendarDatePicker；只是从三列滚轮里挑一天，用 DatePicker。" />
+               Text="三段为日 / 月 / 年，顺序与月份写法随系统区域设置变化，因此宽度不能固定——月名段远宽于两位数字，整体宽度也因此大于 CalendarDatePicker。需要键盘直接输入日期、或需在日历上附加「有记录的日期」标记时，使用 CalendarDatePicker；仅需从三列滚轮中选择日期时，使用 DatePicker。" />
 
-    <TextBlock Classes="sub" Text="空态 — 只把文字压到 tertiary，框还是常态" />
+    <TextBlock Classes="sub" Text="空态 — 仅将文字降为 tertiary，边框保持常态" />
     <Border Classes="panel">
       <StackPanel Orientation="Horizontal" Spacing="24" VerticalAlignment="Top">
         <StackPanel Spacing="8">
@@ -73,11 +73,11 @@
       </StackPanel>
     </Border>
     <TextBlock Classes="note" MaxWidth="760"
-               Text="空态和 :disabled 长得像但含义相反：空态是「等你填」，禁用是「你别碰」。空态只动文字色，底色和描边一律不许跟着变，否则两者在屏幕上就分不开了。" />
+               Text="空态与 :disabled 外观相近但含义相反：空态表示「待输入」，禁用表示「禁止操作」。空态仅改变文字色，底色和描边一律不得随之变化，否则两者在屏幕上无法区分。" />
     <TextBlock Classes="note" MaxWidth="760"
-               Text="CalendarDatePicker 的占位符是 Watermark，自己写；TimePicker / DatePicker 的 hour · minute · second · day · month · year 来自 Avalonia 的本地化资源 StringTimePickerHourText / StringDatePickerDayText 那一组，要中文得在应用级资源里覆盖同名键，控件上没有对应属性。" />
+               Text="CalendarDatePicker 的占位符是 Watermark，由使用方自行设置；TimePicker / DatePicker 的 hour · minute · second · day · month · year 来自 Avalonia 的本地化资源 StringTimePickerHourText / StringDatePickerDayText 一组，需要中文时须在应用级资源中覆盖同名键，控件上没有对应属性。" />
 
-    <TextBlock Classes="sub" Text="试玩 — 收起态 → 点击弹出" />
+    <TextBlock Classes="sub" Text="交互演示 — 收起态 → 点击弹出" />
     <Border Classes="play">
       <StackPanel Spacing="16">
         <StackPanel Orientation="Horizontal" Spacing="24">
@@ -104,19 +104,19 @@
         </StackPanel>
 
         <TextBlock Classes="note" MaxWidth="760"
-                   Text="两个控件默认都是收起的——收起态走控件规格（32px 高、4px 圆角、底边深一档），点击才弹出走弹出层规格（8px 圆角 + 亚克力 + flyout 阴影）的面板。" />
+                   Text="两个控件默认处于收起态——收起态遵循控件规格（32px 高、4px 圆角、底边深一档），点击后弹出遵循弹出层规格（8px 圆角 + 亚克力 + flyout 阴影）的面板。" />
         <TextBlock Classes="note" MaxWidth="760"
-                   Text="TimePicker 弹出的是 Win11 的三列滚轮：中央一条选择带，列内滚动吸附，底部一对 ✓ / ✕。滚动列或点条目都能选，离中央选择带最近的那个自动高亮。点 ✓ 回填到收起态，点 ✕ 或点面板外放弃——上面那行回填结果只有按 ✓ 才会动。" />
+                   Text="TimePicker 弹出的是 Win11 的三列滚轮：中央一条选择带，列内滚动吸附，底部一对 ✓ / ✕。滚动列与点击条目均可选择，离中央选择带最近的条目自动高亮。点击 ✓ 回填到收起态，点击 ✕ 或面板外则放弃——上方的回填结果仅在点击 ✓ 后更新。" />
         <TextBlock Classes="note" MaxWidth="760"
-                   Text="面板开着的时候收起态保持按下相，一眼看得出是哪个框开的；关掉就恢复，分段高亮跟着一起消失。" />
+                   Text="面板打开期间收起态保持按下相，便于识别弹出来源的控件；面板关闭后恢复常态，分段高亮同时消失。" />
       </StackPanel>
     </Border>
 
-    <g:MapBlock Note="Avalonia 内置这三个控件，默认就是收起态点击弹出，不需要自己拼。TimePicker 弹出的三列滚轮内置模板已有 PART_HourSelector / PART_MinuteSelector 等命名部件，别自己套 Border 重做。「面板开着」这一态 Avalonia 没给伪类，本库把 Popup.IsOpen 绑到 PART_FlyoutButton 的 open 类上——效果一样，但状态矩阵强设不了它，只能在试玩区看。">
+    <g:MapBlock Note="Avalonia 内置这三个控件，默认即为收起态点击弹出，无需自行拼装。TimePicker 弹出的三列滚轮内置模板已有 PART_HourSelector / PART_MinuteSelector 等命名部件，不应另套 Border 重新实现。「面板打开」这一状态 Avalonia 未提供伪类，本库将 Popup.IsOpen 绑定到 PART_FlyoutButton 的 open 类上——效果等同，但状态矩阵无法强制设置该态，仅能在交互演示区查看。">
       <g:MapRow Key="控件" Value="CalendarDatePicker · TimePicker · DatePicker" />
       <g:MapRow Key="属性" Value="SelectedDate:DateTime?（DatePicker 是 DateTimeOffset?）· SelectedTime:TimeSpan? · SelectedDateFormat + CustomDateFormatString · Watermark · ClockIdentifier=&quot;24HourClock&quot; · UseSeconds · MinuteIncrement/SecondIncrement · BlackoutDates · DisplayDateStart/End" />
       <g:MapRow Key="伪类" Value=":pointerover · :pressed · :disabled · :error · TimePicker:hasnotime / DatePicker:hasnodate（空态）· 展开态 = PART_FlyoutButton 的 .open 类 · 滚轮条目 ListBoxItem:selected（正在编辑该列）" />
-      <g:MapRow Key="资源键" Value="ControlFillColorDefault/Secondary/Tertiary/DisabledBrush（收起态底）· ControlElevationBorderBrush（底边深一档那支渐变）· AcrylicBackgroundFillColorDefaultBrush + SurfaceStrokeColorFlyoutBrush + OverlayCornerRadius（弹出面板）· AccentFillColorDefaultBrush（中央选择带）· TabularNumbers（FontFeatures）" />
+      <g:MapRow Key="资源键" Value="ControlFillColorDefault/Secondary/Tertiary/DisabledBrush（收起态底）· ControlElevationBorderBrush（底边深一档的渐变）· AcrylicBackgroundFillColorDefaultBrush + SurfaceStrokeColorFlyoutBrush + OverlayCornerRadius（弹出面板）· AccentFillColorDefaultBrush（中央选择带）· TabularNumbers（FontFeatures）" />
     </g:MapBlock>
 
   </StackPanel>

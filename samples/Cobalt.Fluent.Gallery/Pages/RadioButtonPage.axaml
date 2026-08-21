@@ -11,7 +11,7 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="20×20 圆形。内点缩放是 Win11 的签名手感：默认 8×8，悬停放大到 10×10，按下缩到 6×6，83ms 过渡。右上角「动效 0.25×」可以慢放看清。" />
+               Text="20×20 圆形。内点缩放是 Win11 的标志性交互特征：默认 8×8，悬停放大至 10×10，按下缩小至 6×6，83ms 过渡。右上角「动效 0.25×」可放慢动画以便观察。" />
 
     <TextBlock Classes="sub" Text="unchecked" />
     <g:SpecMatrix>
@@ -20,14 +20,14 @@
       </g:SpecMatrix.Sample>
     </g:SpecMatrix>
 
-    <TextBlock Classes="sub" Text=":checked — 注意内点在三个态下的大小" />
+    <TextBlock Classes="sub" Text=":checked — 内点在三种状态下尺寸不同" />
     <g:SpecMatrix States="checked,pointerover,pressed,disabled,focus">
       <g:SpecMatrix.Sample>
         <DataTemplate><RadioButton Content="自动" IsChecked="True" GroupName="spec2" /></DataTemplate>
       </g:SpecMatrix.Sample>
     </g:SpecMatrix>
 
-    <TextBlock Classes="sub" Text="试玩 — 组内互斥" />
+    <TextBlock Classes="sub" Text="交互演示 — 组内互斥" />
     <Border Classes="play">
       <StackPanel Spacing="12">
         <StackPanel Spacing="8">
@@ -36,11 +36,11 @@
           <RadioButton Content="维护" GroupName="mode" />
           <RadioButton Content="远程（未授权）" GroupName="mode" IsEnabled="False" />
         </StackPanel>
-        <TextBlock Classes="note" Text="GroupName 相同的互斥。悬停已选项看内点变大，按住看它缩小。" />
+        <TextBlock Classes="note" Text="GroupName 相同的选项互斥。悬停已选项时内点放大，按住时缩小。" />
       </StackPanel>
     </Border>
 
-    <g:MapBlock Note="内点缩放靠模板里 Ellipse 的 Width/Height + Transitions，触发条件是 :checked:pointerover / :checked:pressed。">
+    <g:MapBlock Note="内点缩放通过模板中 Ellipse 的 Width/Height + Transitions 实现，触发条件为 :checked:pointerover / :checked:pressed。">
       <g:MapRow Key="控件" Value="RadioButton（GroupName 分组）" />
       <g:MapRow Key="资源键" Value="AccentFillColorDefaultBrush（选中外圈）· TextOnAccentFillColorPrimaryBrush（内点）· ControlStrongStrokeColorDefaultBrush（未选边）" />
       <g:MapRow Key="内点尺寸" Value="rest 8 · :pointerover 10 · :pressed 6，过渡 83ms" />

@@ -12,7 +12,7 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="收尾的一组，但里面有一条硬规矩：Toast 会自动消失。它只配送「操作成功回执」这种可忽略的瞬时消息，报警绝不能用它——操作员错过就错过了，要处置的事情归 InfoBar 和 AlarmBanner。" />
+               Text="最后一组，其中有一条硬性规则：Toast 会自动消失。它仅适用于「操作成功回执」这类可忽略的瞬时消息，报警绝不能使用它——错过的 Toast 无法追回，需要处置的事项由 InfoBar 和 AlarmBanner 承担。" />
 
     <TextBlock Classes="sub" Text="Stepper — 多步流程" />
     <Border Classes="panel">
@@ -25,7 +25,7 @@
       </fc:Stepper>
     </Border>
     <TextBlock Classes="note" MaxWidth="700"
-               Text="连接线要落在 bullet 的垂直中心（28px 的一半，即 14px），差几像素就会看出来歪。已完成段的连接线用 accent 色——线属于前一步，表示「这一段已经走过了」。各步等宽，否则线长短不一，看着像走歪了。" />
+               Text="连接线要落在 bullet 的垂直中心（28px 的一半，即 14px），偏差几像素即可被察觉。已完成段的连接线用 accent 色——线属于前一步，表示「该段已完成」。各步等宽，否则线长短不一，视觉上呈现歪斜。" />
 
     <TextBlock Classes="sub" Text="失败态 — 某步 IsError=True" />
     <Border Classes="panel">
@@ -38,9 +38,9 @@
       </fc:Stepper>
     </Border>
     <TextBlock Classes="note" MaxWidth="700"
-               Text="失败态由那一步自己声明，优先级高过 CurrentIndex 推出来的结果——流程往下走了不等于前面那步就算过了。文字也跟着变红：一个 28px 的圆撑不起「这里出事了」这个信息量。" />
+               Text="失败态由该步骤自行声明，优先级高于由 CurrentIndex 推导的结果——流程已推进不等于此前步骤已通过。文字同样变红：仅靠一个 28px 的圆不足以传达「此处发生错误」的信息量。" />
 
-    <TextBlock Classes="sub" Text="StepperItem 状态 — 由 CurrentIndex 推出来，不用手加类" />
+    <TextBlock Classes="sub" Text="StepperItem 状态 — 由 CurrentIndex 推导，无需手动添加类" />
     <g:SpecMatrix States="pending,done,current,error">
       <g:SpecMatrix.Sample>
         <DataTemplate>
@@ -59,7 +59,7 @@
       </StackPanel>
     </Border>
     <TextBlock Classes="note" MaxWidth="700"
-               Text="高 24 的胶囊。IsClosable 关掉就是纯展示标签，右边内边距会补齐，否则视觉重心偏左。IsAccent 留给「当前生效的那条筛选」，一屏里最多一个。" />
+               Text="高 24 的胶囊。IsClosable 关闭后即纯展示标签，右侧内边距会补齐，否则视觉重心偏左。IsAccent 保留给「当前生效的筛选条件」，一屏内最多一个。" />
 
     <TextBlock Classes="sub" Text="PersonPicture" />
     <Border Classes="panel">
@@ -71,7 +71,7 @@
       </StackPanel>
     </Border>
     <TextBlock Classes="note" MaxWidth="700"
-               Text="24 / 32 / 48 三档。中文名取姓一个字就够，取两个反而不像称呼；拉丁名取首尾两段的首字母。中性配色留给「未指派」「系统」这类不是具体人的位置。" />
+               Text="24 / 32 / 48 三档。中文名取姓氏一字即可，取两字反而不符合称呼习惯；拉丁名取首尾两段的首字母。中性配色保留给「未指派」「系统」这类并非具体人员的位置。" />
 
     <TextBlock Classes="sub" Text="GridSplitter" />
     <Border Classes="panel">
@@ -88,7 +88,7 @@
       </Border>
     </Border>
     <TextBlock Classes="note" MaxWidth="700"
-               Text="4px 宽的命中区，里面只画 1px 分隔线——手指和鼠标要抓得住，视觉上又不能变成一条粗杠。悬停时线变 accent，这是唯一提示「这里能拖」的信号。" />
+               Text="4px 宽的命中区，其中仅绘制 1px 分隔线——手指和鼠标需要足够的命中面积，视觉上又不能成为一条粗线。悬停时线变为 accent，这是提示「此处可拖动」的唯一信号。" />
 
     <TextBlock Classes="sub" Text="Toast — 会自动消失，不占布局" />
     <Border Classes="panel">
@@ -102,9 +102,9 @@
       </StackPanel>
     </Border>
     <TextBlock Classes="note" MaxWidth="700"
-               Text="这里是冻结样品，真实的 Toast 挂在 OverlayLayer 上，右下角堆叠，不进页面布局。Toast 和 InfoBar 分工不同：Toast 瞬时、脱离布局、可忽略；InfoBar 占布局、需要处置。" />
+               Text="此处为静态样例，真实的 Toast 承载于 OverlayLayer，右下角堆叠，不进入页面布局。Toast 与 InfoBar 分工不同：Toast 瞬时、脱离布局、可忽略；InfoBar 占布局、需要处置。" />
 
-    <TextBlock Classes="sub" Text="试玩 — 走一遍流程，弹真的 Toast" />
+    <TextBlock Classes="sub" Text="交互演示 — 完整执行一遍流程，弹出真实的 Toast" />
     <Border Classes="play">
       <StackPanel Spacing="16">
 
@@ -124,7 +124,7 @@
         </StackPanel>
 
         <TextBlock Classes="note" MaxWidth="700"
-                   Text="走到最后一步「下一步」会弹成功 Toast，4 秒后自己消失。失败按钮弹的那条带「重试」，停留 8 秒——人要先读懂再决定点不点。所以报警绝不能用 Toast。" />
+                   Text="位于最后一步时点击「下一步」会弹出成功 Toast，4 秒后自动消失。失败按钮弹出的一条带「重试」，停留 8 秒——需要先读完内容再决定是否点击。因此报警绝不能使用 Toast。" />
 
         <StackPanel x:Name="ChipRow" Orientation="Horizontal" Spacing="8">
           <fc:Chip Content="配方：PES" />
@@ -136,15 +136,15 @@
         <StackPanel Orientation="Horizontal" Spacing="8">
           <Button x:Name="ResetChips" Content="恢复筛选条件" />
           <TextBlock Classes="note" VerticalAlignment="Center"
-                     Text="点 × 删标签。删空了这一行整体消失，别留一条空的筛选栏占着位置。" />
+                     Text="点击 × 删除标签。全部删除后该行整体消失，不应留下一条空的筛选栏占用空间。" />
         </StackPanel>
 
       </StackPanel>
     </Border>
 
-    <g:MapBlock Note="ToastHost.Show(owner, toast) 就是全部 API——它自己找 OverlayLayer、自己建宿主、自己到点撤。IsError 不走 CurrentIndex 那条通知链，改完要自己调一次 Stepper.RefreshStates()。">
+    <g:MapBlock Note="ToastHost.Show(owner, toast) 即全部 API——查找 OverlayLayer、创建宿主、到时撤除均由其内部完成。IsError 不在 CurrentIndex 的通知链上，修改后需调用一次 Stepper.RefreshStates()。">
       <g:MapRow Key="控件" Value="Stepper · Chip · GridSplitter（Avalonia 内置）· Toast / ToastHost · PersonPicture" />
-      <g:MapRow Key="Toast" Value="用 OverlayLayer 承载，不进视觉树布局。停留 4 s，带操作按钮的延到 8 s" />
+      <g:MapRow Key="Toast" Value="用 OverlayLayer 承载，不进视觉树布局。停留 4 s，带操作按钮的延长至 8 s" />
       <g:MapRow Key="伪类" Value="StepperItem: :pending :done :current :error :last · Chip: :closable :accent · PersonPicture: :small :medium :large :neutral · Toast: :informational :success :error" />
     </g:MapBlock>
 

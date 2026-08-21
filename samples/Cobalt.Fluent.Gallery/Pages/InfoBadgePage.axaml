@@ -12,7 +12,7 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="默认「浅底 + 状态色文字」，明暗两套主题下对比度都成立。实底变体用于导航计数这类需要强提示的场景，它的前景复用 TextOnAccentFillColorPrimary（浅色主题白 / 深色主题黑），跟着主题翻转——写死白色的话深色主题下会糊在一起。" />
+               Text="默认「浅底 + 状态色文字」，明暗两套主题下对比度均成立。实底变体用于导航计数这类需要强提示的场景，其前景复用 TextOnAccentFillColorPrimary（浅色主题白 / 深色主题黑），随主题翻转——若固定为白色，深色主题下前景与底色对比不足、难以辨识。" />
 
     <TextBlock Classes="sub" Text="浅底（默认）" />
     <Border Classes="panel">
@@ -45,7 +45,7 @@
       </StackPanel>
     </Border>
 
-    <TextBlock Classes="sub" Text="典型用法 — 挂在导航项上" />
+    <TextBlock Classes="sub" Text="典型用法 — 置于导航项上" />
     <Border Classes="panel">
       <StackPanel Width="240" Spacing="2">
         <Border Padding="12,0" Height="40" CornerRadius="4"
@@ -59,7 +59,7 @@
       </StackPanel>
     </Border>
 
-    <g:MapBlock Note="状态徽章默认用「浅底 + 状态色文字」，明暗两套都成立。solid 变体的前景复用 TextOnAccentFillColorPrimaryBrush，因为状态色和强调色遵循同一套明暗翻转逻辑。">
+    <g:MapBlock Note="状态徽章默认采用「浅底 + 状态色文字」，明暗两套主题下均成立。solid 变体的前景复用 TextOnAccentFillColorPrimaryBrush，因为状态色与强调色遵循同一套明暗翻转逻辑。">
       <g:MapRow Key="控件" Value="InfoBadge（本库自定义，Avalonia 本体没有）" />
       <g:MapRow Key="属性" Value="Severity:{Informational,Success,Caution,Critical,Neutral} · Text · IsDot · IsSolid" />
       <g:MapRow Key="伪类" Value=":informational :success :caution :critical :neutral :dot :solid" />

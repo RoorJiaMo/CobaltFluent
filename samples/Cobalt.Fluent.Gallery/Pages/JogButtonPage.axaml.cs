@@ -47,12 +47,12 @@ public partial class JogButtonPage : UserControl
 
     private static string Describe(JogStopReason reason) => reason switch
     {
-        JogStopReason.PointerReleased => "PointerReleased（正常松手）",
+        JogStopReason.PointerReleased => "PointerReleased（正常释放）",
         JogStopReason.PointerCaptureLost => "PointerCaptureLost（指针捕获丢失）",
         JogStopReason.PointerExited => "PointerExited（指针离开控件）",
         JogStopReason.LostFocus => "LostFocus（控件失焦）",
-        JogStopReason.KeyReleased => "KeyReleased（键盘松键）",
-        JogStopReason.Detached => "Detached（控件被摘除或禁用）",
+        JogStopReason.KeyReleased => "KeyReleased（键盘按键释放）",
+        JogStopReason.Detached => "Detached（控件移出视觉树或被禁用）",
         JogStopReason.Watchdog => "Watchdog（看门狗超时 5 s 强制停止）",
         _ => reason.ToString(),
     };

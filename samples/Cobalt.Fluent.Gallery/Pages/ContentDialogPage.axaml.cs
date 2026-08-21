@@ -11,19 +11,19 @@ public partial class ContentDialogPage : UserControl
         AvaloniaXamlLoader.Load(this);
 
         var log = this.FindControl<TextBlock>("PlayLog")!;
-        log.Text = "点上面任意一个按钮，结果显示在这里。";
+        log.Text = "点按上方任意按钮，结果显示于此。";
 
         Wire("OpenDiscard", "DiscardDialog", result => result switch
         {
             ContentDialogResult.Primary => "保存并关闭 — 3 处改动写回 Recipe-042。",
-            ContentDialogResult.Secondary => "放弃更改 — 改动丢弃，配方回到磁盘上的版本。",
-            _ => "取消 — 留在编辑器里，改动还在（Esc 也走这条）。",
+            ContentDialogResult.Secondary => "放弃更改 — 改动已丢弃，配方恢复为磁盘上的版本。",
+            _ => "取消 — 停留在编辑器中，改动保留（Esc 同样返回此结果）。",
         });
 
         Wire("OpenDelete", "DeleteDialog", result => result switch
         {
             ContentDialogResult.Primary => "已删除 Recipe-042 — 3 条排产记录失去配方来源。",
-            _ => "取消 — 配方还在。",
+            _ => "取消 — 配方保留。",
         });
 
         void Wire(string buttonName, string dialogKey, Func<ContentDialogResult, string> describe)

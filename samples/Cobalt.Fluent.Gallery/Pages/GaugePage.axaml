@@ -12,7 +12,7 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="环形仪表 270° 扫掠，阈值区带在外圈 +5px，中心读数等宽数字。读数绝对居中在环心——用负 margin 是按某个字号手算出来的，字号一变就错位。" />
+               Text="环形仪表 270° 扫掠，阈值区带在外圈 +5px，中心读数等宽数字。读数绝对居中于环心——负 margin 方案按特定字号手工推算，字号变化后即错位。" />
 
     <TextBlock Classes="sub" Text="三个阈值段" />
     <Border Classes="panel">
@@ -48,11 +48,11 @@
       </fc:ChartFrame>
     </Border>
 
-    <g:MapBlock Note="自绘的话用 ArcSegment + PathGeometry，比图表库轻很多。270° 扫掠、阈值区带在外圈、中心读数 tabular-nums —— 这三条是仪表的形。">
+    <g:MapBlock Note="自绘实现使用 ArcSegment + PathGeometry，开销远低于图表库。270° 扫掠、阈值区带在外圈、中心读数 tabular-nums —— 这三条构成仪表的视觉规格。">
       <g:MapRow Key="控件" Value="Gauge（含 GaugeZone / GaugeArcs）· BarChart · Sparkline" />
       <g:MapRow Key="属性" Value="Value / Minimum / Maximum · Unit · Format · Caption · Zones · CautionThreshold · CriticalThreshold" />
-      <g:MapRow Key="伪类" Value=":deviating（过 caution 阈值）· :critical（过 critical 阈值）" />
-      <g:MapRow Key="Sparkline" Value="72×20，无轴无标签。Trend=Up/Down 时换成成功 / 危险色" />
+      <g:MapRow Key="伪类" Value=":deviating（超过 caution 阈值）· :critical（超过 critical 阈值）" />
+      <g:MapRow Key="Sparkline" Value="72×20，无轴无标签。Trend=Up/Down 时切换为成功 / 危险色" />
     </g:MapBlock>
 
   </StackPanel>

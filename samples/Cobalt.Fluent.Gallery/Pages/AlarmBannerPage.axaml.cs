@@ -18,6 +18,6 @@ public partial class AlarmBannerPage : UserControl
         var live = this.FindControl<AlarmBanner>("Live")!;
         var log = this.FindControl<TextBlock>("AckLog")!;
         live.Acknowledged += (_, _) =>
-            log.Text = "已确认 · 呼吸停止，黄环补上，横幅保留——报警条件还在。";
+            log.Text = "已确认 · 呼吸停止，补充黄环，横幅保留——报警条件仍然存在。";
     }
 }

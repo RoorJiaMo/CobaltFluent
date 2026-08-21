@@ -11,7 +11,7 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="收起态用控件规格（4px 圆角，底边 ControlStrokeColorSecondary）；展开的下拉面板是弹出层，用 8px 圆角 + 亚克力 + flyout 阴影。两者规格不同，别混。" />
+               Text="收起态用控件规格（4px 圆角，底边 ControlStrokeColorSecondary）；展开的下拉面板是弹出层，用 8px 圆角 + 亚克力 + flyout 阴影。两者规格不同，不可混用。" />
 
     <TextBlock Classes="sub" Text="收起态" />
     <g:SpecMatrix States="rest,pointerover,pressed,disabled,focus">
@@ -25,7 +25,7 @@
       </g:SpecMatrix.Sample>
     </g:SpecMatrix>
 
-    <TextBlock Classes="sub" Text="ComboBoxItem — 选中项左侧是 3×16 指示条，不是整行变蓝" />
+    <TextBlock Classes="sub" Text="ComboBoxItem — 选中项左侧为 3×16 指示条，而非整行填充蓝色" />
     <Border Classes="panel">
       <StackPanel Width="220" Spacing="2">
         <ListBoxItem Content="温度控制" IsSelected="True" />
@@ -35,9 +35,9 @@
       </StackPanel>
     </Border>
     <TextBlock Classes="note" MaxWidth="700"
-               Text="指示条高度约为行高的 40%，撑满会立刻显得不像 Win11。" />
+               Text="指示条高度约为行高的 40%；若充满整个行高，会明显偏离 Win11 的视觉样式。" />
 
-    <TextBlock Classes="sub" Text="试玩 — 点开看弹出层规格" />
+    <TextBlock Classes="sub" Text="交互演示 — 展开查看弹出层规格" />
     <Border Classes="play">
       <StackPanel Spacing="12">
         <StackPanel Orientation="Horizontal" Spacing="12">
@@ -51,11 +51,11 @@
           <ComboBox Width="140" IsEnabled="False" PlaceholderText="已锁定" />
         </StackPanel>
         <TextBlock Classes="note" MaxWidth="760"
-                   Text="Avalonia 的 ComboBox 自己渲染 Popup + ComboBoxItem，不是系统原生下拉。点开看选中项左侧的 3×16 指示条；点面板外或按 Esc 关闭；下方放不下时会自动翻到上方。" />
+                   Text="Avalonia 的 ComboBox 自行渲染 Popup + ComboBoxItem，并非系统原生下拉。展开后可查看选中项左侧的 3×16 指示条；点击面板外部或按 Esc 关闭；下方空间不足时自动翻转至上方。" />
       </StackPanel>
     </Border>
 
-    <g:MapBlock Note="收起态 4px 圆角、展开面板 8px 圆角，两者规格不同。Popup 下方放不下时会自动翻到上方。">
+    <g:MapBlock Note="收起态 4px 圆角、展开面板 8px 圆角，两者规格不同。Popup 在下方空间不足时自动翻转至上方。">
       <g:MapRow Key="控件" Value="ComboBox · ComboBoxItem" />
       <g:MapRow Key="伪类" Value="ComboBox:dropdownopen · ComboBoxItem:selected · :pointerover" />
       <g:MapRow Key="资源键" Value="ControlFillColorDefault/Secondary/TertiaryBrush · AcrylicBackgroundFillColorDefaultBrush + SurfaceStrokeColorFlyoutBrush（必须成对）· AccentFillColorDefaultBrush（指示条）" />

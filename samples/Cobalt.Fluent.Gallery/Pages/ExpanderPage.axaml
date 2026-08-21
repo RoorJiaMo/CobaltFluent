@@ -32,19 +32,19 @@
       </Expander>
     </StackPanel>
 
-    <TextBlock Classes="sub" Text="试玩 — 慢放看箭头旋转" />
+    <TextBlock Classes="sub" Text="交互演示 — 放慢观察箭头旋转" />
     <Border Classes="play" HorizontalAlignment="Stretch">
       <StackPanel Spacing="12">
-        <Expander Header="点我展开" HorizontalAlignment="Stretch">
+        <Expander Header="点击展开" HorizontalAlignment="Stretch">
           <TextBlock Text="箭头旋转 180°，用时 167ms。" />
         </Expander>
-        <TextBlock Classes="note" Text="右上角「动效 0.25×」把 167ms 放慢 4 倍，能看清旋转的缓动曲线。" />
+        <TextBlock Classes="note" Text="右上角「动效 0.25×」将 167ms 放慢 4 倍，可观察旋转的缓动曲线。" />
       </StackPanel>
     </Border>
 
     <g:MapBlock Note="箭头旋转用 RotateTransform + Transitions，时长 167ms（ControlFastAnimationDuration）。">
       <g:MapRow Key="控件" Value="Expander" />
-      <g:MapRow Key="属性" Value="Header · IsExpanded · ExpandDirection（四向都支持）" />
+      <g:MapRow Key="属性" Value="Header · IsExpanded · ExpandDirection（支持四个方向）" />
       <g:MapRow Key="伪类" Value="Expander:expanded" />
       <g:MapRow Key="资源键" Value="CardBackgroundFillColorDefaultBrush（外框）· SubtleFillColorSecondaryBrush（头部 hover）· SolidBackgroundFillColorTertiaryBrush（内容区）· DividerStrokeColorDefaultBrush（上分隔线）" />
     </g:MapBlock>

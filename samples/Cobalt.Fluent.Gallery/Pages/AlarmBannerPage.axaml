@@ -12,7 +12,7 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="报警横幅。Alarm / Fault 用安全红，不跟随主题——SystemFillColorCritical 在深色主题下是浅粉 #FF99A4，对需要立即处置的级别是错的。用呼吸（1.5s）不用闪烁：高频闪烁引发疲劳，且有光敏性癫痫风险。" />
+               Text="报警横幅。Alarm / Fault 使用安全红，不跟随主题——SystemFillColorCritical 在深色主题下为浅粉 #FF99A4，不适用于需要立即处置的级别。采用呼吸（1.5s）而非闪烁：高频闪烁引发疲劳，且有光敏性癫痫风险。" />
 
     <TextBlock Classes="sub" Text="四个级别" />
     <StackPanel Spacing="12">
@@ -22,34 +22,34 @@
       <fc:AlarmBanner Severity="Fault"   Title="安全联锁触发 · 已停机" Detail="门开关 SW-03 断开，主回路已切断" />
     </StackPanel>
 
-    <TextBlock Classes="sub" Text="确认后停呼吸，但横幅不消失" />
+    <TextBlock Classes="sub" Text="确认后呼吸停止，但横幅不消失" />
     <StackPanel Spacing="12">
       <fc:AlarmBanner Severity="Alarm" Title="超温报警（未确认）" Detail="呼吸中" />
-      <fc:AlarmBanner Severity="Alarm" Title="超温报警（已确认）" Detail="停呼吸，补黄环，横幅留着——报警条件还在" IsAcknowledged="True" />
+      <fc:AlarmBanner Severity="Alarm" Title="超温报警（已确认）" Detail="呼吸停止，补充黄环，横幅保留——报警条件仍然存在" IsAcknowledged="True" />
     </StackPanel>
 
-    <TextBlock Classes="sub" Text="关掉动画时必须补强" />
+    <TextBlock Classes="sub" Text="关闭动画时必须补强" />
     <StackPanel Spacing="12">
       <fc:AlarmBanner Severity="Warning" Title="Warning 级" Detail="caution 底色" />
-      <fc:AlarmBanner Severity="Alarm" Title="Alarm 级 · 已关闭呼吸" Detail="靠安全黄描边和 Warning 区分开" IsBreathingEnabled="False" />
+      <fc:AlarmBanner Severity="Alarm" Title="Alarm 级 · 已关闭呼吸" Detail="以安全黄描边与 Warning 区分" IsBreathingEnabled="False" />
       <TextBlock Classes="note" MaxWidth="820"
-                 Text="prefers-reduced-motion 下关掉动画后必须用非动效手段补强，否则降级后 Alarm 和 Warning 就分不出来了。这里补的是 2px 安全黄描边。" />
+                 Text="prefers-reduced-motion 下关闭动画后，必须以非动效手段补强，否则降级后 Alarm 与 Warning 无法区分。此处补强为 2px 安全黄描边。" />
     </StackPanel>
 
-    <TextBlock Classes="sub" Text="试玩 — 确认" />
+    <TextBlock Classes="sub" Text="交互演示 — 确认" />
     <Border Classes="play" HorizontalAlignment="Stretch">
       <StackPanel Spacing="12">
         <fc:AlarmBanner x:Name="Live" Severity="Alarm" Title="超温报警"
                         Detail="腔体温度 118.6 °C，已超过报警上限 110 °C" AdditionalCount="3" />
-        <TextBlock x:Name="AckLog" Classes="note" Text="点「确认」：呼吸停下，按钮消失，横幅留着。" />
+        <TextBlock x:Name="AckLog" Classes="note" Text="点击「确认」后：呼吸停止，按钮消失，横幅保留。" />
       </StackPanel>
     </Border>
 
-    <g:MapBlock Note="呼吸动画在 :alarm 且未确认且 IsBreathingEnabled 时触发。务必同时实现降级分支：关掉动画后要用黄色描边补强，不能只是变静态。">
+    <g:MapBlock Note="呼吸动画在 :alarm 且未确认且 IsBreathingEnabled 时触发。务必同时实现降级分支：关闭动画后需以黄色描边补强，不得仅转为静态。">
       <g:MapRow Key="类型" Value="AlarmBanner : TemplatedControl" />
       <g:MapRow Key="属性" Value="Severity:{Info,Warning,Alarm,Fault} · Title · Detail · Timestamp · IsAcknowledged · AdditionalCount · AcknowledgeCommand · DetailsCommand · IsBreathingEnabled · Actions" />
       <g:MapRow Key="伪类" Value=":info :warning :alarm :fault :acknowledged :breathing" />
-      <g:MapRow Key="安全色" Value="SafetyRedBrush / SafetyYellowBrush / TextOnSafetyFillColorPrimaryBrush —— 明暗两种主题下都是红色" />
+      <g:MapRow Key="安全色" Value="SafetyRedBrush / SafetyYellowBrush / TextOnSafetyFillColorPrimaryBrush —— 明暗两种主题下均为红色" />
     </g:MapBlock>
 
   </StackPanel>
