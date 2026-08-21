@@ -2,6 +2,8 @@ using Avalonia.Controls;
 using Avalonia.Controls.Templates;
 using Avalonia.Input;
 using Avalonia.Markup.Xaml;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Cobalt.Fluent.Gallery.Infrastructure;
 
 namespace Cobalt.Fluent.Gallery;
@@ -65,6 +67,8 @@ public partial class MainWindow : Window
         this.FindControl<ToggleSwitch>("MotionToggle")!.IsCheckedChanged += (s, _) =>
             GalleryState.SetSlowMotion(((ToggleSwitch)s!).IsChecked == true);
 
+        LoadBrandLogo();
+
         // Ctrl+F 聚焦搜索。覆层开着时 Esc 由覆层自己收，这里不抢。
         KeyDown += (_, e) =>
         {
@@ -75,6 +79,26 @@ public partial class MainWindow : Window
                 e.Handled = true;
             }
         };
+    }
+
+    /// <summary>
+    /// 顶栏应用标与窗口图标。Assets/logo.png 存在时用它，缺席时保持 XAML 里那个
+    /// accent 底色的文字标记 —— 品牌资源不该是编译的硬依赖。
+    /// </summary>
+    private void LoadBrandLogo()
+    {
+        var uri = new Uri("avares://Cobalt.Fluent.Gallery/Assets/logo.png");
+        if (!AssetLoader.Exists(uri)) return;
+
+        using var stream = AssetLoader.Open(uri);
+        var bitmap = new Bitmap(stream);
+
+        var image = this.FindControl<Image>("AppLogo")!;
+        image.Source = bitmap;
+        image.IsVisible = true;
+        this.FindControl<Border>("AppLogoFallback")!.IsVisible = false;
+
+        Icon = new WindowIcon(bitmap);
     }
 
     /// <summary>顶栏「本页源码」。Shots 工具截源码覆层时也直接调这个。</summary>

@@ -6,6 +6,11 @@
     <AssemblyName>Cobalt.Fluent.Gallery</AssemblyName>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+
+    <!-- exe 自身的图标（Windows 资源管理器与任务栏固定项读的是它，不是 Window.Icon）。
+         条件判断是必需的：ApplicationIcon 指向不存在的文件会直接导致编译失败，
+         而品牌资源不该是编译的硬依赖。 -->
+    <ApplicationIcon Condition="Exists('$(MSBuildProjectDirectory)/Assets/app.ico')">Assets/app.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -18,6 +23,11 @@
 
   <ItemGroup>
     <ProjectReference Include="../../src/Cobalt.Fluent/Cobalt.Fluent.csproj" />
+  </ItemGroup>
+
+  <!-- 品牌资源。Assets/logo.png 缺席时顶栏自动回落到文字标记，编译不受影响。 -->
+  <ItemGroup>
+    <AvaloniaResource Include="Assets/**" />
   </ItemGroup>
 
   <!-- 「查看源码」的原文。axaml 会被编译成二进制资源，运行时拿不回文本，

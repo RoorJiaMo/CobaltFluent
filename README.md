@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="docs/images/logo.png" width="128" alt="Cobalt.Fluent" />
+
 # Cobalt.Fluent
 
 **Windows 11 Fluent 设计语言的 Avalonia 实现**

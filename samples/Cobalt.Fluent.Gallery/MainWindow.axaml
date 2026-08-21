@@ -16,14 +16,20 @@
       <!-- 顶栏属于 base layer，不加背景 -->
       <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="20,0">
         <StackPanel Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-          <!-- 应用标：accent 圆角方块，Win11 任务栏图标的画法 -->
-          <Border Width="24" Height="24"
-                  CornerRadius="{DynamicResource ControlCornerRadius}"
-                  Background="{DynamicResource AccentFillColorDefaultBrush}">
-            <TextBlock Text="Co" FontSize="11" FontWeight="SemiBold"
-                       Foreground="{DynamicResource TextOnAccentFillColorPrimaryBrush}"
-                       HorizontalAlignment="Center" VerticalAlignment="Center" />
-          </Border>
+          <!-- 应用标。Assets/logo.png 存在时用它，否则回落到 accent 底色的文字标记
+               （Win11 任务栏图标的画法）。切换在 code-behind 里做。 -->
+          <Panel Width="24" Height="24">
+            <Image x:Name="AppLogo" IsVisible="False"
+                   Stretch="Uniform"
+                   RenderOptions.BitmapInterpolationMode="HighQuality" />
+            <Border x:Name="AppLogoFallback"
+                    CornerRadius="{DynamicResource ControlCornerRadius}"
+                    Background="{DynamicResource AccentFillColorDefaultBrush}">
+              <TextBlock Text="Co" FontSize="11" FontWeight="SemiBold"
+                         Foreground="{DynamicResource TextOnAccentFillColorPrimaryBrush}"
+                         HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Border>
+          </Panel>
           <TextBlock Text="Cobalt.Fluent" Theme="{StaticResource SubtitleTextBlockStyle}" />
           <Border Classes="tag" VerticalAlignment="Center">
             <TextBlock Text="Avalonia 11.3 · 57 控件" />
