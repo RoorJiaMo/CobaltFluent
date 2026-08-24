@@ -16,6 +16,9 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
+      - name: 控件层静默失效审计
+        run: python3 tools/audit.py
+
       - name: 变量层是生成的，检查它和调色板还对得上
         run: |
           python3 tools/gen_tokens.py
@@ -28,8 +31,21 @@ jobs:
           git diff --exit-code docs/CONTROLS.md \
             || { echo "CONTROLS.md 和源码不同步：重跑 tools/gen_api_docs.py 并提交"; exit 1; }
 
+      - name: 展柜目录也是生成的
+        run: |
+          python3 tools/gen_gallery_pages.py
+          git diff --exit-code samples/Cobalt.Fluent.Gallery/Infrastructure/SectionRegistry.cs \
+            || { echo "SectionRegistry.cs 和 tools/gen_gallery_pages.py 的 SECTIONS 不同步：重跑并提交"; exit 1; }
+          git status --porcelain samples/Cobalt.Fluent.Gallery/Pages | grep . \
+            && { echo "生成器造出了未提交的骨架页，说明有章节登记了却没写页面"; exit 1; } || true
+
       - name: 控件库
         run: dotnet build src/Cobalt.Fluent/Cobalt.Fluent.csproj -c Release --nologo
+
+      - name: 控件层合并列表也是生成的（构建时会自动重建，这里查它有没有被提交）
+        run: |
+          git diff --exit-code src/Cobalt.Fluent/Themes/CobaltFluentTheme.axaml \
+            || { echo "CobaltFluentTheme.axaml 和 Themes/Controls 下的文件不同步：重跑 tools/gen_theme_index.py 并提交"; exit 1; }
 
       - name: 展柜
         run: dotnet build samples/Cobalt.Fluent.Gallery/Cobalt.Fluent.Gallery.csproj -c Release --nologo

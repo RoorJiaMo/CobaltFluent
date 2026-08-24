@@ -143,3 +143,43 @@ dotnet run --project tools/Cobalt.Fluent.Shots -- artifacts/shots Button both
 
 Avalonia 的 XAML 编译器会报 `AVLN2000`（属性不存在）、`AVLN2200`（值转不过去）这类错，
 所以**编译通过 ≠ 好看，但编译不过一定是错的**。写完必须编译。
+
+## 静默失效审计
+
+```bash
+python3 tools/audit.py          # 有问题时退出码 1，CI 第一步就跑它
+python3 tools/audit.py --list   # 列出各项检查覆盖的历史缺陷
+```
+
+编译器和测试都有一类共同的盲区：**代码写了、编译过了、测试也绿了，但那段判定
+在真实路径上整个不成立，而且失效方向朝着「一切正常」**。这一类缺陷在本库里
+成片出现过——一轮对抗性审查确认了 55 条，没有一条是编译器或既有测试能发现的。
+
+`tools/audit.py` 把其中可机械检测的模式固化了下来，10 项检查，每一项都对应
+一个真实发生过的缺陷：
+
+| 检查 | 它抓的那个历史缺陷 |
+|---|---|
+| `parts` | `ParameterRow` 找 `PART_Revert`，而模板里根本没有——撤销功能在界面上不可达 |
+| `pseudo-declared` | 置位了却没在 `[PseudoClasses]` 里声明，文档与对照表随之脱节 |
+| `pseudo-styled` | 伪类加了、控件也正确置位，主题里没有对应样式——开关在界面上毫无变化 |
+| `resources` | 资源键不存在时 Avalonia 静默回落，颜色尺寸悄悄变成默认值 |
+| `transform-setter` | `Setter Property="ScaleTransform.ScaleX"` 只有 KeyFrame 认，普通 Setter 里静默失败 |
+| `animation-override` | 动画优先级高于 Setter，`^:running` 上的动画盖掉了 `^:running[IsPulseEnabled=False]` 的静态值 |
+| `keydown-modifiers` | `OnKeyDown` 不查修饰键：`Ctrl+Space` 让轴运动、`Ctrl+Enter` 触发急停与解锁 |
+| `timer-cleanup` | `EStopButton` 不做卸载清理，长按定时器在控件离开可视树后仍会解锁急停 |
+| `wallclock` | 墙钟 `DateTime.Now` 相减：系统时间回拨多久，就有多久所有读数被判成新鲜 |
+| `unread-property` | `JogButton.RequiresConfirm` 声明、文档、对照表俱全，全库无人读取——危险轴上开了等于没开 |
+
+**新加检查的门槛**：能举出一个它本该抓到的历史缺陷，且在当前代码上零误报。
+写完拿历史版本验一遍是必须的——抓不到它本该抓的 bug，这检查就是摆设：
+
+```bash
+TMP=$(mktemp -d); git archive <修复前的提交> | tar -x -C "$TMP"
+mkdir -p "$TMP/tools" && cp tools/audit.py tools/audit-allow.txt "$TMP/tools/"
+python3 "$TMP/tools/audit.py"      # 应当报出那个缺陷
+```
+
+确属可接受的例外登记到 `tools/audit-allow.txt`，**每条必须写明理由**。
+例外按「检查名 路径 稳定标识」匹配而不是按行号——行号一挪就失配、告警重新冒出来，
+那正是 lint 工具被人关掉的典型原因。

@@ -24,17 +24,31 @@
     <Setter Property="FocusAdorner" Value="{StaticResource FluentFocusAdorner}" />
     <Setter Property="Template">
       <ControlTemplate TargetType="fc:JogButton">
-        <ContentPresenter x:Name="PART_ContentPresenter"
-                          Background="{TemplateBinding Background}"
-                          BorderBrush="{TemplateBinding BorderBrush}"
-                          BorderThickness="{TemplateBinding BorderThickness}"
-                          CornerRadius="{TemplateBinding CornerRadius}"
-                          Padding="{TemplateBinding Padding}"
-                          Content="{TemplateBinding Content}"
-                          ContentTemplate="{TemplateBinding ContentTemplate}"
-                          HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
-                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
-                          RecognizesAccessKey="True" />
+        <Border Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Padding="{TemplateBinding Padding}">
+          <StackPanel Orientation="Horizontal" Spacing="6"
+                      HorizontalAlignment="Center" VerticalAlignment="Center">
+            <!-- 方向箭头。Direction 的文档一直写着「模板据此选箭头字形」，
+                 而此前模板里没有任何地方读它——Direction="Forward" 不产生任何效果。
+                 按错方向就是撞机，一屏多个点动键时箭头是扫一眼就能分辨的那一路编码，
+                 只靠 Content 的文字不够。Direction=None 时不占位。 -->
+            <fc:SymbolIcon x:Name="PART_Glyph"
+                           Symbol="{TemplateBinding Glyph}"
+                           FontSize="14"
+                           VerticalAlignment="Center"
+                           IsVisible="{TemplateBinding Glyph,
+                                       Converter={x:Static fc:SymbolConverters.IsNotNone}}" />
+            <ContentPresenter x:Name="PART_ContentPresenter"
+                              Content="{TemplateBinding Content}"
+                              ContentTemplate="{TemplateBinding ContentTemplate}"
+                              HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                              VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                              RecognizesAccessKey="True" />
+          </StackPanel>
+        </Border>
       </ControlTemplate>
     </Setter>
     <Setter Property="Transitions">

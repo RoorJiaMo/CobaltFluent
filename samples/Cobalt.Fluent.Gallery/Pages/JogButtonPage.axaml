@@ -48,7 +48,7 @@
 
     <g:MapBlock Note="必须注册全部停止触发点才能保证安全：仅监听 PointerReleased 不足——按住后将指针拖出按钮时，释放事件可能不在该控件上触发。另需看门狗定时器作最后保障，防止 UI 线程卡死时设备失控。StopCommand 会被重复调用（多个触发点可能同时命中），下游实现必须幂等。">
       <g:MapRow Key="类型" Value="JogButton : Button（容器 JogGroup : StackPanel）" />
-      <g:MapRow Key="属性" Value="Direction:enum · StartCommand · StopCommand · Speed · RequiresConfirm=false · IsConfirmed=false · WatchdogTimeout=5s" />
+      <g:MapRow Key="属性" Value="Direction:enum（决定箭头字形，只读投影 Glyph）· StartCommand · StopCommand · Speed · RequiresConfirm=false · IsConfirmed=false · WatchdogTimeout=5s" />
       <g:MapRow Key="停止触发点" Value="PointerReleased · PointerCaptureLost · PointerExited · LostFocus · KeyUp · 移出视觉树 / 被禁用 · 看门狗超时" />
       <g:MapRow Key="伪类" Value=":jogging :stopfailed" />
       <g:MapRow Key="事件" Value="JogStarted · JogStopped(Reason) · StopFailed(Reason) · ConfirmRequired —— 建议将 Reason 写入操作日志，事故复盘时需要该信息" />

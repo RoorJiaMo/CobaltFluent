@@ -176,6 +176,7 @@ WinUI / FluentAvalonia 里不存在，全部新写。涉及人身和设备安全
 | 属性 | 类型 | 说明 |
 |---|---|---|
 | `Direction` | `JogDirection` | — |
+| `Glyph` | `Symbol` | `Direction` 对应的箭头字形，模板绑它。 此前 Direction 的文档写着「模板据此选箭头字形」，而模板里根本没有任何地方 读它——展柜里 Direction="Open" / "Forward" 一律不产生任何效果。 方向是点动按钮上最要紧的信息（按错方向就是撞机），只靠 Content 里的 文字承载不够：一屏多个点动键时，箭头是扫一眼就能分辨的那一路编码。 |
 | `StartCommand` | `ICommand?` | — |
 | `StopCommand` | `ICommand?` | — |
 | `Speed` | `double` | — |

@@ -211,11 +211,12 @@ tools/check.sh                        # 编译控件库（复制至临时目录�
 tools/check.sh --gallery              # 连同展柜一并编译
 tools/check.sh --only Button.axaml    # 仅合并指定控件层文件（并行开发用）
 
+python3 tools/audit.py                             # 控件层静默失效审计（10 项检查）
 dotnet test tests/Cobalt.Fluent.Tests               # 189 项回归测试
 dotnet run  --project samples/Cobalt.Fluent.Gallery # 运行展柜
 ```
 
-以下四个生成物必须与源码一同提交。CI 会重跑 `gen_tokens.py` 与 `gen_api_docs.py`，`Themes/Tokens.axaml` 或 `docs/CONTROLS.md` 不同步即构建失败；另外两个 CI 未做比对，提交 PR 前四个都要在本地跑一遍：
+以下四个生成物必须与源码一同提交。CI 会重跑全部四个生成器，任一产物不同步即构建失败：
 
 ```bash
 python3 tools/gen_tokens.py          # tools/palette.json → Themes/Tokens.axaml

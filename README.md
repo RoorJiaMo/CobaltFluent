@@ -211,11 +211,12 @@ tools/check.sh                        # build the control library (copies to a t
 tools/check.sh --gallery              # build the gallery as well
 tools/check.sh --only Button.axaml    # merge only the named control-layer file (for parallel work)
 
+python3 tools/audit.py                             # control-layer silent-failure audit (10 checks)
 dotnet test tests/Cobalt.Fluent.Tests               # 189 regression tests
 dotnet run  --project samples/Cobalt.Fluent.Gallery # run the gallery
 ```
 
-Four generated artefacts must be committed alongside the source. CI re-runs `gen_tokens.py` and `gen_api_docs.py` and fails the build if `Themes/Tokens.axaml` or `docs/CONTROLS.md` has drifted; the other two are not diff-checked, so run all four locally before opening a PR:
+Four generated artefacts must be committed alongside the source. CI re-runs all four generators and fails the build on any drift:
 
 ```bash
 python3 tools/gen_tokens.py          # tools/palette.json → Themes/Tokens.axaml

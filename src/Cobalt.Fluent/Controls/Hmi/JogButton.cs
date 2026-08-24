@@ -97,6 +97,34 @@ public class JogButton : Button
         set => SetValue(DirectionProperty, value);
     }
 
+    private Symbol _glyph = Symbol.None;
+
+    public static readonly DirectProperty<JogButton, Symbol> GlyphProperty =
+        AvaloniaProperty.RegisterDirect<JogButton, Symbol>(nameof(Glyph), o => o._glyph);
+
+    /// <summary>
+    /// <see cref="Direction"/> 对应的箭头字形，模板绑它。
+    ///
+    /// 此前 Direction 的文档写着「模板据此选箭头字形」，而模板里根本没有任何地方
+    /// 读它——展柜里 Direction="Open" / "Forward" 一律不产生任何效果。
+    /// 方向是点动按钮上最要紧的信息（按错方向就是撞机），只靠 Content 里的
+    /// 文字承载不够：一屏多个点动键时，箭头是扫一眼就能分辨的那一路编码。
+    /// </summary>
+    public Symbol Glyph
+    {
+        get => _glyph;
+        private set => SetAndRaise(GlyphProperty, ref _glyph, value);
+    }
+
+    private void OnDirectionChanged() => Glyph = Direction switch
+    {
+        JogDirection.Forward or JogDirection.Right => Symbol.ChevronRight,
+        JogDirection.Backward or JogDirection.Left => Symbol.ChevronLeft,
+        JogDirection.Up or JogDirection.Open => Symbol.ChevronUp,
+        JogDirection.Down or JogDirection.Close => Symbol.ChevronDown,
+        _ => Symbol.None,
+    };
+
     /// <summary>开始动作。参数是 <see cref="Speed"/>。</summary>
     public static readonly StyledProperty<ICommand?> StartCommandProperty =
         AvaloniaProperty.Register<JogButton, ICommand?>(nameof(StartCommand));
@@ -242,7 +270,10 @@ public class JogButton : Button
         {
             if (e.NewValue is false) x.Stop(JogStopReason.Detached);
         });
+        DirectionProperty.Changed.AddClassHandler<JogButton>((x, _) => x.OnDirectionChanged());
     }
+
+    public JogButton() => OnDirectionChanged();
 
     // ---- 开始 --------------------------------------------------------------
 

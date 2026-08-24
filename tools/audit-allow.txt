@@ -1,0 +1,49 @@
+# tools/audit.py 的例外表。
+#
+# 格式：检查名 路径 key
+# key 是发现里括号中的那个稳定标识（伪类名 / 属性名 / 部件名 / 方法名），
+# 按它匹配而不是按行号——行号一挪就失配、告警重新冒出来。
+#
+# **每条都必须写明为什么可以放行。** 写不出理由的，说明它不是例外，是没修。
+
+# ---------------------------------------------------------------------------
+# pseudo-styled：默认态伪类
+#
+# 这些伪类对应的是控件的默认长相，主题里刻意不写对应样式——默认样式就是
+# ControlTheme 顶层那些 Setter。给它们再补一条空样式只是噪音。
+#
+# 注意这个豁免只覆盖下面逐条列出的默认态。任何**新增**的伪类如果没有样式，
+# 仍然会被报出来——那正是这条检查存在的理由（本轮新增的 :stopfailed /
+# :engagefailed / :unknownage / :invalid 都必须有样式才算数）。
+# ---------------------------------------------------------------------------
+pseudo-styled  src/Cobalt.Fluent/Controls/Commands/CommandBar.cs        AppBarButton:label-bottom
+pseudo-styled  src/Cobalt.Fluent/Controls/Common/PersonPicture.cs       PersonPicture:medium
+pseudo-styled  src/Cobalt.Fluent/Controls/Common/Stepper.cs             StepperItem:pending
+pseudo-styled  src/Cobalt.Fluent/Controls/Common/Toast.cs               Toast:informational
+pseudo-styled  src/Cobalt.Fluent/Controls/Feedback/InfoBadge.cs         InfoBadge:informational
+pseudo-styled  src/Cobalt.Fluent/Controls/Feedback/InfoBar.cs           InfoBar:informational
+pseudo-styled  src/Cobalt.Fluent/Controls/Feedback/ProgressRing.cs      ProgressRing:determinate
+pseudo-styled  src/Cobalt.Fluent/Controls/Hmi/AlarmBanner.cs            AlarmBanner:info
+pseudo-styled  src/Cobalt.Fluent/Controls/Hmi/DeviceStatusBar.cs        DeviceStatusBar:connected
+pseudo-styled  src/Cobalt.Fluent/Controls/Hmi/Readout.cs                Readout:medium
+
+# ---------------------------------------------------------------------------
+# wallclock：这三处用墙钟是刻意的，不是疏漏
+# ---------------------------------------------------------------------------
+
+# Readout.Refresh：过期判定确实用墙钟，但**不能**改成单调时钟。
+# LastUpdated 是使用方给的绝对时间戳，两个合法用法依赖这一点：
+#   1. 展柜与文档里的 LastUpdated=DateTime.Now.AddYears(1) 表示「永不过期」；
+#   2. 历史回放 / 归档场景要喂一个过去的时间戳。
+# 单调时钟两者都做不到。真正的危险是「差值为负时被当成刚刚更新过」，
+# 这一条已经单独处理：超前超过 1 秒即进 :unknownage，不再落到「新鲜」。
+wallclock  src/Cobalt.Fluent/Controls/Hmi/Readout.cs  Refresh
+
+# Readout.BuildStatusText：算「最后更新 n 秒前」这行显示文字，不是超时判定。
+# 判定已经在 Refresh 里做完并传进来了。
+wallclock  src/Cobalt.Fluent/Controls/Hmi/Readout.cs  BuildStatusText
+
+# DeviceStatusBar.OnApplyTemplate：把公开的 LastResponse（DateTime?，是对外
+# API 的一部分，不能换成 ticks）在边界上转成时长交给 Heartbeat.Restore。
+# 越过这个边界之后内部全程用 Environment.TickCount64。
+wallclock  src/Cobalt.Fluent/Controls/Hmi/DeviceStatusBar.cs  OnApplyTemplate
