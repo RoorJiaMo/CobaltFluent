@@ -86,7 +86,16 @@ public class AlarmBanner : TemplatedControl
         AvaloniaProperty.Register<AlarmBanner, bool>(
             nameof(IsAcknowledged), defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
 
-    /// <summary>已确认。停呼吸，但横幅不消失——报警条件还在。</summary>
+    /// <summary>
+    /// 已确认。停呼吸，但横幅不消失——报警条件还在。
+    ///
+    /// <b><see cref="Severity"/> 变化不会复位这个状态。</b>它是宿主拥有的状态
+    /// （默认 TwoWay），报警的生命周期归宿主管：同一条物理报警在容差带上下抖动时，
+    /// 宿主往往刻意保持确认态，控件擅自写回 false 会把它覆盖掉。
+    /// 因此「已确认 → 降级 → 再次升级回 Alarm」时宿主必须自己把它置回 false，
+    /// 否则新的 Alarm 一诞生就是已确认态：不呼吸、确认按钮隐藏，
+    /// 屏幕上和一条普通静态红条没有区别。
+    /// </summary>
     public bool IsAcknowledged
     {
         get => GetValue(IsAcknowledgedProperty);
@@ -228,6 +237,14 @@ public class AlarmBanner : TemplatedControl
         AdditionalCountProperty.Changed.AddClassHandler<AlarmBanner>((x, _) => x.Refresh());
         IsAcknowledgedProperty.Changed.AddClassHandler<AlarmBanner>((x, _) => x.Refresh());
         IsBreathingEnabledProperty.Changed.AddClassHandler<AlarmBanner>((x, _) => x.Refresh());
+
+        // 换命令时把 CanExecuteChanged 订阅一起搬过去，否则按钮可用性会停在旧命令上
+        AcknowledgeCommandProperty.Changed.AddClassHandler<AlarmBanner>((x, e) =>
+        {
+            if (e.OldValue is ICommand old) old.CanExecuteChanged -= x.OnAckCanExecuteChanged;
+            if (e.NewValue is ICommand now) now.CanExecuteChanged += x.OnAckCanExecuteChanged;
+            x.UpdateAckEnabled();
+        });
     }
 
     public AlarmBanner() => Refresh();
@@ -264,6 +281,7 @@ public class AlarmBanner : TemplatedControl
         if (_ackButton is not null) _ackButton.Click -= OnAckClicked;
         _ackButton = e.NameScope.Find<Button>("PART_Acknowledge");
         if (_ackButton is not null) _ackButton.Click += OnAckClicked;
+        UpdateAckEnabled();
 
         if (_detailsButton is not null) _detailsButton.Click -= OnDetailsClicked;
         _detailsButton = e.NameScope.Find<Button>("PART_Details");
@@ -275,21 +293,41 @@ public class AlarmBanner : TemplatedControl
 
     private void OnAckClicked(object? sender, RoutedEventArgs e) => Acknowledge();
 
+    /// <summary>
+    /// 确认按钮的可用性跟着命令走。「按不动」要在按下之前就看得见，
+    /// 而不是按下去之后什么都没发生。
+    /// </summary>
+    private void UpdateAckEnabled()
+    {
+        if (_ackButton is null) return;
+        _ackButton.IsEnabled = AcknowledgeCommand?.CanExecute(null) ?? true;
+    }
+
+    private void OnAckCanExecuteChanged(object? sender, EventArgs e) => UpdateAckEnabled();
+
     private void OnDetailsClicked(object? sender, RoutedEventArgs e)
     {
         if (DetailsCommand?.CanExecute(null) == true)
             DetailsCommand.Execute(null);
     }
 
-    /// <summary>确认。幂等。</summary>
+    /// <summary>
+    /// 确认。幂等。
+    ///
+    /// 挂了 <see cref="AcknowledgeCommand"/> 而它 <c>CanExecute</c> 为 false
+    /// （权限不足、通道断开、PLC 未就绪）时直接返回：确认没有真的下发出去，
+    /// 界面就不该显示成已确认——那会让呼吸停止、确认按钮隐藏，
+    /// 一条未被受理的 Alarm 从此和普通静态红条没有任何区别。
+    ///
+    /// 没挂命令时保持纯本地确认语义（只是操作员表示看到了）。
+    /// </summary>
     public void Acknowledge()
     {
         if (IsAcknowledged) return;
+        if (AcknowledgeCommand is { } cmd && !cmd.CanExecute(null)) return;
 
         IsAcknowledged = true;
-
-        if (AcknowledgeCommand?.CanExecute(null) == true)
-            AcknowledgeCommand.Execute(null);
+        AcknowledgeCommand?.Execute(null);
 
         RaiseEvent(new RoutedEventArgs(AcknowledgedEvent));
     }

@@ -16,13 +16,6 @@
     <Setter Property="Template">
       <ControlTemplate TargetType="fc:AlarmBanner">
         <Panel>
-          <!-- 关掉呼吸时用这圈安全黄描边补强。不补的话降级后 Alarm 和 Warning 长得一样。 -->
-          <Border x:Name="PART_ReducedMotionRing"
-                  BorderBrush="{DynamicResource SafetyYellowBrush}"
-                  BorderThickness="2"
-                  CornerRadius="{TemplateBinding CornerRadius}"
-                  IsVisible="False" />
-
           <Border x:Name="PART_Root"
                   Background="{TemplateBinding Background}"
                   BorderBrush="{TemplateBinding BorderBrush}"
@@ -93,6 +86,19 @@
               </StackPanel>
             </Grid>
           </Border>
+
+          <!-- 关掉呼吸时用这圈安全黄描边补强。不补的话降级后 Alarm 和 Warning 长得一样。
+               **必须排在 PART_Root 之后。** Panel 里后面的子元素画在上面，而
+               PART_Root 带不透明背景（:alarm 下是 SafetyRed 实底），排在前面时
+               这 2px 黄环会被整个盖住——伪类和 IsVisible 全是对的，渲染出来却没有环，
+               只看伪类的测试一路绿灯。只描边不填充，IsHitTestVisible=False
+               以免挡住确认与详情按钮的命中测试。 -->
+          <Border x:Name="PART_ReducedMotionRing"
+                  BorderBrush="{DynamicResource SafetyYellowBrush}"
+                  BorderThickness="2"
+                  CornerRadius="{TemplateBinding CornerRadius}"
+                  IsHitTestVisible="False"
+                  IsVisible="False" />
         </Panel>
       </ControlTemplate>
     </Setter>

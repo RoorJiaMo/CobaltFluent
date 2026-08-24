@@ -49,7 +49,7 @@
     <g:MapBlock Note="脉冲环使用 Animation + ScaleTransform，仅作用于 transform/opacity。嵌入式环境下若单屏有十几个 running 指示灯，应关闭 IsPulseEnabled——十几个并发动画在 Mali 上会掉帧。">
       <g:MapRow Key="类型" Value="StatusIndicator : TemplatedControl" />
       <g:MapRow Key="属性" Value="State:{Offline,Idle,Running,Warning,Fault} · Label · ShowLabel=true · IsPulseEnabled=true" />
-      <g:MapRow Key="伪类" Value=":offline :idle :running :warning :fault（属性变化时通过 PseudoClasses.Set 设置）" />
+      <g:MapRow Key="伪类" Value=":offline :idle :running :warning :fault（属性变化时通过 PseudoClasses.Set 设置；枚举范围外的值归入 Offline）" />
     </g:MapBlock>
 
   </StackPanel>

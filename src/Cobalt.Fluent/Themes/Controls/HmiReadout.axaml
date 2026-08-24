@@ -96,6 +96,19 @@
     <Style Selector="^:nodata /template/ TextBlock#PART_Value">
       <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
     </Style>
+
+    <!-- 新鲜度未知：给了值但没给 LastUpdated（或时间戳落在未来）。
+         不能和「新鲜」长得一样——那正是通信断开后最危险的表现：
+         数值以主色停在最后一帧，与正常刷新的读数一个像素的差别都没有。
+         也不能直接当成过期：确实没有依据说它过期了。用居中档的灰 + 文字标注区分。 -->
+    <Style Selector="^:unknownage /template/ TextBlock#PART_Value">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorSecondaryBrush}" />
+    </Style>
+
+    <!-- 拿到了坏值（NaN / 无穷）。和 :nodata「从未拿到值」是两回事。 -->
+    <Style Selector="^:invalid /template/ TextBlock#PART_Value">
+      <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCautionBrush}" />
+    </Style>
   </ControlTheme>
 
   <!-- ==================== StatusIndicator ==================== -->

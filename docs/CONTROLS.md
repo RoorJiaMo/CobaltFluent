@@ -39,7 +39,7 @@ WinUI / FluentAvalonia 里不存在，全部新写。涉及人身和设备安全
 | `Title` | `string?` | — |
 | `Detail` | `string?` | — |
 | `Timestamp` | `DateTime?` | 报警发生时刻。复盘时这一列比什么都重要，所以要 tabular-nums。 |
-| `IsAcknowledged` | `bool` | 已确认。停呼吸，但横幅不消失——报警条件还在。 |
+| `IsAcknowledged` | `bool` | 已确认。停呼吸，但横幅不消失——报警条件还在。 `Severity` 变化不会复位这个状态。它是宿主拥有的状态 （默认 TwoWay），报警的生命周期归宿主管：同一条物理报警在容差带上下抖动时， 宿主往往刻意保持确认态，控件擅自写回 false 会把它覆盖掉。 因此「已确认 → 降级 → 再次升级回 Alarm」时宿主必须自己把它置回 false， 否则新的 Alarm 一诞生就是已确认态：不呼吸、确认按钮隐藏， 屏幕上和一条普通静态红条没有区别。 |
 | `AdditionalCount` | `int` | — |
 | `AcknowledgeCommand` | `ICommand?` | — |
 | `DetailsCommand` | `ICommand?` | — |
@@ -55,7 +55,7 @@ WinUI / FluentAvalonia 里不存在，全部新写。涉及人身和设备安全
 
 | 成员 | 说明 |
 |---|---|
-| `Acknowledge()` | 确认。幂等。 |
+| `Acknowledge()` | 确认。幂等。 挂了 `AcknowledgeCommand` 而它 `CanExecute` 为 false （权限不足、通道断开、PLC 未就绪）时直接返回：确认没有真的下发出去， 界面就不该显示成已确认——那会让呼吸停止、确认按钮隐藏， 一条未被受理的 Alarm 从此和普通静态红条没有任何区别。 没挂命令时保持纯本地确认语义（只是操作员表示看到了）。 |
 
 ### `ConnectionState`
 
@@ -130,7 +130,8 @@ WinUI / FluentAvalonia 里不存在，全部新写。涉及人身和设备安全
 
 | 成员 | 说明 |
 |---|---|
-| `Beat()` | 收到一次设备响应。每次通信成功调一下，灯闪一次。 |
+| `Beat()` | 收到一次设备响应。每次通信成功调一下，灯闪一次。 必须在 UI 线程调用。设备响应天然到达在通信 / IO 线程上， 请在调用方那一侧编组。这里不做隐式编组：`Post(Beat)` 会把时间戳 推迟到 UI 线程实际执行的时刻，UI 拥塞时会把超时判定一起带偏， 高频调用下还会淹没 dispatcher 队列。 |
+| `Restore(TimeSpan sinceLastBeat)` | 按真实经过时间恢复心跳状态，用于模板应用晚于首次 Beat() 的场合。 不要用 `Beat` 代替：那会把时间戳盖成「现在」，超时窗口从恢复 那一刻重新起算，实际存活时间最长可达两倍 `Timeout`—— 也就是说链路早就断了，心跳灯还能再亮一个完整的超时周期。 |
 
 ### `JogDirection`
 
@@ -326,7 +327,7 @@ WinUI / FluentAvalonia 里不存在，全部新写。涉及人身和设备安全
 
 数值读数。过程界面上出现频率最高的控件。 第 7 组的两条硬约束： 1. **刷新时布局绝对不能跳动。** 等宽数字（tnum）+ 按最大位数预留 `ValueMinChars`。 比例数字下 84.6 → 84.9 会让整行横移，一屏二十个读数就是一片抖动。 2. **`:stale` 时保留最后已知值**，只变灰 + 标注多久没更新。 换成"—"是错的：通信断了，但设备上的反应还在跑，操作员需要知道断开前的最后一个值。 `:stale` 由内部定时器驱动，不等下一次数据到达才判断 —— 数据不来正是要报的那种情况，等它等不到。
 
-**伪类**：`:deviating` · `:stale` · `:nodata` · `:small` · `:medium` · `:large`
+**伪类**：`:deviating` · `:stale` · `:unknownage` · `:invalid` · `:nodata` · `:small` · `:medium` · `:large`
 
 | 属性 | 类型 | 说明 |
 |---|---|---|

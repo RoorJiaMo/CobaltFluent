@@ -1,3 +1,4 @@
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
@@ -27,7 +28,7 @@ public enum ReadoutSize
 /// <c>:stale</c> 由内部定时器驱动，不等下一次数据到达才判断 ——
 /// 数据不来正是要报的那种情况，等它等不到。
 /// </summary>
-[PseudoClasses(":deviating", ":stale", ":nodata", ":small", ":medium", ":large")]
+[PseudoClasses(":deviating", ":stale", ":unknownage", ":invalid", ":nodata", ":small", ":medium", ":large")]
 public class Readout : TemplatedControl
 {
     private DispatcherTimer? _staleTimer;
@@ -206,7 +207,6 @@ public class Readout : TemplatedControl
         StaleAfterProperty.Changed.AddClassHandler<Readout>((x, _) => x.Refresh());
         SizeProperty.Changed.AddClassHandler<Readout>((x, _) => x.OnSizeChanged());
         ValueMinCharsProperty.Changed.AddClassHandler<Readout>((x, _) => x.UpdateMinWidth());
-        FontSizeProperty.Changed.AddClassHandler<Readout>((x, _) => x.UpdateMinWidth());
     }
 
     public Readout()
@@ -224,6 +224,7 @@ public class Readout : TemplatedControl
         _staleTimer = new DispatcherTimer(
             TimeSpan.FromMilliseconds(500), DispatcherPriority.Background, (_, _) => Refresh());
         _staleTimer.Start();
+        UpdateMinWidth();   // 构造函数里读不到资源，那时还没有资源作用域
         Refresh();
     }
 
@@ -244,58 +245,138 @@ public class Readout : TemplatedControl
 
     private void UpdateMinWidth()
     {
-        // 等宽数字大约是 0.62em 宽。宁可略宽也不能让数值区随内容缩放。
-        var fontSize = Size switch
+        // 字号只能有一个来源。这里此前抄了一份 24/40/72 的字面值，
+        // 覆盖 ReadoutFontSize* token 之后两份数字就脱钩了——
+        // MinWidth 不再等于「最大位数所需宽度」，防抖动的预留失去意义。
+        var key = Size switch
+        {
+            ReadoutSize.Small => "ReadoutFontSizeSmall",
+            ReadoutSize.Large => "ReadoutFontSizeLarge",
+            _ => "ReadoutFontSizeMedium",
+        };
+
+        var fallback = Size switch
         {
             ReadoutSize.Small => 24d,
             ReadoutSize.Large => 72d,
             _ => 40d,
         };
+
+        var fontSize = this.TryFindResource(key, ActualThemeVariant, out var v) && v is double d
+            ? d
+            : fallback;
+
+        // 等宽数字大约是 0.62em 宽。宁可略宽也不能让数值区随内容缩放。
         ValueMinWidth = Math.Max(0, ValueMinChars) * fontSize * 0.62;
     }
 
     private void Refresh()
     {
+        // 顺序是有讲究的：安全相关的判定（过期、偏差、伪类）全部先算完，
+        // 格式化留到最后并单独兜异常。此前格式化写在第一行，非法的 Format
+        // （如 "Q7"）让 ToString 抛 FormatException，异常被 dispatcher 吞掉不报，
+        // 而坏的 Format 已经写进了控件——此后每一次 Refresh（包括 500ms 过期
+        // 定时器那一次）都停在同一行，过期判定、偏差判定、状态行全部停摆。
         var value = Value;
+        var finite = value is { } v0 && double.IsFinite(v0);
 
         PseudoClasses.Set(":nodata", value is null);
+        // 「拿到了坏值」和「从未拿到值」是两回事，不能复用 :nodata
+        PseudoClasses.Set(":invalid", value is { } bad && !double.IsFinite(bad));
 
-        DisplayValue = value is { } v
-            ? v.ToString(Format, System.Globalization.CultureInfo.CurrentCulture)
-            : "—";
-
+        // ---- 新鲜度 --------------------------------------------------------
         var stale = false;
-        if (StaleAfter > TimeSpan.Zero && LastUpdated is { } last)
-            stale = DateTime.Now - last > StaleAfter;
+        var unknownAge = false;
+
+        if (StaleAfter > TimeSpan.Zero && value is not null)
+        {
+            if (LastUpdated is { } last)
+            {
+                var elapsed = DateTime.Now - last;
+
+                // 时间戳落在未来：墙钟被回拨（无 RTC 的嵌入式 HMI 开机后 NTP 校时、
+                // 夏令时切换、手工改表），或者时间戳来自比 HMI 快的时钟源（PLC / 采集卡）。
+                // 差值恒为负，条件永远不成立——回拨多久，就有多久所有读数被判成新鲜。
+                // 留 1 秒容差吸收正常抖动。
+                if (elapsed < ClockSkewTolerance) unknownAge = true;
+                else stale = elapsed > StaleAfter;
+            }
+            else
+            {
+                // 缺 LastUpdated 不等于数据新鲜。这个属性是纯手工簿记的，
+                // 而 MVVM 里最自然的写法就是只绑 Value——静默落到「新鲜」意味着
+                // 通信断开后数值以主色停在最后一帧，和正常刷新的读数
+                // 在视觉上一个像素的差别都没有。
+                unknownAge = true;
+            }
+        }
 
         IsStale = stale;
         PseudoClasses.Set(":stale", stale);
+        PseudoClasses.Set(":unknownage", unknownAge);
 
-        var deviating = false;
-        if (value is { } val && Setpoint is { } sp)
-            deviating = Math.Abs(val - sp) > Tolerance;
+        // ---- 偏差 ----------------------------------------------------------
+        // Tolerance 非有限或为负都是配置错误：Math.Abs(...) > -1 恒真，
+        // 所有值都会进 :deviating；NaN 则相反，恒不成立，偏差监视被静默关掉。
+        var toleranceUsable = double.IsFinite(Tolerance) && Tolerance >= 0;
+        var setpoint = Setpoint is { } sp && double.IsFinite(sp) ? sp : (double?)null;
 
+        double? delta = null;
+        if (finite && setpoint is { } target) delta = value!.Value - target;
+
+        var deviating = toleranceUsable && delta is { } d && Math.Abs(d) > Tolerance;
         PseudoClasses.Set(":deviating", deviating && !stale);
 
-        StaleText = stale ? "数据过期" : null;
+        StaleText = stale ? "数据过期" : unknownAge ? "新鲜度未知" : null;
 
+        // ---- 文字。格式化集中在这里，整段兜异常 ------------------------------
+        try
+        {
+            DisplayValue = value is null ? "—" : finite ? Fmt(value.Value) : "无效";
+            StatusText = BuildStatusText(stale, setpoint, delta, toleranceUsable);
+        }
+        catch (FormatException)
+        {
+            // Format 非法。安全判定在上面已经全部算完，这里只是显示降级——
+            // 绝不能让一个显示格式把过期与偏差判定一起带停。
+            DisplayValue = value is null ? "—"
+                : finite ? value.Value.ToString(CultureInfo.CurrentCulture)
+                : "无效";
+            StatusText = "显示格式无效";
+        }
+    }
+
+    /// <summary>时钟抖动容差。时间戳超前超过这个量就当成时钟异常，而不是「刚刚更新过」。</summary>
+    private static readonly TimeSpan ClockSkewTolerance = TimeSpan.FromSeconds(-1);
+
+    /// <summary>按 <see cref="Format"/> 格式化。名字不能叫 Format——和属性重名。</summary>
+    private string Fmt(double v) => v.ToString(Format, CultureInfo.CurrentCulture);
+
+    private string? BuildStatusText(bool stale, double? setpoint, double? delta, bool toleranceUsable)
+    {
         if (stale && LastUpdated is { } lastSeen)
         {
+            // 值本身保留不动，只把「多久没更新」标出来。
+            // 偏差信息也要一并留着：过期时 :deviating 被清掉（颜色没了），
+            // 状态行又被整条换掉（文字也没了），断开前是否超差这一条判读上下文
+            // 会在通信断开的瞬间从界面上彻底消失，只剩一个孤零零的数字。
             var ago = DateTime.Now - lastSeen;
-            // 值本身保留不动，只把"多久没更新"标出来
-            StatusText = $"最后更新 {FormatAgo(ago)}前";
+            var text = $"最后更新 {FormatAgo(ago)}前";
+
+            if (toleranceUsable && delta is { } d && Math.Abs(d) > Tolerance)
+                text += $" · 断开时偏差 {(d >= 0 ? "+" : "")}{Fmt(d)}";
+
+            return text;
         }
-        else if (value is { } current && Setpoint is { } target)
-        {
-            var delta = current - target;
-            var sign = delta >= 0 ? "+" : "";
-            StatusText = $"目标 {target.ToString(Format, System.Globalization.CultureInfo.CurrentCulture)}"
-                       + $" · 偏差 {sign}{delta.ToString(Format, System.Globalization.CultureInfo.CurrentCulture)}";
-        }
-        else
-        {
-            StatusText = null;
-        }
+
+        if (setpoint is not { } target) return null;
+
+        if (!toleranceUsable)
+            return $"目标 {Fmt(target)} · 偏差监视不可用（容差 {Tolerance}）";
+
+        if (delta is not { } diff) return $"目标 {Fmt(target)}";
+
+        return $"目标 {Fmt(target)} · 偏差 {(diff >= 0 ? "+" : "")}{Fmt(diff)}";
     }
 
     private static string FormatAgo(TimeSpan ago) => ago.TotalSeconds switch

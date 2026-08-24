@@ -101,6 +101,15 @@ public class StatusIndicator : TemplatedControl
     private void OnStateChanged()
     {
         var state = State;
+
+        // Avalonia 的枚举 StyledProperty 不做范围校验，而 HMI 里
+        // (DeviceState)plcStatusByte 这类强转很常见。范围外的值会让五个伪类
+        // 全部落空——没有任何 Style 命中，模板回落到裸默认值，Glyph 也被兜成 None：
+        // 三重编码三路同时失守，而且是往「正常」方向失守。
+        // 归到 Offline 而不是 Fault：Fault 会让操作员去排查一个并不存在的故障，
+        // 而空心圈正是本控件为「没有信息」设计的编码。
+        // 只改局部变量，不回写属性——回写会跟绑定打架。
+        if (!Enum.IsDefined(state)) state = DeviceState.Offline;
         PseudoClasses.Set(":offline", state == DeviceState.Offline);
         PseudoClasses.Set(":idle", state == DeviceState.Idle);
         PseudoClasses.Set(":running", state == DeviceState.Running);

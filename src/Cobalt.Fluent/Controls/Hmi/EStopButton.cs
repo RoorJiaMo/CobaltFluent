@@ -265,6 +265,18 @@ public class EStopButton : Button
         base.OnKeyUp(e);
     }
 
+    /// <summary>
+    /// 卸载时停掉长按定时器。此前本控件是第 7 组里唯一带定时器却不覆写这个方法的：
+    /// 定时器在控件离开可视树之后仍然存活并到点，DoReset() 照样执行——
+    /// 急停会在界面上已经看不到它的时候自己解锁。
+    /// </summary>
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        CancelReset();
+        _actionKeyDown = false;
+        base.OnDetachedFromVisualTree(e);
+    }
+
     protected override void OnLostFocus(RoutedEventArgs e)
     {
         base.OnLostFocus(e);

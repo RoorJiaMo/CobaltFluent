@@ -156,11 +156,11 @@ public class DeviceStatusBar : TemplatedControl
 
         // 模板是后应用的：在此之前调过的 Beat() 拿不到心跳灯，状态会丢。
         // 用 LastResponse 把它补回来——否则刚建好的状态栏会（错误地）显示停跳。
-        if (_heartbeat is not null && LastResponse is { } last
-            && DateTime.Now - last <= _heartbeat.Timeout)
-        {
-            _heartbeat.Beat();
-        }
+        //
+        // 走 Restore 而不是 Beat：后者把时间戳盖成「现在」，超时窗口从模板应用那一刻
+        // 重新起算，实际存活时间最长可达两倍 Timeout。
+        if (_heartbeat is not null && LastResponse is { } last)
+            _heartbeat.Restore(DateTime.Now - last);
     }
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
