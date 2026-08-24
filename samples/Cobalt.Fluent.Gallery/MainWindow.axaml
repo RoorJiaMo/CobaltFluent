@@ -49,6 +49,8 @@
           <!-- 开关文字写在轨道右侧（On/Off 两态同文），不占 Content 那行抬头 -->
           <ToggleSwitch x:Name="ThemeToggle" OnContent="深色主题" OffContent="深色主题"
                         VerticalAlignment="Center" />
+          <ToggleSwitch x:Name="ContrastToggle" OnContent="高对比度" OffContent="高对比度"
+                        Margin="12,0,0,0" VerticalAlignment="Center" />
           <ToggleSwitch x:Name="MotionToggle" OnContent="动效 0.25×" OffContent="动效 0.25×"
                         Margin="12,0,0,0" VerticalAlignment="Center" />
         </StackPanel>

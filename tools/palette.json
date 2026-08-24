@@ -2,345 +2,507 @@
   "文字": {
     "TextFillColorPrimary": {
       "light": "#E4000000",
-      "dark": "#FFFFFFFF"
+      "dark": "#FFFFFFFF",
+      "highContrastLight": "#FF000000",
+      "highContrastDark": "#FFFFFFFF"
     },
     "TextFillColorSecondary": {
       "light": "#9E000000",
-      "dark": "#C5FFFFFF"
+      "dark": "#C5FFFFFF",
+      "highContrastLight": "#FF1F1F1F",
+      "highContrastDark": "#FFE6E6E6"
     },
     "TextFillColorTertiary": {
       "light": "#72000000",
-      "dark": "#87FFFFFF"
+      "dark": "#87FFFFFF",
+      "highContrastLight": "#FF3B3B3B",
+      "highContrastDark": "#FFC7C7C7"
     },
     "TextFillColorDisabled": {
       "light": "#5C000000",
-      "dark": "#5DFFFFFF"
+      "dark": "#5DFFFFFF",
+      "highContrastLight": "#FF767676",
+      "highContrastDark": "#FF8C8C8C"
     },
     "TextFillColorStale": {
       "light": "#8A000000",
-      "dark": "#87FFFFFF"
+      "dark": "#87FFFFFF",
+      "highContrastLight": "#FF3B3B3B",
+      "highContrastDark": "#FFC7C7C7"
     },
     "TextOnAccentFillColorPrimary": {
       "light": "#FFFFFFFF",
-      "dark": "#FF000000"
+      "dark": "#FF000000",
+      "highContrastLight": "#FFFFFFFF",
+      "highContrastDark": "#FF000000"
     },
     "TextOnAccentFillColorSecondary": {
       "light": "#B2FFFFFF",
-      "dark": "#80000000"
+      "dark": "#80000000",
+      "highContrastLight": "#FFFFFFFF",
+      "highContrastDark": "#FF000000"
     },
     "AccentTextFillColorPrimary": {
       "light": "#FF003E92",
-      "dark": "#FF99EBFF"
+      "dark": "#FF99EBFF",
+      "highContrastLight": "#FF0000CC",
+      "highContrastDark": "#FF00E5FF"
     }
   },
   "表面与层": {
     "SolidBackgroundFillColorBase": {
       "light": "#FFF3F3F3",
-      "dark": "#FF202020"
+      "dark": "#FF202020",
+      "highContrastLight": "#FFFFFFFF",
+      "highContrastDark": "#FF000000"
     },
     "SolidBackgroundFillColorSecondary": {
       "light": "#FFEEEEEE",
-      "dark": "#FF1C1C1C"
+      "dark": "#FF1C1C1C",
+      "highContrastLight": "#FFFFFFFF",
+      "highContrastDark": "#FF000000"
     },
     "SolidBackgroundFillColorTertiary": {
       "light": "#FFF9F9F9",
-      "dark": "#FF282828"
+      "dark": "#FF282828",
+      "highContrastLight": "#FFFFFFFF",
+      "highContrastDark": "#FF000000"
     },
     "SolidBackgroundFillColorQuarternary": {
       "light": "#FFFFFFFF",
-      "dark": "#FF2C2C2C"
+      "dark": "#FF2C2C2C",
+      "highContrastLight": "#FFFFFFFF",
+      "highContrastDark": "#FF000000"
     },
     "LayerFillColorDefault": {
       "light": "#80FFFFFF",
-      "dark": "#4C3A3A3A"
+      "dark": "#4C3A3A3A",
+      "highContrastLight": "#FFFFFFFF",
+      "highContrastDark": "#FF000000"
     },
     "LayerFillColorAlt": {
       "light": "#FFFFFFFF",
-      "dark": "#0DFFFFFF"
+      "dark": "#0DFFFFFF",
+      "highContrastLight": "#FFFFFFFF",
+      "highContrastDark": "#FF000000"
     },
     "CardBackgroundFillColorDefault": {
       "light": "#B2FFFFFF",
-      "dark": "#0DFFFFFF"
+      "dark": "#0DFFFFFF",
+      "highContrastLight": "#FFFFFFFF",
+      "highContrastDark": "#FF000000"
     },
     "CardBackgroundFillColorSecondary": {
       "light": "#80F6F6F6",
-      "dark": "#08FFFFFF"
+      "dark": "#08FFFFFF",
+      "highContrastLight": "#FFFFFFFF",
+      "highContrastDark": "#FF000000"
     },
     "SmokeFillColorDefault": {
       "light": "#4C000000",
-      "dark": "#4C000000"
+      "dark": "#4C000000",
+      "highContrastLight": "#CC000000",
+      "highContrastDark": "#CC000000"
     },
     "AcrylicBackgroundFillColorDefault": {
       "light": "#D9FCFCFC",
-      "dark": "#D92C2C2C"
+      "dark": "#D92C2C2C",
+      "highContrastLight": "#FFFFFFFF",
+      "highContrastDark": "#FF000000"
     }
   },
   "控件填充": {
     "ControlFillColorDefault": {
       "light": "#B2FFFFFF",
-      "dark": "#0FFFFFFF"
+      "dark": "#0FFFFFFF",
+      "highContrastLight": "#FFFFFFFF",
+      "highContrastDark": "#FF000000"
     },
     "ControlFillColorSecondary": {
       "light": "#80F9F9F9",
-      "dark": "#15FFFFFF"
+      "dark": "#15FFFFFF",
+      "highContrastLight": "#FFDCDCDC",
+      "highContrastDark": "#FF565656"
     },
     "ControlFillColorTertiary": {
       "light": "#4CF9F9F9",
-      "dark": "#08FFFFFF"
+      "dark": "#08FFFFFF",
+      "highContrastLight": "#FFC4C4C4",
+      "highContrastDark": "#FF3A3A3A"
     },
     "ControlFillColorDisabled": {
       "light": "#4CF9F9F9",
-      "dark": "#0BFFFFFF"
+      "dark": "#0BFFFFFF",
+      "highContrastLight": "#FFFFFFFF",
+      "highContrastDark": "#FF000000"
     },
     "ControlFillColorInputActive": {
       "light": "#FFFFFFFF",
-      "dark": "#B21E1E1E"
+      "dark": "#B21E1E1E",
+      "highContrastLight": "#FFFFFFFF",
+      "highContrastDark": "#FF000000"
     },
     "ControlStrongFillColorDefault": {
       "light": "#72000000",
-      "dark": "#8BFFFFFF"
+      "dark": "#8BFFFFFF",
+      "highContrastLight": "#FF000000",
+      "highContrastDark": "#FFFFFFFF"
     },
     "ControlStrongFillColorDisabled": {
       "light": "#51000000",
-      "dark": "#3FFFFFFF"
+      "dark": "#3FFFFFFF",
+      "highContrastLight": "#FF767676",
+      "highContrastDark": "#FF8C8C8C"
     },
     "ControlSolidFillColorDefault": {
       "light": "#FFFFFFFF",
-      "dark": "#FF454545"
+      "dark": "#FF454545",
+      "highContrastLight": "#FFFFFFFF",
+      "highContrastDark": "#FF000000"
     },
     "ControlAltFillColorSecondary": {
       "light": "#06000000",
-      "dark": "#19000000"
+      "dark": "#19000000",
+      "highContrastLight": "#FFDCDCDC",
+      "highContrastDark": "#FF565656"
     },
     "ControlAltFillColorTertiary": {
       "light": "#0F000000",
-      "dark": "#0BFFFFFF"
+      "dark": "#0BFFFFFF",
+      "highContrastLight": "#FFC4C4C4",
+      "highContrastDark": "#FF3A3A3A"
     },
     "ControlAltFillColorQuarternary": {
       "light": "#18000000",
-      "dark": "#12FFFFFF"
+      "dark": "#12FFFFFF",
+      "highContrastLight": "#FFDCDCDC",
+      "highContrastDark": "#FF565656"
     }
   },
   "Subtle": {
     "SubtleFillColorSecondary": {
       "light": "#09000000",
-      "dark": "#0FFFFFFF"
+      "dark": "#0FFFFFFF",
+      "highContrastLight": "#FFDCDCDC",
+      "highContrastDark": "#FF565656"
     },
     "SubtleFillColorTertiary": {
       "light": "#06000000",
-      "dark": "#0AFFFFFF"
+      "dark": "#0AFFFFFF",
+      "highContrastLight": "#FFC4C4C4",
+      "highContrastDark": "#FF3A3A3A"
     }
   },
   "强调": {
     "AccentFillColorDefault": {
       "light": "#FF0067C0",
-      "dark": "#FF4CC2FF"
+      "dark": "#FF4CC2FF",
+      "highContrastLight": "#FF0000CC",
+      "highContrastDark": "#FF00E5FF"
     },
     "AccentFillColorSecondary": {
       "light": "#E60067C0",
-      "dark": "#E64CC2FF"
+      "dark": "#E64CC2FF",
+      "highContrastLight": "#FF0000A8",
+      "highContrastDark": "#FF00C4DB"
     },
     "AccentFillColorTertiary": {
       "light": "#CC0067C0",
-      "dark": "#CC4CC2FF"
+      "dark": "#CC4CC2FF",
+      "highContrastLight": "#FF00008A",
+      "highContrastDark": "#FF00A3B7"
     },
     "AccentFillColorDisabled": {
       "light": "#37000000",
-      "dark": "#28FFFFFF"
+      "dark": "#28FFFFFF",
+      "highContrastLight": "#FFC4C4C4",
+      "highContrastDark": "#FF565656"
     }
   },
   "描边": {
     "ControlStrokeColorDefault": {
       "light": "#0F000000",
-      "dark": "#12FFFFFF"
+      "dark": "#12FFFFFF",
+      "highContrastLight": "#FF000000",
+      "highContrastDark": "#FFFFFFFF"
     },
     "ControlStrokeColorSecondary": {
       "light": "#29000000",
-      "dark": "#18FFFFFF"
+      "dark": "#18FFFFFF",
+      "highContrastLight": "#FF000000",
+      "highContrastDark": "#FFFFFFFF"
     },
     "ControlStrokeColorOnAccentDefault": {
       "light": "#14FFFFFF",
-      "dark": "#14FFFFFF"
+      "dark": "#14FFFFFF",
+      "highContrastLight": "#FFFFFFFF",
+      "highContrastDark": "#FF000000"
     },
     "ControlStrokeColorOnAccentSecondary": {
       "light": "#66000000",
-      "dark": "#23000000"
+      "dark": "#23000000",
+      "highContrastLight": "#FFFFFFFF",
+      "highContrastDark": "#FF000000"
     },
     "ControlStrongStrokeColorDefault": {
       "light": "#72000000",
-      "dark": "#8BFFFFFF"
+      "dark": "#8BFFFFFF",
+      "highContrastLight": "#FF000000",
+      "highContrastDark": "#FFFFFFFF"
     },
     "CardStrokeColorDefault": {
       "light": "#0F000000",
-      "dark": "#19000000"
+      "dark": "#19000000",
+      "highContrastLight": "#FF000000",
+      "highContrastDark": "#FFFFFFFF"
     },
     "SurfaceStrokeColorDefault": {
       "light": "#66757575",
-      "dark": "#66757575"
+      "dark": "#66757575",
+      "highContrastLight": "#FF000000",
+      "highContrastDark": "#FFFFFFFF"
     },
     "SurfaceStrokeColorFlyout": {
       "light": "#0F000000",
-      "dark": "#33000000"
+      "dark": "#33000000",
+      "highContrastLight": "#FF000000",
+      "highContrastDark": "#FFFFFFFF"
     },
     "DividerStrokeColorDefault": {
       "light": "#0F000000",
-      "dark": "#15FFFFFF"
+      "dark": "#15FFFFFF",
+      "highContrastLight": "#FF000000",
+      "highContrastDark": "#FFFFFFFF"
     },
     "FocusStrokeColorOuter": {
       "light": "#E4000000",
-      "dark": "#FFFFFFFF"
+      "dark": "#FFFFFFFF",
+      "highContrastLight": "#FF000000",
+      "highContrastDark": "#FFFFFFFF"
     },
     "FocusStrokeColorInner": {
       "light": "#B2FFFFFF",
-      "dark": "#B2000000"
+      "dark": "#B2000000",
+      "highContrastLight": "#FFFFFFFF",
+      "highContrastDark": "#FF000000"
     }
   },
   "状态": {
     "SystemFillColorSuccess": {
       "light": "#FF0F7B0F",
-      "dark": "#FF6CCB5F"
+      "dark": "#FF6CCB5F",
+      "highContrastLight": "#FF005A00",
+      "highContrastDark": "#FF3FF23F"
     },
     "SystemFillColorCaution": {
       "light": "#FF9D5D00",
-      "dark": "#FFFCE100"
+      "dark": "#FFFCE100",
+      "highContrastLight": "#FF6B4400",
+      "highContrastDark": "#FFFFDD00"
     },
     "SystemFillColorCritical": {
       "light": "#FFC42B1C",
-      "dark": "#FFFF99A4"
+      "dark": "#FFFF99A4",
+      "highContrastLight": "#FFA80710",
+      "highContrastDark": "#FFFF8A8A"
     },
     "SystemFillColorNeutral": {
       "light": "#FF8A8A8A",
-      "dark": "#FF9D9D9D"
+      "dark": "#FF9D9D9D",
+      "highContrastLight": "#FF3B3B3B",
+      "highContrastDark": "#FFC7C7C7"
     },
     "SystemFillColorSuccessBackground": {
       "light": "#FFDFF6DD",
-      "dark": "#FF393D1B"
+      "dark": "#FF393D1B",
+      "highContrastLight": "#FFFFFFFF",
+      "highContrastDark": "#FF000000"
     },
     "SystemFillColorCautionBackground": {
       "light": "#FFFFF4CE",
-      "dark": "#FF433519"
+      "dark": "#FF433519",
+      "highContrastLight": "#FFFFFFFF",
+      "highContrastDark": "#FF000000"
     },
     "SystemFillColorCriticalBackground": {
       "light": "#FFFDE7E9",
-      "dark": "#FF442726"
+      "dark": "#FF442726",
+      "highContrastLight": "#FFFFFFFF",
+      "highContrastDark": "#FF000000"
     },
     "SystemFillColorAttentionBackground": {
       "light": "#80F6F6F6",
-      "dark": "#08FFFFFF"
+      "dark": "#08FFFFFF",
+      "highContrastLight": "#FFFFFFFF",
+      "highContrastDark": "#FF000000"
     }
   },
   "图表色板": {
     "ChartSeries1": {
       "light": "#FF0078D4",
-      "dark": "#FF60CDFF"
+      "dark": "#FF60CDFF",
+      "highContrastLight": "#FF002E52",
+      "highContrastDark": "#FF9CD9FF"
     },
     "ChartSeries2": {
       "light": "#FFCA5010",
-      "dark": "#FFFF8C42"
+      "dark": "#FFFF8C42",
+      "highContrastLight": "#FF9E4A12",
+      "highContrastDark": "#FFFFB07A"
     },
     "ChartSeries3": {
       "light": "#FF038387",
-      "dark": "#FF38D6D6"
+      "dark": "#FF38D6D6",
+      "highContrastLight": "#FF00595C",
+      "highContrastDark": "#FF7DE8E8"
     },
     "ChartSeries4": {
       "light": "#FF8764B8",
-      "dark": "#FFC3A6FF"
+      "dark": "#FFC3A6FF",
+      "highContrastLight": "#FF6B4A99",
+      "highContrastDark": "#FFD4C0FF"
     },
     "ChartSeries5": {
       "light": "#FFC239B3",
-      "dark": "#FFF07CE0"
+      "dark": "#FFF07CE0",
+      "highContrastLight": "#FF9B2C8E",
+      "highContrastDark": "#FFF5A8E8"
     },
     "ChartSeries6": {
       "light": "#FF986F0B",
-      "dark": "#FFE3B23C"
+      "dark": "#FFE3B23C",
+      "highContrastLight": "#FF7A5A08",
+      "highContrastDark": "#FFEFC96B"
     },
     "ChartSeries7": {
       "light": "#FF4F6BED",
-      "dark": "#FF9AAEFF"
+      "dark": "#FF9AAEFF",
+      "highContrastLight": "#FF3B4FC4",
+      "highContrastDark": "#FFB8C4FF"
     },
     "ChartSeries8": {
       "light": "#FF4A6572",
-      "dark": "#FF93B0BF"
+      "dark": "#FF93B0BF",
+      "highContrastLight": "#FF4A6572",
+      "highContrastDark": "#FFB6CCD9"
     },
     "ChartGridLine": {
       "light": "#0F000000",
-      "dark": "#15FFFFFF"
+      "dark": "#15FFFFFF",
+      "highContrastLight": "#FF767676",
+      "highContrastDark": "#FF565656"
     },
     "ChartAxisLine": {
       "light": "#72000000",
-      "dark": "#87FFFFFF"
+      "dark": "#87FFFFFF",
+      "highContrastLight": "#FF000000",
+      "highContrastDark": "#FFFFFFFF"
     },
     "ChartBand": {
       "light": "#09000000",
-      "dark": "#0DFFFFFF"
+      "dark": "#0DFFFFFF",
+      "highContrastLight": "#FFE0E0E0",
+      "highContrastDark": "#FF2B2B2B"
     }
   },
   "安全色": {
     "SafetyRed": {
       "light": "#FFC42B1C",
-      "dark": "#FFD13438"
+      "dark": "#FFD13438",
+      "highContrastLight": "#FFC42B1C",
+      "highContrastDark": "#FFD13438"
     },
     "SafetyRedHigh": {
       "light": "#FFE81123",
-      "dark": "#FFE81123"
+      "dark": "#FFE81123",
+      "highContrastLight": "#FFE81123",
+      "highContrastDark": "#FFE81123"
     },
     "SafetyYellow": {
       "light": "#FFFFDD00",
-      "dark": "#FFFFDD00"
+      "dark": "#FFFFDD00",
+      "highContrastLight": "#FFFFDD00",
+      "highContrastDark": "#FFFFDD00"
     },
     "TextOnSafetyFillColorPrimary": {
       "light": "#FFFFFFFF",
-      "dark": "#FFFFFFFF"
+      "dark": "#FFFFFFFF",
+      "highContrastLight": "#FFFFFFFF",
+      "highContrastDark": "#FFFFFFFF"
     },
     "TextOnSafetyYellowFillColorPrimary": {
       "light": "#FF000000",
-      "dark": "#FF000000"
+      "dark": "#FF000000",
+      "highContrastLight": "#FF000000",
+      "highContrastDark": "#FF000000"
     },
     "SafetyOverlayFillColorDefault": {
       "light": "#29FFFFFF",
-      "dark": "#29FFFFFF"
+      "dark": "#29FFFFFF",
+      "highContrastLight": "#00FFFFFF",
+      "highContrastDark": "#00FFFFFF"
     },
     "SafetyOverlayFillColorSecondary": {
       "light": "#42FFFFFF",
-      "dark": "#42FFFFFF"
+      "dark": "#42FFFFFF",
+      "highContrastLight": "#00FFFFFF",
+      "highContrastDark": "#00FFFFFF"
     },
     "SafetyOverlayStrokeColorDefault": {
       "light": "#3DFFFFFF",
-      "dark": "#3DFFFFFF"
+      "dark": "#3DFFFFFF",
+      "highContrastLight": "#FFFFFFFF",
+      "highContrastDark": "#FFFFFFFF"
     },
     "SafetyOverlayShadeColorDefault": {
       "light": "#3D000000",
-      "dark": "#3D000000"
+      "dark": "#3D000000",
+      "highContrastLight": "#00000000",
+      "highContrastDark": "#00000000"
     }
   },
   "强调色梯（Win11 的 accent palette）": {
     "SystemAccentColor": {
       "light": "#FF0078D4",
-      "dark": "#FF0078D4"
+      "dark": "#FF0078D4",
+      "highContrastLight": "#FF0000CC",
+      "highContrastDark": "#FF00E5FF"
     },
     "SystemAccentColorLight1": {
       "light": "#FF0091F8",
-      "dark": "#FF0091F8"
+      "dark": "#FF0091F8",
+      "highContrastLight": "#FF2A2AE0",
+      "highContrastDark": "#FF5CF0FF"
     },
     "SystemAccentColorLight2": {
       "light": "#FF4CC2FF",
-      "dark": "#FF4CC2FF"
+      "dark": "#FF4CC2FF",
+      "highContrastLight": "#FF5555EA",
+      "highContrastDark": "#FF8FF5FF"
     },
     "SystemAccentColorLight3": {
       "light": "#FF99EBFF",
-      "dark": "#FF99EBFF"
+      "dark": "#FF99EBFF",
+      "highContrastLight": "#FF8080F4",
+      "highContrastDark": "#FFC2FAFF"
     },
     "SystemAccentColorDark1": {
       "light": "#FF0067C0",
-      "dark": "#FF0067C0"
+      "dark": "#FF0067C0",
+      "highContrastLight": "#FF0000A8",
+      "highContrastDark": "#FF00C4DB"
     },
     "SystemAccentColorDark2": {
       "light": "#FF003E92",
-      "dark": "#FF003E92"
+      "dark": "#FF003E92",
+      "highContrastLight": "#FF00008A",
+      "highContrastDark": "#FF00A3B7"
     },
     "SystemAccentColorDark3": {
       "light": "#FF001A68",
-      "dark": "#FF001A68"
+      "dark": "#FF001A68",
+      "highContrastLight": "#FF00006B",
+      "highContrastDark": "#FF008293"
     }
   }
 }

@@ -64,6 +64,9 @@ public partial class MainWindow : Window
         this.FindControl<ToggleSwitch>("ThemeToggle")!.IsCheckedChanged += (s, _) =>
             GalleryState.SetTheme(((ToggleSwitch)s!).IsChecked == true);
 
+        this.FindControl<ToggleSwitch>("ContrastToggle")!.IsCheckedChanged += (s, _) =>
+            GalleryState.SetHighContrast(((ToggleSwitch)s!).IsChecked == true);
+
         this.FindControl<ToggleSwitch>("MotionToggle")!.IsCheckedChanged += (s, _) =>
             GalleryState.SetSlowMotion(((ToggleSwitch)s!).IsChecked == true);
 

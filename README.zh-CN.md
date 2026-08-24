@@ -214,6 +214,43 @@ dotnet run --project samples/Cobalt.Fluent.Gallery
 
 ---
 
+## 高对比度
+
+本库自带两套额外的主题变体：`CobaltFluentTheme.HighContrastLight` 与
+`CobaltFluentTheme.HighContrastDark`。它们不是「把普通主题调得更狠一点」，
+遵循的是另一套规则：
+
+- **表面一律纯色，层次全部交给描边。** 所有背景收敛成纯黑或纯白，
+  分层完全由描边承担，而描边一根都不许是淡的。
+- **任何一处都不许半透明。** 半透明色的实际对比度取决于底下画了什么，
+  而「保证对比度」正是这两套变体存在的全部理由。唯一的例外是模态遮罩——
+  它必须透出底下的界面，否则遮的是什么就看不出来了。
+- **正文达到 WCAG AAA（7:1）。** 失效文字刻意压在这条线以下：
+  一并抬上去的话，「能点」和「不能点」在高对比度下就分不出来了。
+- **安全色不变。** ISO 13850 的红和黄承载的是法规语义，不是主题的一部分；
+  饱和红压白字或黑字都到不了 7:1，这是这个色相的物理上限，
+  为了凑数字把它改成粉色等于把那层语义抹掉。它们保持 AA。
+- **深色变体的强调色用青而不是惯用的黄**，为的是把黄留给警告态。
+  一屏上「这是可点的」和「这要注意」撞成同一个颜色，两个意思都没了。
+
+选哪套变体是应用的决定——**本库不会自己去写 `RequestedThemeVariant`**。
+需要跟随系统的明暗与对比度设置，在启动时显式调一次：
+
+```csharp
+public override void OnFrameworkInitializationCompleted()
+{
+    CobaltFluentTheme.FollowSystemContrast(this);   // 返回 IDisposable，Dispose 掉即停止跟随
+    base.OnFrameworkInitializationCompleted();
+}
+```
+
+四套变体对应平台分开上报的两个设置——`PlatformThemeVariant`（明/暗）与
+`ColorContrastPreference`（普通/高对比）。`tools/audit.py` 会把对照表里每一对
+前景/背景在四套变体下逐一核对，并拒绝高对比度里出现的任何半透明值——
+否则漏一个键就会静默继承回原来那个半透明值。
+
+---
+
 ## 嵌入式与触摸屏适配
 
 针对 Mali GPU 等嵌入式图形环境提供以下配置项：
@@ -245,7 +282,7 @@ tools/check.sh --gallery              # 连同展柜一并编译
 tools/check.sh --only Button.axaml    # 仅合并指定控件层文件（并行开发用）
 
 python3 tools/audit.py                             # 控件层静默失效审计（12 项检查）
-dotnet test tests/Cobalt.Fluent.Tests               # 292 项回归测试
+dotnet test tests/Cobalt.Fluent.Tests               # 310 项回归测试
 dotnet run  --project samples/Cobalt.Fluent.Gallery # 运行展柜
 ```
 

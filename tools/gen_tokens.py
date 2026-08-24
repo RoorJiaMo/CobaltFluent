@@ -2,9 +2,14 @@
 """
 tools/palette.json  →  src/Cobalt.Fluent/Themes/Tokens.axaml
 
-调色板是这套设计系统的单一事实来源：79 个键 × 明暗两套。生成器把每个键摊成
-一个 Color 加一个同名 +Brush 的 SolidColorBrush，再补三支底边渐变描边——
-158 个 Color、158 个 Brush，手抄必错，所以这一步交给脚本。
+调色板是这套设计系统的单一事实来源：81 个键 × 四套变体（明、暗、高对比明、
+高对比暗）。生成器把每个键摊成一个 Color 加一个同名 +Brush 的 SolidColorBrush，
+再补三支底边渐变描边——手抄必错，所以这一步交给脚本。
+
+**四套变体每一套都必须写全 81 个键。** Avalonia 的 ThemeVariant 在本变体里找不到
+键时会静默回落到 InheritVariant——高对比度变体漏一个键，回落到的就是原来那个
+半透明值，而「保证对比度」正是这两套变体存在的全部理由。所以 load() 把缺列
+当错误挡在生成之前，而不是让它悄悄继承。
 
 改颜色改 palette.json，然后重跑：  python3 tools/gen_tokens.py
 """
@@ -43,6 +48,19 @@ ELEVATION_BRUSHES = [
 ]
 
 
+# 调色板里的列名 → ThemeDictionary 的 x:Key。
+#
+# 内置的两套直接写名字（Avalonia 的 ThemeVariant 类型转换器认）。自定义的两套
+# 必须走 x:Static —— 那个转换器只支持内置变体，写成 x:Key="HighContrastDark"
+# 会在加载主题时抛 NotSupportedException，而且是在应用启动那一刻，不是编译期。
+THEMES = {
+    "light": "Light",
+    "dark": "Dark",
+    "highContrastLight": "{x:Static fc:CobaltFluentTheme.HighContrastLight}",
+    "highContrastDark": "{x:Static fc:CobaltFluentTheme.HighContrastDark}",
+}
+
+
 def load():
     """读调色板，顺带把明显写错的值挡在生成之前。"""
     groups = json.loads(PALETTE.read_text(encoding="utf-8"))
@@ -52,7 +70,7 @@ def load():
             if key in keys:
                 bad.append(f"{key} 重复登记")
             keys.append(key)
-            for theme in ("light", "dark"):
+            for theme in THEMES:
                 value = variants.get(theme)
                 if value is None:
                     bad.append(f"{key} 缺 {theme} 那一档")
@@ -73,13 +91,14 @@ def emit(groups):
         "<!-- 本文件由 tools/gen_tokens.py 从 tools/palette.json 生成，不要手改。 -->",
         "<!-- 改颜色请改 palette.json，然后重跑：python3 tools/gen_tokens.py       -->",
         '<ResourceDictionary xmlns="https://github.com/avaloniaui"',
-        '                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">',
+        '                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"',
+        '                    xmlns:fc="using:Cobalt.Fluent">',
         "",
         "  <ResourceDictionary.ThemeDictionaries>",
     ]
 
-    for theme in ("light", "dark"):
-        lines.append(f'    <ResourceDictionary x:Key="{theme.capitalize()}">')
+    for theme, variant in THEMES.items():
+        lines.append(f'    <ResourceDictionary x:Key="{variant}">')
         for group, entries in groups.items():
             lines.append(f"      <!-- {group} -->")
             for key, variants in entries.items():
@@ -106,7 +125,8 @@ def main():
     n = sum(len(entries) for entries in groups.values())
     print(
         f"写出 {OUT.relative_to(ROOT)}："
-        f"{n} 个颜色键 × 2 套主题 = {n * 2} 个 Color + {n * 2} 个 Brush"
+        f"{n} 个颜色键 × {len(THEMES)} 套变体 = "
+        f"{n * len(THEMES)} 个 Color + {n * len(THEMES)} 个 Brush"
     )
 
 

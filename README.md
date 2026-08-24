@@ -220,6 +220,47 @@ so a client learns about them without polling. `AlarmSeverity.Alarm` and `Fault`
 
 ---
 
+## High contrast
+
+Two extra theme variants ship with the library: `CobaltFluentTheme.HighContrastLight` and
+`CobaltFluentTheme.HighContrastDark`. They are not "the normal theme turned up" — they follow
+a different set of rules:
+
+- **Surfaces are flat, hierarchy comes from strokes.** Every background collapses to pure
+  black or pure white; separation is carried entirely by borders, which are all full contrast.
+- **Nothing is translucent.** A translucent colour's real contrast depends on whatever is
+  painted underneath, and a guaranteed contrast ratio is the whole reason these variants
+  exist. The only exception is the modal scrim, which has to let the dimmed UI show through.
+- **Body text reaches WCAG AAA (7:1).** Disabled text is deliberately kept below that
+  threshold — pulling it up too would make "can click" and "cannot click" indistinguishable.
+- **Safety colours do not change.** ISO 13850 red and yellow carry regulatory meaning, not
+  theming; saturated red cannot reach 7:1 against either white or black text, and turning it
+  pink to satisfy a number would remove that meaning. They stay at AA, which is what the
+  hue physically allows.
+- **The accent is cyan in the dark variant, not the customary yellow**, so that yellow stays
+  reserved for the caution state. "This is clickable" and "this needs attention" collapsing
+  into one colour costs both meanings.
+
+Selecting a variant is the application's decision — the library never writes
+`RequestedThemeVariant` on its own. To follow the operating system's theme and contrast
+settings, opt in explicitly:
+
+```csharp
+public override void OnFrameworkInitializationCompleted()
+{
+    CobaltFluentTheme.FollowSystemContrast(this);   // returns IDisposable; dispose to stop
+    base.OnFrameworkInitializationCompleted();
+}
+```
+
+The four variants map onto the two settings the platform reports independently —
+`PlatformThemeVariant` (light/dark) and `ColorContrastPreference` (normal/high).
+`tools/audit.py` verifies every declared foreground/background pair against its threshold in
+all four, and rejects any translucent value in the two high-contrast ones; a missing key
+would otherwise inherit the ordinary translucent value in silence.
+
+---
+
 ## Embedded and touch-panel targets
 
 Configuration options for embedded graphics environments such as Mali GPUs:
@@ -253,7 +294,7 @@ tools/check.sh --gallery              # build the gallery as well
 tools/check.sh --only Button.axaml    # merge only the named control-layer file (for parallel work)
 
 python3 tools/audit.py                             # control-layer silent-failure audit (12 checks)
-dotnet test tests/Cobalt.Fluent.Tests               # 292 regression tests
+dotnet test tests/Cobalt.Fluent.Tests               # 310 regression tests
 dotnet run  --project samples/Cobalt.Fluent.Gallery # run the gallery
 ```
 

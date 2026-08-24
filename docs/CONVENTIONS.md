@@ -191,6 +191,24 @@ protected override string? GetItemStatusCore() => PeerText.Join(
 `AlarmSeverity.Alarm` / `Fault` 用 `Assertive`（打断当前朗读），`Warning` 用
 `Polite`，`Info` 不播报。
 
+## 高对比度变体
+
+调色板有四列：`light` / `dark` / `highContrastLight` / `highContrastDark`。
+`tools/gen_tokens.py` 把四列各摊成一个 `ResourceDictionary`，
+内置两套用 `x:Key="Light"` / `"Dark"`，自定义两套必须走
+`x:Key="{x:Static fc:CobaltFluentTheme.HighContrastDark}"`——
+Avalonia 的 `ThemeVariant` 类型转换器只支持内置变体，写成字符串会在**加载主题
+那一刻**抛 `NotSupportedException`，不是编译期。
+
+**四列每一列都必须写全。** Avalonia 在本变体里找不到键时会静默回落到
+`InheritVariant`，高对比度变体漏一个键，回落到的就是原来那个半透明值，
+屏幕上还看着挺正常——而「保证对比度」正是这两套变体存在的全部理由。
+`gen_tokens.py` 的 `load()` 把缺列当错误挡在生成之前。
+
+改颜色的流程不变：改 `tools/palette.json` → 跑 `python3 tools/gen_tokens.py`
+→ 跑 `python3 tools/audit.py`。审计会把对照表里每一对在四套变体下逐一核对
+（高对比度下正文抬到 AAA 7:1），并拒绝高对比度里出现的任何半透明值。
+
 ## 静默失效审计
 
 ```bash
@@ -218,7 +236,7 @@ python3 tools/audit.py --list   # 列出各项检查覆盖的历史缺陷
 | `wallclock` | 墙钟 `DateTime.Now` 相减：系统时间回拨多久，就有多久所有读数被判成新鲜 |
 | `unread-property` | `JogButton.RequiresConfirm` 声明、文档、对照表俱全，全库无人读取——危险轴上开了等于没开 |
 | `automation-peer` | 25 个直接继承 `Control` / `TemplatedControl` 的控件没有对等体，在 UI Automation 里只是一团没有名字的 `Custom` 矩形 |
-| `contrast` | 安全色一组五处不达标：已触发急停的白字 3.42、降级态那圈安全黄压红 2.69、「停止指令没能下发」的白字压黄 1.72、`:engagefailed` 的黄环压浅底 1.55 |
+| `contrast` | 安全色一组五处不达标：已触发急停的白字 3.42、降级态那圈安全黄压红 2.69、「停止指令没能下发」的白字压黄 1.72、`:engagefailed` 的黄环压浅底 1.55。同时守住高对比度变体的 AAA 门槛与「不许半透明」 |
 
 **新加检查的门槛**：能举出一个它本该抓到的历史缺陷，且在当前代码上零误报。
 写完拿历史版本验一遍是必须的——抓不到它本该抓的 bug，这检查就是摆设：

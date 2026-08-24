@@ -1,16 +1,44 @@
 using Avalonia;
 using Avalonia.Styling;
+using Cobalt.Fluent;
 
 namespace Cobalt.Fluent.Gallery.Infrastructure;
 
 /// <summary>展柜右上角那两个开关的状态。</summary>
 public static class GalleryState
 {
+    private static bool _dark;
+    private static bool _highContrast;
+
     /// <summary>明暗主题切换。整个库只认 <see cref="ThemeVariant"/>，不认自定义开关。</summary>
     public static void SetTheme(bool dark)
     {
-        if (Application.Current is { } app)
-            app.RequestedThemeVariant = dark ? ThemeVariant.Dark : ThemeVariant.Light;
+        _dark = dark;
+        Apply();
+    }
+
+    /// <summary>
+    /// 高对比度。和明暗是两个独立的开关——系统那边也是这么分的
+    /// （明暗是 <c>PlatformThemeVariant</c>，高对比度是 <c>ContrastPreference</c>），
+    /// 四个组合各有一套变体。
+    /// </summary>
+    public static void SetHighContrast(bool on)
+    {
+        _highContrast = on;
+        Apply();
+    }
+
+    private static void Apply()
+    {
+        if (Application.Current is not { } app) return;
+
+        app.RequestedThemeVariant = (_dark, _highContrast) switch
+        {
+            (true, true) => CobaltFluentTheme.HighContrastDark,
+            (false, true) => CobaltFluentTheme.HighContrastLight,
+            (true, false) => ThemeVariant.Dark,
+            (false, false) => ThemeVariant.Light,
+        };
     }
 
     /// <summary>

@@ -419,24 +419,30 @@ def check_automation_peer():
 # 都能说出「这两个颜色为什么会同时出现在屏幕上、看不清会怎样」。
 #
 # 门槛按 WCAG 2.1：正文 4.5（1.4.3 AA），图形与控件边界 3.0（1.4.11）。
+#
+# 第四列是高对比度变体的门槛，缺省等于第三列。高对比度存在的理由就是「比 AA 更狠」，
+# 所以正文一律抬到 AAA 的 7.0。**安全色不抬。** 饱和红压白字或黑字都到不了 7:1——
+# 这是红色这个色相的物理上限，而 ISO 13850 的红是承载语义的，不能为了凑数字改成粉。
+# 与其把门槛写成一个永远达不到、于是被人加进例外表的数，不如照实写 4.5。
 CONTRAST_PAIRS = [
     # --- 正文 -------------------------------------------------------------
-    ("TextFillColorPrimary", "SolidBackgroundFillColorBase", 4.5),
-    ("TextFillColorSecondary", "SolidBackgroundFillColorBase", 4.5),
-    ("TextFillColorStale", "SolidBackgroundFillColorBase", 4.5),
-    ("TextFillColorPrimary", "CardBackgroundFillColorDefault", 4.5),
-    ("TextFillColorSecondary", "CardBackgroundFillColorDefault", 4.5),
-    ("TextFillColorPrimary", "ControlFillColorDefault", 4.5),
-    ("TextOnAccentFillColorPrimary", "AccentFillColorDefault", 4.5),
-    ("AccentTextFillColorPrimary", "SolidBackgroundFillColorBase", 4.5),
+    ("TextFillColorPrimary", "SolidBackgroundFillColorBase", 4.5, 7.0),
+    ("TextFillColorSecondary", "SolidBackgroundFillColorBase", 4.5, 7.0),
+    ("TextFillColorStale", "SolidBackgroundFillColorBase", 4.5, 7.0),
+    ("TextFillColorPrimary", "CardBackgroundFillColorDefault", 4.5, 7.0),
+    ("TextFillColorSecondary", "CardBackgroundFillColorDefault", 4.5, 7.0),
+    ("TextFillColorPrimary", "ControlFillColorDefault", 4.5, 7.0),
+    ("TextFillColorPrimary", "ControlFillColorSecondary", 4.5, 7.0),
+    ("TextOnAccentFillColorPrimary", "AccentFillColorDefault", 4.5, 7.0),
+    ("AccentTextFillColorPrimary", "SolidBackgroundFillColorBase", 4.5, 7.0),
 
     # --- 状态色配自己的底 --------------------------------------------------
     ("SystemFillColorSuccess", "SystemFillColorSuccessBackground", 4.5),
     ("SystemFillColorCaution", "SystemFillColorCautionBackground", 4.5),
     ("SystemFillColorCritical", "SystemFillColorCriticalBackground", 4.5),
-    ("SystemFillColorSuccess", "SolidBackgroundFillColorBase", 4.5),
-    ("SystemFillColorCaution", "SolidBackgroundFillColorBase", 4.5),
-    ("SystemFillColorCritical", "SolidBackgroundFillColorBase", 4.5),
+    ("SystemFillColorSuccess", "SolidBackgroundFillColorBase", 4.5, 7.0),
+    ("SystemFillColorCaution", "SolidBackgroundFillColorBase", 4.5, 7.0),
+    ("SystemFillColorCritical", "SolidBackgroundFillColorBase", 4.5, 7.0),
 
     # --- 安全色 -----------------------------------------------------------
     #
@@ -459,9 +465,16 @@ CONTRAST_PAIRS = [
     ("SafetyYellow", "SafetyRedHigh", 3.0),
 
     # --- 图形 -------------------------------------------------------------
-    ("ControlStrongStrokeColorDefault", "SolidBackgroundFillColorBase", 3.0),
-    ("FocusStrokeColorOuter", "SolidBackgroundFillColorBase", 3.0),
-] + [(f"ChartSeries{i}", "SolidBackgroundFillColorBase", 3.0) for i in range(1, 9)]
+    ("ControlStrongStrokeColorDefault", "SolidBackgroundFillColorBase", 3.0, 7.0),
+    ("FocusStrokeColorOuter", "SolidBackgroundFillColorBase", 3.0, 7.0),
+    ("ControlStrokeColorDefault", "SolidBackgroundFillColorBase", 1.0, 7.0),
+    ("DividerStrokeColorDefault", "SolidBackgroundFillColorBase", 1.0, 7.0),
+    ("ChartAxisLine", "SolidBackgroundFillColorBase", 3.0, 7.0),
+] + [(f"ChartSeries{i}", "SolidBackgroundFillColorBase", 3.0, 4.5) for i in range(1, 9)]
+
+# 高对比度变体的键。名字同时是 ThemeDictionary 的 x:Key。
+THEMES = ("light", "dark", "highContrastLight", "highContrastDark")
+HIGH_CONTRAST = ("highContrastLight", "highContrastDark")
 
 
 def _srgb(hex8):
@@ -519,19 +532,36 @@ def check_contrast():
     groups = json.loads(read(palette))
     colors = {k: v for entries in groups.values() for k, v in entries.items()}
 
-    for fg, bg, need in CONTRAST_PAIRS:
+    for pair in CONTRAST_PAIRS:
+        fg, bg, need = pair[0], pair[1], pair[2]
+        hc_need = pair[3] if len(pair) > 3 else need
+
         missing = [k for k in (fg, bg) if k not in colors]
         if missing:
             report("contrast", palette, 1, fg,
                    f"对照表引用了不存在的颜色键：{', '.join(missing)}")
             continue
 
-        for theme in ("light", "dark"):
+        for theme in THEMES:
+            want = hc_need if theme in HIGH_CONTRAST else need
             got = _ratio(fg, bg, colors, theme)
-            if got + 0.005 < need:
+            if got + 0.005 < want:
                 report("contrast", palette, 1, f"{fg}/{bg}/{theme}",
-                       f"{theme} 主题下 {fg} 压在 {bg} 上只有 {got:.2f}:1，"
-                       f"低于 {need}:1")
+                       f"{theme} 变体下 {fg} 压在 {bg} 上只有 {got:.2f}:1，"
+                       f"低于 {want}:1")
+
+    # 高对比度变体里不允许出现半透明。合成之后的实际对比度取决于底下画了什么，
+    # 而「保证对比度」正是这两套变体存在的全部理由——半透明让保证不成立。
+    # 例外：模态遮罩必须透出底下的界面，否则它遮的是什么就看不出来了。
+    for key, variants in colors.items():
+        if key.startswith("Smoke"):
+            continue
+        for theme in HIGH_CONTRAST:
+            value = variants.get(theme)
+            if value and value[1:3] not in ("FF", "00"):
+                report("contrast", palette, 1, f"{key}/{theme}",
+                       f"{theme} 变体下 {key} = {value} 是半透明的："
+                       f"合成之后的对比度取决于底下画了什么，保证不成立")
 
 
 CHECKS = [
