@@ -286,11 +286,13 @@ WinUI / FluentAvalonia 里不存在，全部新写。涉及人身和设备安全
 | `WriteState` | `ParameterWriteState` | — |
 | `StateText` | `string?` | 行尾徽章的文字。 |
 | `ActualText` | `string?` | 格式化后的读值。必须过 `Format`，否则 85.0 会显示成 85， 一列数字的小数位数对不齐——数值列对不齐就失去了 tabular-nums 的意义。 |
+| `IsInputLocked` | `bool` | 输入框是否该锁住。只读，或正在等回读时都要锁—— Evaluate() 在 Writing 态直接 return，此时改框里的字不会被重新判定， 「写入中」的徽章下面可以并排显示一个从未下发、也从未校验过的数字。 |
 | `CanApply` | `bool` | 下发按钮是否可用。超量程、下发中、只读、没改动时都不可用。 |
 | `WriteRequested` | `event EventHandler<RoutedEventArgs>?` | — |
 
 | 成员 | 说明 |
 |---|---|
+| `LoadSetpoint(double value)` | 装入一个新的设定值并把它作为新基准。外部重设设定值一律走这里。 不能只写 `Setpoint`：Avalonia 对相等的新值不发变更通知， 新值恰好等于当前设定值时 `OnSetpointChanged` 根本不触发， 「切了配方之后输入框跟着走」在这条路径上静默失效——框里会留着上一个配方 编辑到一半的值。对应 `LoadValue`。 正在等回读时只更新 `Setpoint` 本身，不动基准与输入框。 |
 | `ParsePending()` | 解析当前输入。解析不出来时返回 null。 |
 | `Apply()` | 请求下发。超量程或没改动时是空操作。 进 `Writing` 之后就等着应用侧回调 `CompleteWrite` / `FailWrite`。 |
 | `CompleteWrite(double readbackValue)` | 下发成功。 必须是**设备回读回来的值**， 不是刚才写下去的值——设备可能做了限幅或量化，显示输入值等于骗人。 |

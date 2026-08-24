@@ -56,7 +56,7 @@
   <x:Double x:Key="JogButtonHeight">40</x:Double>
   <x:Double x:Key="ParameterRowMinHeight">44</x:Double>
   <!-- 参数表状态列宽。定死是为了让各行对齐——状态文字和下发按钮逐行长短不同。 -->
-  <GridLength x:Key="ParameterStateColumnWidth">168</GridLength>
+  <GridLength x:Key="ParameterStateColumnWidth">216</GridLength>
   <x:Double x:Key="SettingsCardMinHeight">68</x:Double>
   <x:Double x:Key="ExpanderHeaderMinHeight">64</x:Double>
 

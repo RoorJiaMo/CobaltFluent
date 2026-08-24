@@ -50,14 +50,29 @@
                        FontFeatures="{StaticResource TabularNumbers}"
                        Foreground="{TemplateBinding Foreground}" />
 
-            <!-- 设定：操作员正在输入的值 -->
-            <TextBox x:Name="PART_Input"
-                     Grid.Column="2"
-                     Text="{TemplateBinding PendingText, Mode=TwoWay}"
-                     IsReadOnly="{TemplateBinding IsReadOnly}"
-                     VerticalAlignment="Center"
-                     TextAlignment="Right"
-                     FontFeatures="{StaticResource TabularNumbers}" />
+            <!-- 设定：操作员正在输入的值。
+                 IsReadOnly 绑的是 IsInputLocked 而不是 IsReadOnly——等回读期间
+                 Evaluate() 直接 return，此时改框里的字不会被重新判定，
+                 「写入中」的徽章下面就会并排出现一个从未下发、也从未校验过的数字。 -->
+            <Grid Grid.Column="2" ColumnDefinitions="3,*">
+              <!-- 状态指示条。不去改 TextBox 自己的 BorderBrush：本库 TextBox 的底边是
+                   模板内一条独立的 PART_UnderlineElement，画刷写死在里面且盖在
+                   PART_BorderElement 之上，外面改 BorderThickness 只动得了另外三条边，
+                   底边那 2px 压根变不了色，还会因为没配套改 Padding 让框内文字上移。 -->
+              <Border x:Name="PART_InputFlag"
+                      Grid.Column="0"
+                      Width="3"
+                      Margin="0,2,5,2"
+                      CornerRadius="1000"
+                      Background="Transparent" />
+              <TextBox x:Name="PART_Input"
+                       Grid.Column="1"
+                       Text="{TemplateBinding PendingText, Mode=TwoWay}"
+                       IsReadOnly="{TemplateBinding IsInputLocked}"
+                       VerticalAlignment="Center"
+                       TextAlignment="Right"
+                       FontFeatures="{StaticResource TabularNumbers}" />
+            </Grid>
 
             <TextBlock Grid.Column="3"
                        Text="{TemplateBinding Unit}"
@@ -71,6 +86,14 @@
                          VerticalAlignment="Center"
                          FontSize="{DynamicResource CaptionFontSize}"
                          Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+              <!-- 撤销。此前模板里根本没有 PART_Revert，OnApplyTemplate 永远拿到 null，
+                   于是 Revert() 和公开属性 RevertCommand 在默认主题下从界面上完全不可达。
+                   下发失败后没有出路这件事，正是这一列存在的理由。 -->
+              <Button x:Name="PART_Revert"
+                      Classes="subtle"
+                      Content="撤销"
+                      MinWidth="48"
+                      IsVisible="False" />
               <Button x:Name="PART_Apply"
                       Content="下发"
                       MinWidth="56"
@@ -83,6 +106,17 @@
       </ControlTemplate>
     </Setter>
 
+    <!-- 撤销只在有东西可撤的时候出现。Clean 态没有未下发的编辑，摆一个恒亮的
+         「撤销」既是噪音，也会把状态列顶到放不下「下发」。 -->
+    <Style Selector="^:dirty /template/ Button#PART_Revert,
+                     ^:failed /template/ Button#PART_Revert,
+                     ^:outofrange /template/ Button#PART_Revert">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="^:readonly /template/ Button#PART_Revert">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+
     <Style Selector="^:pointerover /template/ Border#PART_Root">
       <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
     </Style>
@@ -93,9 +127,8 @@
       <Style Selector="^ /template/ Border#PART_Root">
         <Setter Property="Background" Value="{DynamicResource SystemFillColorCautionBackgroundBrush}" />
       </Style>
-      <Style Selector="^ /template/ TextBox#PART_Input">
-        <Setter Property="BorderBrush" Value="{DynamicResource SystemFillColorCautionBrush}" />
-        <Setter Property="BorderThickness" Value="1,1,1,2" />
+      <Style Selector="^ /template/ Border#PART_InputFlag">
+        <Setter Property="Background" Value="{DynamicResource SystemFillColorCautionBrush}" />
       </Style>
       <Style Selector="^ /template/ TextBlock#PART_State">
         <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCautionBrush}" />
@@ -103,9 +136,8 @@
       </Style>
     </Style>
 
-    <Style Selector="^:writing /template/ TextBox#PART_Input">
-      <Setter Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}" />
-      <Setter Property="BorderThickness" Value="1,1,1,2" />
+    <Style Selector="^:writing /template/ Border#PART_InputFlag">
+      <Setter Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}" />
     </Style>
 
     <!-- 失败：值已回滚到上次成功值，红底提示这次没生效 -->
@@ -113,9 +145,8 @@
       <Style Selector="^ /template/ Border#PART_Root">
         <Setter Property="Background" Value="{DynamicResource SystemFillColorCriticalBackgroundBrush}" />
       </Style>
-      <Style Selector="^ /template/ TextBox#PART_Input">
-        <Setter Property="BorderBrush" Value="{DynamicResource SystemFillColorCriticalBrush}" />
-        <Setter Property="BorderThickness" Value="1,1,1,2" />
+      <Style Selector="^ /template/ Border#PART_InputFlag">
+        <Setter Property="Background" Value="{DynamicResource SystemFillColorCriticalBrush}" />
       </Style>
       <Style Selector="^ /template/ TextBlock#PART_State">
         <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}" />
@@ -124,9 +155,8 @@
     </Style>
 
     <Style Selector="^:outofrange">
-      <Style Selector="^ /template/ TextBox#PART_Input">
-        <Setter Property="BorderBrush" Value="{DynamicResource SystemFillColorCriticalBrush}" />
-        <Setter Property="BorderThickness" Value="1,1,1,2" />
+      <Style Selector="^ /template/ Border#PART_InputFlag">
+        <Setter Property="Background" Value="{DynamicResource SystemFillColorCriticalBrush}" />
       </Style>
       <Style Selector="^ /template/ TextBlock#PART_State">
         <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCriticalBrush}" />

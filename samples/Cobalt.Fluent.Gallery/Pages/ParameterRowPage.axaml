@@ -30,10 +30,10 @@
 
     <g:MapBlock Note="PendingText 与已生效值不同即 :dirty。下发成功后调用 CompleteWrite(回读值) —— 传入的必须是设备回读的值，而非刚写入的值：设备可能进行限幅或量化，直接显示输入值会造成误导。失败时调用 FailWrite()，值回滚到上次成功值。">
       <g:MapRow Key="类型" Value="ParameterRow : TemplatedControl（容器 ParameterTable : ItemsControl）" />
-      <g:MapRow Key="属性" Value="Label · Unit · ActualValue:double? · Setpoint · PendingText · Minimum · Maximum · Format · IsReadOnly · WriteState:{Clean,Dirty,Writing,Failed,OutOfRange} · ApplyCommand · RevertCommand" />
-      <g:MapRow Key="方法" Value="Apply() · CompleteWrite(readback) · FailWrite(message) · Revert()" />
+      <g:MapRow Key="属性" Value="Label · Unit · ActualValue:double? · Setpoint · PendingText · Minimum · Maximum · Format · IsReadOnly · WriteState:{Clean,Dirty,Writing,Failed,OutOfRange} · IsInputLocked · CanApply · ApplyCommand · RevertCommand" />
+      <g:MapRow Key="方法" Value="Apply():bool（下游不受理时返回 false 并退回可重试状态）· LoadSetpoint(value)（外部重设设定值一律走这里）· CompleteWrite(readback) · FailWrite(message) —— 后两者仅在等回读时受理，迟到与重复的应答一律丢弃 · Revert()" />
       <g:MapRow Key="伪类" Value=":dirty :writing :failed :outofrange :readonly" />
-      <g:MapRow Key="列宽" Value="标签 * / 读值 96 / 设定 140 / 单位 56 / 状态 auto —— 表头和行使用同一组列宽，同容器内自然对齐" />
+      <g:MapRow Key="列宽" Value="标签 * / 读值 96 / 设定 140 / 单位 56 / 状态 216（ParameterStateColumnWidth）—— 表头和行使用同一组列宽，同容器内自然对齐" />
     </g:MapBlock>
 
   </StackPanel>

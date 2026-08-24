@@ -204,6 +204,22 @@ public class ParameterRow : TemplatedControl, INumericInputTarget
         private set => SetAndRaise(ActualTextProperty, ref _actualText, value);
     }
 
+    private bool _inputLocked;
+
+    public static readonly DirectProperty<ParameterRow, bool> IsInputLockedProperty =
+        AvaloniaProperty.RegisterDirect<ParameterRow, bool>(nameof(IsInputLocked), o => o._inputLocked);
+
+    /// <summary>
+    /// 输入框是否该锁住。只读，或正在等回读时都要锁——
+    /// Evaluate() 在 Writing 态直接 return，此时改框里的字不会被重新判定，
+    /// 「写入中」的徽章下面可以并排显示一个从未下发、也从未校验过的数字。
+    /// </summary>
+    public bool IsInputLocked
+    {
+        get => _inputLocked;
+        private set => SetAndRaise(IsInputLockedProperty, ref _inputLocked, value);
+    }
+
     private bool _canApply;
 
     public static readonly DirectProperty<ParameterRow, bool> CanApplyProperty =
@@ -233,7 +249,13 @@ public class ParameterRow : TemplatedControl, INumericInputTarget
         MinimumProperty.Changed.AddClassHandler<ParameterRow>((x, _) => x.Evaluate());
         MaximumProperty.Changed.AddClassHandler<ParameterRow>((x, _) => x.Evaluate());
         ActualValueProperty.Changed.AddClassHandler<ParameterRow>((x, _) => x.UpdateActualText());
-        FormatProperty.Changed.AddClassHandler<ParameterRow>((x, _) => x.UpdateActualText());
+        // Evaluate 里「有没有改动」和超量程徽章文字都依赖 Format，只刷新读值文本的话
+        // 状态机会停在按旧格式算出来的结论上。Evaluate 内部有 Writing 闸，不会打断在途写入。
+        FormatProperty.Changed.AddClassHandler<ParameterRow>((x, _) =>
+        {
+            x.UpdateActualText();
+            x.Evaluate();
+        });
         IsReadOnlyProperty.Changed.AddClassHandler<ParameterRow>(
             (x, e) => { x.PseudoClasses.Set(":readonly", e.NewValue is true); x.Evaluate(); });
     }
@@ -274,12 +296,49 @@ public class ParameterRow : TemplatedControl, INumericInputTarget
 
     private void OnSetpointChanged()
     {
-        // 设定值被外部改掉（比如切了配方）时，输入框跟着走，并把它当成新的基准
-        _lastApplied = Setpoint;
+        // 设定值被外部改掉（比如切了配方）时，输入框跟着走，并把它当成新的基准。
+        //
+        // Writing 期间不更新基准：Setpoint 是 TwoWay，轮询回来的设定值寄存器、
+        // 或 VM 下发时顺手回写的乐观值，都会在等回读的窗口里改到它。
+        // 让它顶掉 _lastApplied 之后，FailWrite 回滚拿到的就不再是「上次成功值」。
         if (WriteState is not ParameterWriteState.Writing)
+        {
+            _lastApplied = Setpoint;
             PendingText = Setpoint.ToString(Format, CultureInfo.CurrentCulture);
+        }
+
         Evaluate();
     }
+
+    /// <summary>
+    /// 装入一个新的设定值并把它作为新基准。<b>外部重设设定值一律走这里。</b>
+    ///
+    /// 不能只写 <see cref="Setpoint"/>：Avalonia 对相等的新值不发变更通知，
+    /// 新值恰好等于当前设定值时 <c>OnSetpointChanged</c> 根本不触发，
+    /// 「切了配方之后输入框跟着走」在这条路径上静默失效——框里会留着上一个配方
+    /// 编辑到一半的值。对应 <see cref="NumericKeypad.LoadValue"/>。
+    ///
+    /// 正在等回读时只更新 <see cref="Setpoint"/> 本身，不动基准与输入框。
+    /// </summary>
+    public void LoadSetpoint(double value)
+    {
+        SetValue(SetpointProperty, value);
+
+        if (WriteState is not ParameterWriteState.Writing)
+        {
+            _lastApplied = value;
+            PendingText = value.ToString(Format, CultureInfo.CurrentCulture);
+        }
+
+        Evaluate();
+    }
+
+    /// <summary>
+    /// 边界是否可用：有限值可以，本控件默认的那一侧无穷也可以（表示不设限）。
+    /// NaN 与方向相反的无穷都是配置错误。
+    /// </summary>
+    private static bool IsValidBound(double bound, double openSide) =>
+        double.IsFinite(bound) || bound.Equals(openSide);
 
     /// <summary>解析当前输入。解析不出来时返回 null。</summary>
     public double? ParsePending() =>
@@ -294,13 +353,24 @@ public class ParameterRow : TemplatedControl, INumericInputTarget
         var parsed = ParsePending();
         var applied = _lastApplied ?? Setpoint;
 
-        if (IsReadOnly)
+        // 量程本身配错时整行 fail-closed。未初始化的量程绑定很容易给出 NaN，
+        // 而 NaN 边界会让闸门整体失效——普通数字也能穿过去。
+        // 这不是操作员输错，别用「超量程」的措辞把配置错误伪装成他的问题。
+        if (!IsValidBound(Minimum, double.NegativeInfinity)
+            || !IsValidBound(Maximum, double.PositiveInfinity)
+            || Minimum > Maximum)
         {
-            SetState(ParameterWriteState.Clean, "只读", canApply: false);
+            SetState(ParameterWriteState.OutOfRange, "量程无效，禁止下发", canApply: false);
             return;
         }
 
-        if (parsed is null || parsed < Minimum || parsed > Maximum)
+        // 闸门写成 !(v >= Minimum && v <= Maximum) 而不是 v < Minimum || v > Maximum：
+        // NaN 与任何数比较恒为 false，后者会让 NaN 从整个闸门底下穿过去，
+        // 被判成 Dirty、CanApply=true，然后原样下发给 ApplyCommand 写进 PLC 浮点点位。
+        // IsFinite 这一道同样不能省：NumberStyles.Float 接受 "NaN" / "Infinity" / "1e400"。
+        // 与 NumericKeypad.Evaluate 里的两道闸同源。
+        if (parsed is not { } value || !double.IsFinite(value)
+            || !(value >= Minimum && value <= Maximum))
         {
             var lo = double.IsNegativeInfinity(Minimum) ? "…" : Minimum.ToString(Format, CultureInfo.CurrentCulture);
             var hi = double.IsPositiveInfinity(Maximum) ? "…" : Maximum.ToString(Format, CultureInfo.CurrentCulture);
@@ -308,21 +378,37 @@ public class ParameterRow : TemplatedControl, INumericInputTarget
             return;
         }
 
-        // 比较用格式化后的字符串，避免 85.50 和 85.5 被判成不同
-        var same = parsed.Value.ToString(Format, CultureInfo.CurrentCulture)
-                   == applied.ToString(Format, CultureInfo.CurrentCulture);
+        // 比较用格式化后的字符串。这一条真正在扛的是设备量化：写 90.0 回读 90.04，
+        // 按显示精度算是「已生效」，按 == 算会永远判成 Dirty、再也回不到 Clean。
+        // 但两者不严格相等时徽章不能替设备说「已生效」——换一句诚实的措辞。
+        var appliedText = applied.ToString(Format, CultureInfo.CurrentCulture);
+        var sameText = value.ToString(Format, CultureInfo.CurrentCulture) == appliedText;
 
-        if (same)
-            SetState(ParameterWriteState.Clean, "已生效", canApply: false);
+        if (sameText)
+            SetState(
+                ParameterWriteState.Clean,
+                value == applied ? "已生效" : "显示精度内一致",
+                canApply: false);
         else
             SetState(ParameterWriteState.Dirty, "待下发", canApply: true);
     }
 
     private void SetState(ParameterWriteState state, string? text, bool canApply)
     {
+        // 只读在这里统一压制，而不是在 Evaluate 里早退成 Clean。
+        // 早退是假陈述：Clean 的定义是「输入值和已生效值一致」，而框里可以留着
+        // 一个超量程或未下发的值；而且会把 :dirty / :outofrange 三重提示一并清掉，
+        // 未下发的编辑不该因为锁定就从屏幕上消失。
+        if (IsReadOnly)
+        {
+            text = "只读";
+            canApply = false;
+        }
+
         WriteState = state;
         StateText = text;
         CanApply = canApply;
+        IsInputLocked = IsReadOnly || state == ParameterWriteState.Writing;
 
         PseudoClasses.Set(":dirty", state == ParameterWriteState.Dirty);
         PseudoClasses.Set(":writing", state == ParameterWriteState.Writing);
@@ -335,17 +421,36 @@ public class ParameterRow : TemplatedControl, INumericInputTarget
     /// 进 <see cref="ParameterWriteState.Writing"/> 之后就等着应用侧回调
     /// <see cref="CompleteWrite"/> / <see cref="FailWrite"/>。
     /// </summary>
-    public void Apply()
+    public bool Apply()
     {
-        if (!CanApply) return;
-        if (ParsePending() is not { } target) return;
+        if (!CanApply) return false;
+        if (ParsePending() is not { } target) return false;
 
+        // 必须先进 Writing 再派发：同步的 WriteRequested 处理器里直接调 CompleteWrite
+        // 是合法用法，先派发后置状态会把它的结果覆盖掉。
         SetState(ParameterWriteState.Writing, "写入中", canApply: false);
 
-        if (ApplyCommand?.CanExecute(target) == true)
-            ApplyCommand.Execute(target);
+        // 挂了命令却不能执行 = 指令没发出去。此时若仍停在 Writing，Evaluate 的第一行
+        // 会冻结一切重新判定，CanApply 恒为 false，Apply 再也进不去，
+        // 而唯一出口 CompleteWrite / FailWrite 永远不会有人来调——状态机死锁在「写入中」。
+        //
+        // 没挂命令时事件是唯一通道。本控件的契约就是「执行完等设备回读再调
+        // CompleteWrite / FailWrite」，只听事件的用法不会去设 Handled，
+        // 按未受理回滚会把随后真正到达的回读一并吞掉，所以这里按受理处理。
+        var refused = ApplyCommand is { } cmd && !cmd.CanExecute(target);
+        if (!refused) ApplyCommand?.Execute(target);
 
-        RaiseEvent(new RoutedEventArgs(WriteRequestedEvent));
+        var args = new RoutedEventArgs(WriteRequestedEvent);
+        RaiseEvent(args);
+
+        if (refused && !args.Handled && WriteState == ParameterWriteState.Writing)
+        {
+            WriteState = ParameterWriteState.Clean;   // 先退出 Writing，Evaluate 才会重新判定
+            Evaluate();                               // 回到 Dirty，操作员可以重试
+            return false;
+        }
+
+        return true;
     }
 
     /// <summary>
@@ -354,6 +459,12 @@ public class ParameterRow : TemplatedControl, INumericInputTarget
     /// </summary>
     public void CompleteWrite(double readbackValue)
     {
+        // 只在等回读时受理。异步设备通讯里迟到、重复、串号的应答是常态
+        // （超时后又收到确认、重试的两条应答先后到达），不加闸的话它们会
+        // 直接改写基准与设定值，把一个早已作废的结果盖到当前编辑上。
+        // 只想更新设备读值不碰状态机的话，直接写 ActualValue 就行。
+        if (WriteState is not ParameterWriteState.Writing) return;
+
         _lastApplied = readbackValue;
         WriteState = ParameterWriteState.Clean;         // 先退出 Writing，Evaluate 才会重新判定
         Setpoint = readbackValue;
@@ -365,9 +476,16 @@ public class ParameterRow : TemplatedControl, INumericInputTarget
     /// <summary>下发失败。值回滚到上次成功值，让操作员看到设备上真实生效的是什么。</summary>
     public void FailWrite(string? message = null)
     {
+        if (WriteState is not ParameterWriteState.Writing) return;
+
         var applied = _lastApplied ?? Setpoint;
         WriteState = ParameterWriteState.Clean;
+
+        // 设定值一并压回上次成功值。只回滚 PendingText 的话，Failed 态下
+        // Setpoint（TwoWay，VM 手上那份）和框里的数字会互相矛盾。
+        Setpoint = applied;
         PendingText = applied.ToString(Format, CultureInfo.CurrentCulture);
+
         SetState(ParameterWriteState.Failed, message ?? "下发失败", canApply: false);
     }
 
@@ -378,12 +496,7 @@ public class ParameterRow : TemplatedControl, INumericInputTarget
     /// 正在下发（等回读）、只读、或本行自身判定不通过时返回 false，
     /// 由键盘负责回滚并且不报「已确认」。
     /// </summary>
-    public bool CommitPending()
-    {
-        if (!CanApply) return false;
-        Apply();
-        return true;
-    }
+    public bool CommitPending() => Apply();
 
     /// <summary>放弃修改，回到上次成功值。</summary>
     public void Revert()
