@@ -56,6 +56,16 @@
       <Setter Property="BorderThickness" Value="1" />
     </Style>
 
+    <!-- 停止指令没能下发。**不是「已停止」**——设备很可能还在动，
+         所以这个态压在 :jogging 之上，用安全黄描边把它和正常点动区分开。
+         写在 :jogging 之后，同优先级下后写的胜出。 -->
+    <Style Selector="^:stopfailed">
+      <Setter Property="Background" Value="{DynamicResource SafetyYellowBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextOnSafetyFillColorPrimaryBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SafetyRedBrush}" />
+      <Setter Property="BorderThickness" Value="2" />
+    </Style>
+
     <Style Selector="^:disabled">
       <Setter Property="Background" Value="{DynamicResource ControlFillColorDisabledBrush}" />
       <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
@@ -141,6 +151,19 @@
                      IsHitTestVisible="False"
                      FontSize="{DynamicResource CaptionFontSize}"
                      Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+
+          <!-- 硬件急停的物理位置。软件急停不替代硬件回路，这行字就是那句话的落点——
+               属性一直在，但此前模板里没有任何地方显示它，等于承诺了没兑现。 -->
+          <TextBlock x:Name="PART_HardwareHint"
+                     Text="{TemplateBinding HardwareLocationHint}"
+                     Width="{DynamicResource EStopSize}"
+                     TextAlignment="Center"
+                     TextWrapping="Wrap"
+                     IsHitTestVisible="False"
+                     FontSize="{DynamicResource CaptionFontSize}"
+                     Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                     IsVisible="{TemplateBinding HardwareLocationHint,
+                                 Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
         </StackPanel>
       </ControlTemplate>
     </Setter>
@@ -169,6 +192,38 @@
     <!-- 长按复位过程中给个提示 -->
     <Style Selector="^:resetting /template/ Border#PART_Knob">
       <Setter Property="BorderBrush" Value="{DynamicResource TextOnSafetyFillColorPrimaryBrush}" />
+    </Style>
+
+    <!-- 急停指令没能下发：钮不再是「已锁定」的样子，说明字换成指向硬件急停的那句。
+         用未填充的钮面 + 安全黄描边，和 :engaged 的沉底实心明确区分——
+         操作员必须一眼看出「这次没停下来」。 -->
+    <Style Selector="^:engagefailed /template/ Border#PART_Knob">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SafetyYellowBrush}" />
+      <Setter Property="BorderThickness" Value="6" />
+      <Setter Property="RenderTransform" Value="none" />
+      <Setter Property="BoxShadow" Value="0 0 0 0 #47000000" />
+    </Style>
+    <Style Selector="^:engagefailed /template/ fc|SymbolIcon">
+      <Setter Property="Foreground" Value="{DynamicResource SafetyRedBrush}" />
+    </Style>
+    <Style Selector="^:engagefailed /template/ TextBlock#PART_Caption">
+      <Setter Property="Foreground" Value="{DynamicResource SafetyRedBrush}" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+
+    <!-- 禁用态此前完全没有样式：一个看上去和平时一模一样、按下去却毫无反应的急停钮，
+         比没有这个按钮更危险。禁用必须一眼可见。 -->
+    <Style Selector="^:disabled /template/ Border#PART_Knob">
+      <Setter Property="Background" Value="{DynamicResource ControlFillColorDisabledBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+      <Setter Property="BoxShadow" Value="0 0 0 0 #47000000" />
+    </Style>
+    <Style Selector="^:disabled /template/ fc|SymbolIcon">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+    </Style>
+    <Style Selector="^:disabled /template/ TextBlock#PART_Caption">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
     </Style>
   </ControlTheme>
 

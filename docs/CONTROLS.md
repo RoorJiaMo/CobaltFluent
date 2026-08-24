@@ -94,7 +94,7 @@ WinUI / FluentAvalonia 里不存在，全部新写。涉及人身和设备安全
 
 软件急停。 **它不能替代硬件急停回路。** 界面上建议同时标注硬件急停的物理位置， 见 `HardwareLocationHint`。软件路径要过 UI 线程、消息队列、通信链路， 任何一环卡住它就不响应；真正的安全回路是硬接线的。 行为： - **按下即触发**，不等松手。急停不能有一次松手的延迟。 - 触发后自锁：再点无效，必须显式复位。 - 复位默认要求长按（`RequireHoldToReset`），对应真实急停"拧一下才能弹起"的手感—— 防止误碰复位。 视觉上刻意打破 Fluent 的扁平：真实急停是物理蘑菇头，要有实体感。 颜色写死安全红 + 安全黄（ISO 13850 要求红钮黄衬）， **不跟随主题**，也不占"一屏一个强调色"的名额。
 
-**伪类**：`:engaged` · `:resetting`
+**伪类**：`:engaged` · `:resetting` · `:engagefailed`
 
 | 属性 | 类型 | 说明 |
 |---|---|---|
@@ -105,6 +105,7 @@ WinUI / FluentAvalonia 里不存在，全部新写。涉及人身和设备安全
 | `ResetHoldDuration` | `TimeSpan` | — |
 | `HardwareLocationHint` | `string?` | — |
 | `Caption` | `string` | — |
+| `EngageFailedCaption` | `string` | — |
 | `EngagedCaption` | `string` | — |
 | `CaptionText` | `string?` | 当前该显示哪行字。模板绑它。 |
 | `Engaged` | `event EventHandler<RoutedEventArgs>?` | — |
@@ -112,7 +113,7 @@ WinUI / FluentAvalonia 里不存在，全部新写。涉及人身和设备安全
 
 | 成员 | 说明 |
 |---|---|
-| `Engage()` | 触发并自锁。已经触发时是空操作。 |
+| `Engage()` | 触发并自锁。已经触发时是空操作。 下发失败时不回滚成「就绪」。挂了 `EngageCommand` 而它 `CanExecute` 为 false 时，指令没发出去、设备没停；但退回「就绪」 同样是假陈述——操作员确实按下了急停。这时进第三态 `:engagefailed`， 说明文字直接指向硬件急停：软件路径已经证明不通，唯一还能信的是硬接线那个。 |
 | `Reset()` | 复位。用代码复位时绕过长按要求 —— 长按是防误触的界面手段， 不是安全联锁；真正的联锁在设备侧。 |
 
 ### `Heartbeat` : `TemplatedControl`
@@ -161,11 +162,15 @@ WinUI / FluentAvalonia 里不存在，全部新写。涉及人身和设备安全
 | `Detached` | 控件被禁用或从视觉树上摘掉。 |
 | `Watchdog` | 看门狗超时。前面几条都没触发时的兜底——通常意味着 UI 线程卡过。 |
 
+### `JogStopFailedEventArgs`
+
+停止指令没能下发出去。`StopFailed` 的载荷。 这不是「已停止」——设备很可能还在动。使用方收到它必须走升级路径 （报警、切断使能、提示操作员按硬件急停），不能当成一次普通的停止处理。
+
 ### `JogButton` : `Button`
 
 点动按钮：按住动作，松开停止。 **这个控件的交互就是它的规格。** 视觉上必须和普通 Button 区别开 （描边更重、底边 2px），否则操作员会当成开关按一下就走。 安全要点（第 7 组硬约束）： 只监听 `PointerReleased` 是不够的 —— 按住后把指针拖出按钮， 释放事件可能根本不在这个控件上触发，设备会一直动。 所以这里挂了六个停止触发点： 松手 / 捕获丢失 / 指针离开 / 失焦 / 松键 / 摘除， 外加一个 `WatchdogTimeout` 看门狗兜底 —— 防止 UI 线程卡死时设备失控。 `StopCommand` 会被重复调用（多个触发点可能同时命中）， 所以下游必须做成幂等的。
 
-**伪类**：`:jogging`
+**伪类**：`:jogging` · `:stopfailed`
 
 | 属性 | 类型 | 说明 |
 |---|---|---|
@@ -174,14 +179,17 @@ WinUI / FluentAvalonia 里不存在，全部新写。涉及人身和设备安全
 | `StopCommand` | `ICommand?` | — |
 | `Speed` | `double` | — |
 | `RequiresConfirm` | `bool` | — |
+| `IsConfirmed` | `bool` | 操作员已经确认过这次点动。`RequiresConfirm` 为 true 时， 这个没置上就不许启动——启动请求会转成 `ConfirmRequired` 事件。 使用方在确认框点「确定」后置 true；什么时候清由使用方决定 （每次点动都要确认就在 `JogStopped` 里清掉）。 |
 | `WatchdogTimeout` | `TimeSpan` | — |
 | `IsJogging` | `bool` | 是否正在动作。 |
 | `JogStarted` | `event EventHandler<RoutedEventArgs>?` | — |
 | `JogStopped` | `event EventHandler<JogStoppedEventArgs>?` | 停止时抛出，带停止原因。工业场合建议把它记进操作日志。 |
+| `StopFailed` | `event EventHandler<JogStopFailedEventArgs>?` | 停止指令没能下发（`StopCommand` 存在但 `CanExecute` 为 false）。 设备可能仍在动作。此时不会抛 `JogStopped`， 因为那个事件的语义是「已经停了」。 |
+| `ConfirmRequired` | `event EventHandler<RoutedEventArgs>?` | `RequiresConfirm` 为 true 而 `IsConfirmed` 还没置上时， 启动被拒并抛出这个事件。使用方据此弹确认框，确认后把 `IsConfirmed` 置 true。 |
 
 | 成员 | 说明 |
 |---|---|
-| `Stop(JogStopReason reason)` | 停止动作。幂等：不在动作中时调用是空操作。 六个触发点可能同时命中，第一个到的那个负责真正停下来。 |
+| `Stop(JogStopReason reason)` | 停止动作。幂等：不在动作中时调用是空操作。 七个触发点可能同时命中，第一个到的那个负责真正停下来。 停止指令没能下发时不会报「已停止」。挂了 `StopCommand` 而它的 `CanExecute` 返回 false（下游忙、通讯断、权限不足）， 指令实际上一个字节都没发出去，此时清掉 `:jogging` 并抛 `JogStopped` 就是在告诉操作员「已经停了」——而轴还在动。 这种情况改为进入 `:stopfailed`、保持 `IsJogging` 为 true、 抛 `StopFailed`，并且看门狗继续跑：它是最后一道防线， 恰恰在停不下来的时候最不该被关掉。 |
 
 ### `JogGroup` : `StackPanel`
 

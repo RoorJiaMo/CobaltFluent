@@ -145,7 +145,7 @@ dotnet run --project samples/Cobalt.Fluent.Gallery
 | **10** 表格增强 | DataGridToolbar · Pagination · EmptyState · Skeleton | 全部为本库实现 |
 | **11** 常用补充 | AutoSuggestBox · BreadcrumbBar · SegmentedControl · Chip · Stepper · GridSplitter · Toast · PersonPicture | 除 AutoSuggestBox（即 Avalonia 内置 `AutoCompleteBox` 重做主题）与 GridSplitter 外，均为本库实现 |
 
-完整 API 参见 [`docs/CONTROLS.md`](docs/CONTROLS.md)（76 个类型，由脚本从源码抽取）。
+完整 API 参见 [`docs/CONTROLS.md`](docs/CONTROLS.md)（77 个类型，由脚本从源码抽取）。
 
 </details>
 
@@ -211,7 +211,7 @@ tools/check.sh                        # 编译控件库（复制至临时目录�
 tools/check.sh --gallery              # 连同展柜一并编译
 tools/check.sh --only Button.axaml    # 仅合并指定控件层文件（并行开发用）
 
-dotnet test tests/Cobalt.Fluent.Tests               # 125 项回归测试
+dotnet test tests/Cobalt.Fluent.Tests               # 145 项回归测试
 dotnet run  --project samples/Cobalt.Fluent.Gallery # 运行展柜
 ```
 
@@ -238,7 +238,7 @@ dotnet run --project tools/Cobalt.Fluent.Shots -- artifacts/shots "shell:Readout
 | 文档 | 内容 |
 |---|---|
 | [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md) | 开发约定——分层结构、资源键速查、伪类清单、不变量，以及若干编译期无法发现的问题 |
-| [`docs/CONTROLS.md`](docs/CONTROLS.md) | 控件 API 参考（76 个类型，由 `tools/gen_api_docs.py` 从源码抽取） |
+| [`docs/CONTROLS.md`](docs/CONTROLS.md) | 控件 API 参考（77 个类型，由 `tools/gen_api_docs.py` 从源码抽取） |
 | 展柜 | 49 个章节：视觉规格 + 交互演示 + 资源键对照 + 源码查看，其中 22 个另附状态矩阵 |
 
 修改控件前请先阅读 `CONVENTIONS.md`。提交 PR 前请在本地完成编译、测试与生成脚本——CI 执行相同的检查，并额外对全部章节进行无头渲染。

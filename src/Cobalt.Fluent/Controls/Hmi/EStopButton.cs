@@ -25,10 +25,19 @@ namespace Cobalt.Fluent.Controls;
 /// 颜色写死安全红 + 安全黄（ISO 13850 要求红钮黄衬），
 /// **不跟随主题**，也不占"一屏一个强调色"的名额。
 /// </summary>
-[PseudoClasses(":engaged", ":resetting")]
+[PseudoClasses(":engaged", ":resetting", ":engagefailed")]
 public class EStopButton : Button
 {
     private DispatcherTimer? _resetHold;
+
+    /// <summary>
+    /// Space/Enter 当前是否处于按下状态。用来识别 OS 键盘自动重复。
+    ///
+    /// 不识别的话有一条灾难路径：按住回车不放 → 第一次 KeyDown 触发 Engage()，
+    /// 自动重复的第二次 KeyDown 看到已经 engaged，转去 BeginReset() 开始长按计时，
+    /// 手一直没松 → ResetHoldDuration 到点，<b>急停自己解锁了</b>。
+    /// </summary>
+    private bool _actionKeyDown;
 
     public static readonly StyledProperty<bool> IsEngagedProperty =
         AvaloniaProperty.Register<EStopButton, bool>(
@@ -100,6 +109,22 @@ public class EStopButton : Button
         set => SetValue(CaptionProperty, value);
     }
 
+    /// <summary>
+    /// 急停指令没能下发时那行说明字。默认直接把人指向硬件急停——
+    /// 软件路径已经证明不通了，这时候唯一还能信的就是硬接线的那个。
+    /// </summary>
+    public static readonly StyledProperty<string> EngageFailedCaptionProperty =
+        AvaloniaProperty.Register<EStopButton, string>(
+            nameof(EngageFailedCaption), "急停指令未下发 · 立即使用硬件急停");
+
+    public string EngageFailedCaption
+    {
+        get => GetValue(EngageFailedCaptionProperty);
+        set => SetValue(EngageFailedCaptionProperty, value);
+    }
+
+    private bool _engageFailed;
+
     /// <summary>触发后那行说明字。要明确写出「需复位」——自锁了但没人告诉操作员是最糟的。</summary>
     public static readonly StyledProperty<string> EngagedCaptionProperty =
         AvaloniaProperty.Register<EStopButton, string>(nameof(EngagedCaption), "已触发 · 需复位");
@@ -151,6 +176,7 @@ public class EStopButton : Button
         });
         CaptionProperty.Changed.AddClassHandler<EStopButton>((x, _) => x.UpdateCaption());
         EngagedCaptionProperty.Changed.AddClassHandler<EStopButton>((x, _) => x.UpdateCaption());
+        EngageFailedCaptionProperty.Changed.AddClassHandler<EStopButton>((x, _) => x.UpdateCaption());
     }
 
     public EStopButton()
@@ -159,7 +185,10 @@ public class EStopButton : Button
         UpdateCaption();
     }
 
-    private void UpdateCaption() => CaptionText = IsEngaged ? EngagedCaption : Caption;
+    private void UpdateCaption() =>
+        CaptionText = _engageFailed ? EngageFailedCaption
+            : IsEngaged ? EngagedCaption
+            : Caption;
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
@@ -178,8 +207,29 @@ public class EStopButton : Button
 
     protected override void OnKeyDown(KeyEventArgs e)
     {
+        // 带 Ctrl / Alt / Win 的组合键一律放行。两个方向都不能要：
+        // 误触发急停会无谓停产，而误触发的是复位则等于把自锁解掉。
+        var command = (e.KeyModifiers & (KeyModifiers.Control | KeyModifiers.Alt | KeyModifiers.Meta)) != 0;
+        if (command)
+        {
+            // 这里**不能**转交给 base：基类 Button 自己会吞掉 Enter/Space 并抛 Click，
+            // 组合键照样到不了应用，加这道闸就白加了。直接返回，让事件继续冒泡。
+            if (e.Key is Key.Space or Key.Enter) return;
+            base.OnKeyDown(e);
+            return;
+        }
+
         if (e.Key is Key.Space or Key.Enter)
         {
+            // OS 自动重复只算一次按下。不挡的话按住回车不放会先 Engage、
+            // 再被重复事件带进 BeginReset，长按计时走完自己把急停解锁。
+            if (_actionKeyDown)
+            {
+                e.Handled = true;
+                return;
+            }
+            _actionKeyDown = true;
+
             if (!IsEngaged) Engage();
             else BeginReset();
             e.Handled = true;
@@ -201,10 +251,12 @@ public class EStopButton : Button
         CancelReset();
     }
 
+    /// <summary>松键。<b>不查修饰键</b>——取消长按复位属于往安全方向走，判据只能更宽。</summary>
     protected override void OnKeyUp(KeyEventArgs e)
     {
         if (e.Key is Key.Space or Key.Enter)
         {
+            _actionKeyDown = false;
             CancelReset();
             e.Handled = true;
             return;
@@ -216,18 +268,35 @@ public class EStopButton : Button
     protected override void OnLostFocus(RoutedEventArgs e)
     {
         base.OnLostFocus(e);
+        // 失焦后收不到 KeyUp，闩锁不清的话回来时第一次按下会被当成自动重复吞掉
+        _actionKeyDown = false;
         CancelReset();
     }
 
-    /// <summary>触发并自锁。已经触发时是空操作。</summary>
+    /// <summary>
+    /// 触发并自锁。已经触发时是空操作。
+    ///
+    /// <b>下发失败时不回滚成「就绪」。</b>挂了 <see cref="EngageCommand"/> 而它
+    /// <c>CanExecute</c> 为 false 时，指令没发出去、设备没停；但退回「就绪」
+    /// 同样是假陈述——操作员确实按下了急停。这时进第三态 <c>:engagefailed</c>，
+    /// 说明文字直接指向硬件急停：软件路径已经证明不通，唯一还能信的是硬接线那个。
+    /// </summary>
     public void Engage()
     {
         if (IsEngaged) return;
 
         IsEngaged = true;
 
-        if (EngageCommand?.CanExecute(null) == true)
-            EngageCommand.Execute(null);
+        var accepted = true;
+        if (EngageCommand is { } engage)
+        {
+            if (engage.CanExecute(null)) engage.Execute(null);
+            else accepted = false;
+        }
+
+        _engageFailed = !accepted;
+        PseudoClasses.Set(":engagefailed", !accepted);
+        UpdateCaption();
 
         RaiseEvent(new RoutedEventArgs(EngagedEvent));
     }
@@ -241,6 +310,11 @@ public class EStopButton : Button
             DoReset();
             return;
         }
+
+        // 重入保护：每次进来都 new 一个已启动的定时器而不停掉上一个，
+        // 旧定时器只是丢了引用，仍然在跑且仍然会到点调 DoReset()——
+        // 既漏定时器，又让「松手取消」形同虚设（只取消得掉最后那一个）。
+        if (_resetHold is not null) return;
 
         PseudoClasses.Set(":resetting", true);
         _resetHold = new DispatcherTimer(
@@ -266,6 +340,8 @@ public class EStopButton : Button
         CancelReset();
         if (!IsEngaged) return;
 
+        _engageFailed = false;
+        PseudoClasses.Set(":engagefailed", false);
         IsEngaged = false;
 
         if (ResetCommand?.CanExecute(null) == true)

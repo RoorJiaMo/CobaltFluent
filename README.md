@@ -145,7 +145,7 @@ dotnet run --project samples/Cobalt.Fluent.Gallery
 | **10** Data grid extras | DataGridToolbar · Pagination · EmptyState · Skeleton | All implemented here |
 | **11** Common additions | AutoSuggestBox · BreadcrumbBar · SegmentedControl · Chip · Stepper · GridSplitter · Toast · PersonPicture | All implemented here, except AutoSuggestBox (Avalonia's built-in `AutoCompleteBox`, re-themed) and GridSplitter |
 
-Full API reference in [`docs/CONTROLS.md`](docs/CONTROLS.md) (76 types, extracted from source by script).
+Full API reference in [`docs/CONTROLS.md`](docs/CONTROLS.md) (77 types, extracted from source by script).
 
 </details>
 
@@ -211,7 +211,7 @@ tools/check.sh                        # build the control library (copies to a t
 tools/check.sh --gallery              # build the gallery as well
 tools/check.sh --only Button.axaml    # merge only the named control-layer file (for parallel work)
 
-dotnet test tests/Cobalt.Fluent.Tests               # 125 regression tests
+dotnet test tests/Cobalt.Fluent.Tests               # 145 regression tests
 dotnet run  --project samples/Cobalt.Fluent.Gallery # run the gallery
 ```
 
@@ -238,7 +238,7 @@ dotnet run --project tools/Cobalt.Fluent.Shots -- artifacts/shots "shell:Readout
 | Document | Contents |
 |---|---|
 | [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md) | Development conventions — layering, resource-key reference, pseudo-class list, invariants, and a set of pitfalls the compiler cannot catch |
-| [`docs/CONTROLS.md`](docs/CONTROLS.md) | Control API reference (76 types, extracted from source by `tools/gen_api_docs.py`) |
+| [`docs/CONTROLS.md`](docs/CONTROLS.md) | Control API reference (77 types, extracted from source by `tools/gen_api_docs.py`) |
 | Gallery | 49 sections: visual specification + interactive demo + resource-key reference + source viewer, with a state matrix in 22 of them |
 
 Read `CONVENTIONS.md` before changing a control. Before opening a PR, run the build, the tests and the generators locally — CI runs the same checks, plus a headless render of every section.

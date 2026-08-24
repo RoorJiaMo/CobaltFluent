@@ -39,9 +39,9 @@
 
     <g:MapBlock Note="固定在右上或右下，任何页面均可见（置于 base layer，不随导航切换）。颜色固定为 SafetyRedBrush / SafetyYellowBrush，不得使用 SystemFillColorCriticalBrush——该资源在深色主题下为浅粉色。">
       <g:MapRow Key="类型" Value="EStopButton : Button" />
-      <g:MapRow Key="属性" Value="IsEngaged · EngageCommand · ResetCommand · RequireHoldToReset=true · ResetHoldDuration=1.2s · Caption · EngagedCaption · HardwareLocationHint" />
-      <g:MapRow Key="伪类" Value=":engaged :resetting" />
-      <g:MapRow Key="行为" Value="按下即触发（不等待 Click）· 触发后自锁 · 复位默认需长按" />
+      <g:MapRow Key="属性" Value="IsEngaged · EngageCommand · ResetCommand · RequireHoldToReset=true · ResetHoldDuration=1.2s · Caption · EngagedCaption · EngageFailedCaption · HardwareLocationHint" />
+      <g:MapRow Key="伪类" Value=":engaged :resetting :engagefailed" />
+      <g:MapRow Key="行为" Value="按下即触发（不等待 Click）· 触发后自锁 · 复位默认需长按 · 组合键（Ctrl/Alt/Win）一律放行 · OS 键盘自动重复不计为新的按下 · 急停指令未被受理时进入 :engagefailed 并将说明文字指向硬件急停" />
     </g:MapBlock>
 
   </StackPanel>
