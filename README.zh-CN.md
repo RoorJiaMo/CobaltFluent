@@ -251,6 +251,30 @@ public override void OnFrameworkInitializationCompleted()
 
 ---
 
+## NativeAOT 与裁剪
+
+控件层不含反射绑定，使用方可以直接用 `PublishAot` + `TrimMode=full` 发布，
+本库不会贡献任何一条 IL 告警。嵌入式目标上 AOT 不是可选项，这条是硬约束。
+
+反射绑定——走 `ReflectionBindingExtension` 的 `{Binding}`、C# 里的
+`new Binding { Path = "..." }`——按名字在运行时解析成员。完全裁剪下目标可能被移除，
+而**绑定会静默失效：界面照样画出来，只是那一处不再更新。**
+库里开了 `AvaloniaUseCompiledBindingsByDefault`，任何一处退回反射绑定都会在编译时
+带出告警，而不是变成一个「在你接不上调试器的机器上悄悄不刷新了」的字段。
+
+CI 跑 `tools/aot-gate.sh`，它有两半——因为光查告警不够：
+
+1. **发布**一遍 NativeAOT。任何来自本仓库的 IL 告警都算失败。
+   第三方程序集的告警登记在 `tools/aot-allow.txt`，每条写明理由；
+   本仓库自己的代码不允许登记进去。
+2. **跑**一遍产出的原生二进制。`tools/Cobalt.Fluent.AotProbe` 把四套主题变体、
+   自动化对等体、以及几处改写过的绑定在真二进制上过一遍。
+   编译绑定的路径解析到错误的成员时**一条告警都不会有**，只有真跑才看得出来；
+   自定义 `ThemeVariant` 的字典键被裁掉也一样，而且它是在加载主题那一刻就炸，
+   不是运行到某个页面才炸。
+
+---
+
 ## 嵌入式与触摸屏适配
 
 针对 Mali GPU 等嵌入式图形环境提供以下配置项：
@@ -282,7 +306,8 @@ tools/check.sh --gallery              # 连同展柜一并编译
 tools/check.sh --only Button.axaml    # 仅合并指定控件层文件（并行开发用）
 
 python3 tools/audit.py                             # 控件层静默失效审计（12 项检查）
-dotnet test tests/Cobalt.Fluent.Tests               # 310 项回归测试
+tools/aot-gate.sh                                  # NativeAOT 发布，然后真跑一遍原生二进制
+dotnet test tests/Cobalt.Fluent.Tests               # 320 项回归测试
 dotnet run  --project samples/Cobalt.Fluent.Gallery # 运行展柜
 ```
 

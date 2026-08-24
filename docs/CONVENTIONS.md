@@ -209,6 +209,45 @@ Avalonia 的 `ThemeVariant` 类型转换器只支持内置变体，写成字符�
 → 跑 `python3 tools/audit.py`。审计会把对照表里每一对在四套变体下逐一核对
 （高对比度下正文抬到 AAA 7:1），并拒绝高对比度里出现的任何半透明值。
 
+## NativeAOT 与裁剪
+
+```bash
+tools/aot-gate.sh              # 发布 + 真跑一遍原生二进制，CI 里同一条命令
+```
+
+嵌入式目标（RK3568 那一档）上 AOT 是刚需，所以这条是硬约束：
+**控件层不许出现反射绑定。** `src/Cobalt.Fluent/Cobalt.Fluent.csproj` 里开了
+`AvaloniaUseCompiledBindingsByDefault`，任何一处退回反射绑定都会带出 IL2026。
+
+反射绑定（`{Binding}` 走 `ReflectionBindingExtension`、C# 里的 `new Binding { Path = "..." }`）
+按名字在运行时解析成员，`TrimMode=full` 下目标可能被裁掉——**绑定静默失效，
+界面照样画出来，少的只是那一处的联动。** 这正是本仓库反复处理的那类缺陷。
+
+改写的对照：
+
+| 原写法 | 换成 |
+|---|---|
+| `{Binding X, RelativeSource={RelativeSource TemplatedParent}}` | 多数情况 `{TemplateBinding X}`；带路径（`Bounds.Width`）的保持 `{Binding}`，编译绑定能解 |
+| `{Binding ElementName=PART_X, Path=Y}` | `{Binding #PART_X.Y}` |
+| C# 里 `new Binding { Source = this, Path = nameof(P) }` | `this[!PProperty]` |
+| 模板里的裸 `{Binding}` | 给外层 `Template` 加 `x:DataType` |
+
+### 闸口为什么有两半
+
+**只查告警不够。** 告警说明「编译器看见了反射」，说不了「裁剪之后还跑得起来」：
+
+- 编译绑定按**编译期类型**解析路径。路径解错了不报错、不告警，绑定只是不更新。
+- 自定义 `ThemeVariant` 的字典键走 `x:Static`，那条路径被裁掉的话，
+  应用在**加载主题那一刻**就炸，不是运行到某个页面才炸。
+
+所以 `tools/aot-gate.sh` 发布完还要**跑**产出的原生二进制：
+`tools/Cobalt.Fluent.AotProbe` 把四套主题变体、自动化对等体、以及几处改写过的
+绑定在真二进制上过一遍。验证过两种变异——把编译绑定开关关掉（告警半边报红）、
+把某处绑定改成常量（告警干净，运行时半边报红）——两半各管各的，缺一不可。
+
+第三方程序集的告警登记到 `tools/aot-allow.txt`，**每条必须写明理由**。
+本仓库自己的代码不允许登记进去。
+
 ## 静默失效审计
 
 ```bash

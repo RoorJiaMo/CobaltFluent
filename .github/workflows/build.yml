@@ -53,6 +53,11 @@ jobs:
       - name: 回归测试
         run: dotnet test tests/Cobalt.Fluent.Tests --nologo -c Release
 
+      - name: NativeAOT 闸口（发布 + 真跑一遍原生二进制）
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq clang zlib1g-dev
+          bash tools/aot-gate.sh linux-x64
+
       - name: 无头渲染全部章节（渲染不出来就是错）
         run: dotnet run --project tools/Cobalt.Fluent.Shots -c Release -- artifacts/shots '*' both
 

@@ -7,6 +7,11 @@
     <Description>Windows 11 Fluent 控件库 for Avalonia —— 桌面基准 32px，含工业 HMI 专用控件。</Description>
     <IncludeBuildOutput>true</IncludeBuildOutput>
 
+    <!-- 编译绑定。反射绑定（ReflectionBindingExtension）在 TrimMode=full / NativeAOT 下
+         可能被裁掉目标成员，绑定在运行时静默失效——界面照样画出来，只是那一处不更新了。
+         打开这个开关之后，任何一处退回反射绑定都会变成编译错误。 -->
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+
     <!-- NuGet 包元数据。发包前把下面三处的 owner/repo 换成实际地址。 -->
     <Version>0.1.0</Version>
     <Authors>RoorJiaMo</Authors>

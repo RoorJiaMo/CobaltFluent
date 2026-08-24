@@ -135,13 +135,10 @@ public sealed class SpecMatrix : Decorator
                 Text = label,
                 FontSize = 12,
                 HorizontalAlignment = HorizontalAlignment.Left,
-                [!TextBlock.ForegroundProperty] =
-                    new Avalonia.Data.Binding
-                    {
-                        Source = this,
-                        Path = nameof(LabelBrush),
-                        Mode = Avalonia.Data.BindingMode.OneWay,
-                    },
+                // 用属性索引器而不是 new Binding { Path = nameof(...) }：后者按名字
+                // 反射解析，TrimMode=full / NativeAOT 下目标成员可能被裁掉，
+                // 绑定在运行时静默失效——标签照样显示，只是颜色不跟主题走了。
+                [!TextBlock.ForegroundProperty] = this[!LabelBrushProperty],
             },
         },
     };

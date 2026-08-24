@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- AOT 闸口的运行时那一半。
+       裁剪告警只说明「编译器看见了反射」，说明不了「裁剪之后还跑得起来」——
+       这个探针把库里最容易被裁掉的几条路径在真·原生二进制上跑一遍。 -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>Cobalt.Fluent.AotProbe</RootNamespace>
+    <AssemblyName>Cobalt.Fluent.AotProbe</AssemblyName>
+    <PublishAot>true</PublishAot>
+    <TrimMode>full</TrimMode>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="$(AvaloniaVersion)" />
+    <PackageReference Include="Avalonia.Headless" Version="$(AvaloniaVersion)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../../src/Cobalt.Fluent/Cobalt.Fluent.csproj" />
+  </ItemGroup>
+
+</Project>

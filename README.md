@@ -47,7 +47,7 @@ Most controls ship a state matrix. CI renders all 49 gallery sections headlessly
 
 ### Built for embedded targets
 
-No dependency on the Segoe Fluent Icons font. Motion is limited to transform, opacity and brush transitions — nothing animates layout. Acrylic and shimmer effects can be turned off.
+No dependency on the Segoe Fluent Icons font. Motion is limited to transform, opacity and brush transitions — nothing animates layout. Acrylic and shimmer effects can be turned off. The control layer is free of reflection bindings, so it survives `TrimMode=full` and NativeAOT.
 
 </td>
 <td width="25%" valign="top">
@@ -261,6 +261,32 @@ would otherwise inherit the ordinary translucent value in silence.
 
 ---
 
+## NativeAOT and trimming
+
+The control layer contains no reflection bindings, so a consuming application can publish with
+`PublishAot` and `TrimMode=full` without the library contributing a single IL warning. This
+matters on embedded targets, where AOT is not optional.
+
+Reflection bindings — `{Binding}` resolved through `ReflectionBindingExtension`, or
+`new Binding { Path = "..." }` in C# — look up members by name at runtime. Under full trimming
+the target member can be removed, and **the binding then fails silently: the UI still renders,
+it just stops updating in that one place.** `AvaloniaUseCompiledBindingsByDefault` is on for the
+library, so any regression surfaces as a build warning rather than as a field that quietly
+stops refreshing on a machine you cannot attach a debugger to.
+
+CI runs `tools/aot-gate.sh`, which has two halves, because warnings alone are not enough:
+
+1. **Publish** with NativeAOT. Any IL warning originating from this repository fails the build.
+   Third-party assemblies that produce warnings are listed in `tools/aot-allow.txt`, each with
+   a stated reason; the repository's own code is never listed there.
+2. **Run** the resulting native binary. `tools/Cobalt.Fluent.AotProbe` exercises the four theme
+   variants, the automation peers and several of the rewritten bindings on the real binary. A
+   compiled binding whose path resolves to the wrong member produces no warning at all — only
+   running it shows the difference. So does a custom `ThemeVariant` dictionary key that gets
+   trimmed, which takes the application down at theme-load time rather than on some later page.
+
+---
+
 ## Embedded and touch-panel targets
 
 Configuration options for embedded graphics environments such as Mali GPUs:
@@ -294,7 +320,8 @@ tools/check.sh --gallery              # build the gallery as well
 tools/check.sh --only Button.axaml    # merge only the named control-layer file (for parallel work)
 
 python3 tools/audit.py                             # control-layer silent-failure audit (12 checks)
-dotnet test tests/Cobalt.Fluent.Tests               # 310 regression tests
+tools/aot-gate.sh                                  # NativeAOT publish, then run the native binary
+dotnet test tests/Cobalt.Fluent.Tests               # 320 regression tests
 dotnet run  --project samples/Cobalt.Fluent.Gallery # run the gallery
 ```
 
