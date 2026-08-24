@@ -163,7 +163,10 @@
     <Style Selector="^:running /template/ Border#PART_Dot">
       <Setter Property="Background" Value="{DynamicResource SystemFillColorSuccessBrush}" />
     </Style>
-    <Style Selector="^:running /template/ Border#PART_Pulse">
+    <!-- 动画必须连同 IsPulseEnabled=True 一起限定。只在下面那条里改 Opacity/Scale
+         是不够的：Avalonia 里动画的优先级高于 Setter，`^:running` 一旦匹配，
+         无限循环的关键帧就会盖掉静态值——关掉脉冲会变成没关掉。 -->
+    <Style Selector="^:running[IsPulseEnabled=True] /template/ Border#PART_Pulse">
       <Setter Property="Opacity" Value="0.9" />
       <Style.Animations>
         <Animation Duration="0:0:2" IterationCount="Infinite" Easing="CubicEaseOut">
@@ -180,11 +183,14 @@
         </Animation>
       </Style.Animations>
     </Style>
-    <!-- 关掉脉冲动画时留一个静态外环，形状编码不能丢 -->
+    <!-- 关掉脉冲动画时留一个静态外环，形状编码不能丢。
+         这里必须整个换掉 RenderTransform：`ScaleTransform.ScaleX` 那种写法
+         只有 KeyFrame 认，普通 Setter 里不生效，写了也是静默失败。 -->
     <Style Selector="^:running[IsPulseEnabled=False] /template/ Border#PART_Pulse">
       <Setter Property="Opacity" Value="0.5" />
-      <Setter Property="ScaleTransform.ScaleX" Value="1.3" />
-      <Setter Property="ScaleTransform.ScaleY" Value="1.3" />
+      <Setter Property="RenderTransform">
+        <ScaleTransform ScaleX="1.3" ScaleY="1.3" />
+      </Setter>
     </Style>
 
     <Style Selector="^:warning">

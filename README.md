@@ -211,7 +211,7 @@ tools/check.sh                        # build the control library (copies to a t
 tools/check.sh --gallery              # build the gallery as well
 tools/check.sh --only Button.axaml    # merge only the named control-layer file (for parallel work)
 
-dotnet test tests/Cobalt.Fluent.Tests               # 57 regression tests
+dotnet test tests/Cobalt.Fluent.Tests               # 74 regression tests
 dotnet run  --project samples/Cobalt.Fluent.Gallery # run the gallery
 ```
 

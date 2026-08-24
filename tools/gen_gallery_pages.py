@@ -87,13 +87,20 @@ def main():
         for title, cls in items:
             ax = PAGES / f"{cls}.axaml"
             cs = PAGES / f"{cls}.axaml.cs"
+
+            # 只给全新的章节搭骨架。code-behind 已经存在就说明这一页有人写过，
+            # 不要再往里补文件——有的页整页在 C# 里构建（IconsPage 的图标网格），
+            # 给它补一个 x:Class 同名的空 axaml 既不会被 InitializeComponent 加载，
+            # 又会在下一个人打开时变成「这页怎么写着待实现」。
+            if cs.exists():
+                continue
+
+            cs.write_text(CS.format(cls=cls), encoding="utf-8")
             if not ax.exists():
                 ax.write_text(
                     AXAML.format(cls=cls, title=title.replace("&", "&amp;"), group=group),
                     encoding="utf-8")
-                made += 1
-            if not cs.exists():
-                cs.write_text(CS.format(cls=cls), encoding="utf-8")
+            made += 1
 
     lines = [
         "using Avalonia.Controls;",
