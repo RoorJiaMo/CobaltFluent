@@ -85,9 +85,14 @@
       <Setter Property="BorderBrush" Value="{DynamicResource AccentControlElevationBorderBrush}" />
     </Style>
 
-    <!-- 危险主操作不走 accent —— 删除、清空、强制停机不该长得像「推荐操作」 -->
+    <!-- 危险主操作不走 accent —— 删除、清空、强制停机不该长得像「推荐操作」。
+
+         底色用 SafetyRed 而不是 SystemFillColorCritical：后者在深色主题下是
+         浅粉 #FF99A4，压白字只有 2.03:1，按钮上的「删除」两个字读不出来。
+         这正是 README 里那条规则的原话——需要立即处置的级别不跟随主题状态色——
+         而这里此前恰好违反了它。 -->
     <Style Selector="^[IsPrimaryDestructive=True] /template/ Button#PART_PrimaryButton">
-      <Setter Property="Background" Value="{DynamicResource SystemFillColorCriticalBrush}" />
+      <Setter Property="Background" Value="{DynamicResource SafetyRedBrush}" />
       <Setter Property="Foreground" Value="{DynamicResource TextOnSafetyFillColorPrimaryBrush}" />
       <Setter Property="BorderBrush" Value="Transparent" />
     </Style>

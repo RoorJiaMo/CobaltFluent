@@ -202,7 +202,7 @@ python3 tools/audit.py --list   # 列出各项检查覆盖的历史缺陷
 在真实路径上整个不成立，而且失效方向朝着「一切正常」**。这一类缺陷在本库里
 成片出现过——一轮对抗性审查确认了 55 条，没有一条是编译器或既有测试能发现的。
 
-`tools/audit.py` 把其中可机械检测的模式固化了下来，11 项检查，每一项都对应
+`tools/audit.py` 把其中可机械检测的模式固化了下来，12 项检查，每一项都对应
 一个真实发生过的缺陷：
 
 | 检查 | 它抓的那个历史缺陷 |
@@ -218,6 +218,7 @@ python3 tools/audit.py --list   # 列出各项检查覆盖的历史缺陷
 | `wallclock` | 墙钟 `DateTime.Now` 相减：系统时间回拨多久，就有多久所有读数被判成新鲜 |
 | `unread-property` | `JogButton.RequiresConfirm` 声明、文档、对照表俱全，全库无人读取——危险轴上开了等于没开 |
 | `automation-peer` | 25 个直接继承 `Control` / `TemplatedControl` 的控件没有对等体，在 UI Automation 里只是一团没有名字的 `Custom` 矩形 |
+| `contrast` | 安全色一组五处不达标：已触发急停的白字 3.42、降级态那圈安全黄压红 2.69、「停止指令没能下发」的白字压黄 1.72、`:engagefailed` 的黄环压浅底 1.55 |
 
 **新加检查的门槛**：能举出一个它本该抓到的历史缺陷，且在当前代码上零误报。
 写完拿历史版本验一遍是必须的——抓不到它本该抓的 bug，这检查就是摆设：
@@ -227,6 +228,26 @@ TMP=$(mktemp -d); git archive <修复前的提交> | tar -x -C "$TMP"
 mkdir -p "$TMP/tools" && cp tools/audit.py tools/audit-allow.txt "$TMP/tools/"
 python3 "$TMP/tools/audit.py"      # 应当报出那个缺陷
 ```
+
+### 对比度对照表为什么是手写的
+
+`contrast` 检查里的前景/背景对（`CONTRAST_PAIRS`）是逐条手写的，不是从主题 XAML
+里自动抽的。试过自动抽——「同一个 Style 里同时设了 `Background` 和 `Foreground`」
+能抽出 107 对、报出 34 条不达标，但其中只有 1 条是真的：
+
+- **14 条是 disabled 态。** WCAG 1.4.3 明确豁免失效控件，本来就不该按 4.5 要求。
+- **8 条是 accent 按钮的 pressed 态。** 瞬时反馈，且用的是 WinUI 自己的值。
+- **2 条是 Slider。** 它的 `Foreground` 是轨道填充，不是文字——抽取器不知道
+  「Foreground 未必是文字」。
+- **2 条是 `SafetyOverlay*`。** 那是压在安全红横幅上的半透明白，抽取器按页面底色
+  去合成，算的是一个屏幕上不存在的组合。
+
+也就是说噪音比 33:1。真问题会淹掉，而淹掉的后果就是这检查被人关掉。手写对照表
+意味着每一条都能说出「这两个颜色为什么会同时出现在屏幕上、看不清会怎样」——
+新增控件时把新的组合加进去，比维护一个抽取器的例外表便宜得多。
+
+（那一条真的是：危险主操作按钮用 `SystemFillColorCriticalBrush` 做底压白字，
+深色主题下是浅粉压白，2.03:1。已改用 `SafetyRedBrush`。）
 
 确属可接受的例外登记到 `tools/audit-allow.txt`，**每条必须写明理由**。
 例外按「检查名 路径 稳定标识」匹配而不是按行号——行号一挪就失配、告警重新冒出来，

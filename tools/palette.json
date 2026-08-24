@@ -16,6 +16,10 @@
       "light": "#5C000000",
       "dark": "#5DFFFFFF"
     },
+    "TextFillColorStale": {
+      "light": "#8A000000",
+      "dark": "#87FFFFFF"
+    },
     "TextOnAccentFillColorPrimary": {
       "light": "#FFFFFFFF",
       "dark": "#FF000000"
@@ -274,19 +278,23 @@
   "安全色": {
     "SafetyRed": {
       "light": "#FFC42B1C",
-      "dark": "#FFE81123"
+      "dark": "#FFD13438"
     },
     "SafetyRedHigh": {
       "light": "#FFE81123",
-      "dark": "#FFFF4343"
+      "dark": "#FFE81123"
     },
     "SafetyYellow": {
-      "light": "#FFFFB900",
-      "dark": "#FFFFB900"
+      "light": "#FFFFDD00",
+      "dark": "#FFFFDD00"
     },
     "TextOnSafetyFillColorPrimary": {
       "light": "#FFFFFFFF",
       "dark": "#FFFFFFFF"
+    },
+    "TextOnSafetyYellowFillColorPrimary": {
+      "light": "#FF000000",
+      "dark": "#FF000000"
     },
     "SafetyOverlayFillColorDefault": {
       "light": "#29FFFFFF",

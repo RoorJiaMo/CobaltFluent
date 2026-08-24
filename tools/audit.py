@@ -15,6 +15,7 @@
 """
 import glob
 import io
+import json
 import os
 import re
 import sys
@@ -407,6 +408,132 @@ def check_automation_peer():
                    f"自动化客户端只能看到一个没有名字的 Custom 矩形")
 
 
+# ---------------------------------------------------------------------------
+# 对比度
+# ---------------------------------------------------------------------------
+
+# 要检查的前景/背景对，以及各自的门槛。
+#
+# 这张表是手写的而不是从主题里自动抽的：自动抽出来的对里绝大多数是装饰性的
+# （分隔线压在底色上本来就该淡），真问题会淹在几百条噪音里。手写意味着每一条
+# 都能说出「这两个颜色为什么会同时出现在屏幕上、看不清会怎样」。
+#
+# 门槛按 WCAG 2.1：正文 4.5（1.4.3 AA），图形与控件边界 3.0（1.4.11）。
+CONTRAST_PAIRS = [
+    # --- 正文 -------------------------------------------------------------
+    ("TextFillColorPrimary", "SolidBackgroundFillColorBase", 4.5),
+    ("TextFillColorSecondary", "SolidBackgroundFillColorBase", 4.5),
+    ("TextFillColorStale", "SolidBackgroundFillColorBase", 4.5),
+    ("TextFillColorPrimary", "CardBackgroundFillColorDefault", 4.5),
+    ("TextFillColorSecondary", "CardBackgroundFillColorDefault", 4.5),
+    ("TextFillColorPrimary", "ControlFillColorDefault", 4.5),
+    ("TextOnAccentFillColorPrimary", "AccentFillColorDefault", 4.5),
+    ("AccentTextFillColorPrimary", "SolidBackgroundFillColorBase", 4.5),
+
+    # --- 状态色配自己的底 --------------------------------------------------
+    ("SystemFillColorSuccess", "SystemFillColorSuccessBackground", 4.5),
+    ("SystemFillColorCaution", "SystemFillColorCautionBackground", 4.5),
+    ("SystemFillColorCritical", "SystemFillColorCriticalBackground", 4.5),
+    ("SystemFillColorSuccess", "SolidBackgroundFillColorBase", 4.5),
+    ("SystemFillColorCaution", "SolidBackgroundFillColorBase", 4.5),
+    ("SystemFillColorCritical", "SolidBackgroundFillColorBase", 4.5),
+
+    # --- 安全色 -----------------------------------------------------------
+    #
+    # 这一组的每一条都对应一个真实缺陷。全库对比度最差的几处恰好都在这里，
+    # 而这里正是最不能看不清的地方：
+    #
+    #   白字压 SafetyRedHigh（深色 3.42）—— 已触发的急停，钮面上的图标和字；
+    #   安全黄压 SafetyRed（深色 2.69）—— 关掉呼吸动画后用来区分 Alarm 与
+    #     Warning 的那圈补偿描边，降级态的全部依据；
+    #   白字压 SafetyYellow（1.72）—— JogButton :stopfailed 的标签，
+    #     那句话是「停止指令没能下发」；
+    #   SafetyYellow 压页面底（浅色 1.55）—— EStopButton :engagefailed 的黄环，
+    #     整个库里最不能看不见的那个提示。
+    ("TextOnSafetyFillColorPrimary", "SafetyRed", 4.5),
+    ("TextOnSafetyFillColorPrimary", "SafetyRedHigh", 4.5),
+    ("TextOnSafetyYellowFillColorPrimary", "SafetyYellow", 4.5),
+    ("SafetyRed", "SolidBackgroundFillColorBase", 3.0),
+    ("SafetyRedHigh", "SolidBackgroundFillColorBase", 3.0),
+    ("SafetyYellow", "SafetyRed", 3.0),
+    ("SafetyYellow", "SafetyRedHigh", 3.0),
+
+    # --- 图形 -------------------------------------------------------------
+    ("ControlStrongStrokeColorDefault", "SolidBackgroundFillColorBase", 3.0),
+    ("FocusStrokeColorOuter", "SolidBackgroundFillColorBase", 3.0),
+] + [(f"ChartSeries{i}", "SolidBackgroundFillColorBase", 3.0) for i in range(1, 9)]
+
+
+def _srgb(hex8):
+    """#AARRGGBB → (a, r, g, b)，各 0..255。"""
+    return (int(hex8[1:3], 16), int(hex8[3:5], 16),
+            int(hex8[5:7], 16), int(hex8[7:9], 16))
+
+
+def _over(top, bottom):
+    """半透明色合成到不透明底上。返回 (r, g, b)。
+
+    调色板里大量的键是半透明的（#B2FFFFFF 这种），不合成就算不出对比度。
+    """
+    a, r, g, b = _srgb(top)
+    _, br, bg, bb = _srgb(bottom)
+    t = a / 255
+    return (round(r * t + br * (1 - t)),
+            round(g * t + bg * (1 - t)),
+            round(b * t + bb * (1 - t)))
+
+
+def _luminance(rgb):
+    """WCAG 2.1 相对亮度。"""
+    def channel(c):
+        c /= 255
+        return c / 12.92 if c <= 0.03928 else ((c + 0.055) / 1.055) ** 2.4
+    r, g, b = rgb
+    return 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
+
+
+def _ratio(fg, bg, colors, theme):
+    """fg 压在 bg 上的对比度。两者都先合成到页面底色。"""
+    page = colors["SolidBackgroundFillColorBase"][theme]
+    bg_rgb = _over(colors[bg][theme], page)
+    bg_hex = "#FF%02X%02X%02X" % bg_rgb
+    fg_rgb = _over(colors[fg][theme], bg_hex)
+
+    hi, lo = sorted((_luminance(fg_rgb), _luminance(bg_rgb)), reverse=True)
+    return (hi + 0.05) / (lo + 0.05)
+
+
+def check_contrast():
+    """成对出现的颜色必须达到 WCAG 的对比度门槛。
+
+    历史缺陷：安全色一组有五处不达标，而那正是最不能看不清的地方——
+    已触发急停的钮面白字在深色主题下 3.42:1；关掉呼吸动画后用来区分 Alarm 与
+    Warning 的安全黄描边压在安全红上只有 2.69:1（降级态就靠这一圈）；
+    「停止指令没能下发」的标签是白字压安全黄，1.72:1；而 EStopButton
+    :engagefailed 的黄环在浅色主题下对页面底只有 1.55:1，等于不存在。
+
+    这一类缺陷编译得过、测试也绿、在开发机的好屏幕上也看得见——
+    到车间的强光屏上才露出来，而那时它挡的是安全信息。
+    """
+    palette = os.path.join(ROOT, "tools/palette.json")
+    groups = json.loads(read(palette))
+    colors = {k: v for entries in groups.values() for k, v in entries.items()}
+
+    for fg, bg, need in CONTRAST_PAIRS:
+        missing = [k for k in (fg, bg) if k not in colors]
+        if missing:
+            report("contrast", palette, 1, fg,
+                   f"对照表引用了不存在的颜色键：{', '.join(missing)}")
+            continue
+
+        for theme in ("light", "dark"):
+            got = _ratio(fg, bg, colors, theme)
+            if got + 0.005 < need:
+                report("contrast", palette, 1, f"{fg}/{bg}/{theme}",
+                       f"{theme} 主题下 {fg} 压在 {bg} 上只有 {got:.2f}:1，"
+                       f"低于 {need}:1")
+
+
 CHECKS = [
     ("parts", check_parts),
     ("pseudo-declared", check_pseudo_declared),
@@ -419,6 +546,7 @@ CHECKS = [
     ("wallclock", check_wallclock),
     ("unread-property", check_unread_property),
     ("automation-peer", check_automation_peer),
+    ("contrast", check_contrast),
 ]
 
 

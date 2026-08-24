@@ -252,7 +252,7 @@ tools/check.sh                        # build the control library (copies to a t
 tools/check.sh --gallery              # build the gallery as well
 tools/check.sh --only Button.axaml    # merge only the named control-layer file (for parallel work)
 
-python3 tools/audit.py                             # control-layer silent-failure audit (11 checks)
+python3 tools/audit.py                             # control-layer silent-failure audit (12 checks)
 dotnet test tests/Cobalt.Fluent.Tests               # 292 regression tests
 dotnet run  --project samples/Cobalt.Fluent.Gallery # run the gallery
 ```

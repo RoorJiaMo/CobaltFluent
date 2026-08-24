@@ -75,7 +75,9 @@
          写在 :jogging 之后，同优先级下后写的胜出。 -->
     <Style Selector="^:stopfailed">
       <Setter Property="Background" Value="{DynamicResource SafetyYellowBrush}" />
-      <Setter Property="Foreground" Value="{DynamicResource TextOnSafetyFillColorPrimaryBrush}" />
+      <!-- 安全黄上必须用黑字。白字压在 #FFDD00 上是 1.35:1，
+           这个态的标签正是「停止指令没能下发」——最不能看不见的那一句。 -->
+      <Setter Property="Foreground" Value="{DynamicResource TextOnSafetyYellowFillColorPrimaryBrush}" />
       <Setter Property="BorderBrush" Value="{DynamicResource SafetyRedBrush}" />
       <Setter Property="BorderThickness" Value="2" />
     </Style>
@@ -209,14 +211,23 @@
     </Style>
 
     <!-- 急停指令没能下发：钮不再是「已锁定」的样子，说明字换成指向硬件急停的那句。
-         用未填充的钮面 + 安全黄描边，和 :engaged 的沉底实心明确区分——
-         操作员必须一眼看出「这次没停下来」。 -->
+         红黄对调（黄钮面 + 红环），和 :engaged 的沉底红实心明确区分——
+         操作员必须一眼看出「这次没停下来」。
+
+         **不能用「透明钮面 + 黄环」。** 那样黄环直接压在页面底色上：
+         浅色主题下 #FFDD00 对 #F3F3F3 只有 1.21:1，6 px 也一样看不见——
+         整个库里最不能看不见的那个提示，恰好是浅色主题下唯一看不见的东西。
+         填充之后边界由红环承担（对浅底 5.10、对深底 3.30），两套主题都成立。 -->
     <Style Selector="^:engagefailed /template/ Border#PART_Knob">
-      <Setter Property="Background" Value="Transparent" />
-      <Setter Property="BorderBrush" Value="{DynamicResource SafetyYellowBrush}" />
+      <Setter Property="Background" Value="{DynamicResource SafetyYellowBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SafetyRedBrush}" />
       <Setter Property="BorderThickness" Value="6" />
       <Setter Property="RenderTransform" Value="none" />
       <Setter Property="BoxShadow" Value="0 0 0 0 #47000000" />
+    </Style>
+    <Style Selector="^:engagefailed /template/ StackPanel">
+      <Setter Property="TextElement.Foreground"
+              Value="{DynamicResource TextOnSafetyYellowFillColorPrimaryBrush}" />
     </Style>
     <Style Selector="^:engagefailed /template/ fc|SymbolIcon">
       <Setter Property="Foreground" Value="{DynamicResource SafetyRedBrush}" />

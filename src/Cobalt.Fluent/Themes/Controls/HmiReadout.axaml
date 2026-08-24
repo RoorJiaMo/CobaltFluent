@@ -87,9 +87,13 @@
     </Style>
 
     <!-- 过期：值变灰但**保留最后已知值**。换成"—"是错的——
-         通信断了，设备上的反应还在跑，操作员需要知道断开前的最后一个值。 -->
+         通信断了，设备上的反应还在跑，操作员需要知道断开前的最后一个值。
+
+         用 TextFillColorStale 而不是 tertiary：后者在浅色主题下对底只有 3.28:1，
+         达不到 WCAG AA。压暗是为了标记「这不是实时值」，不是为了让它读不出来——
+         而链路断了的时候，这个数字恰好是操作员最需要看清的那个。 -->
     <Style Selector="^:stale /template/ TextBlock#PART_Value">
-      <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorStaleBrush}" />
     </Style>
 
     <!-- 从未取到值 -->

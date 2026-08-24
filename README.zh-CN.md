@@ -244,7 +244,7 @@ tools/check.sh                        # 编译控件库（复制至临时目录�
 tools/check.sh --gallery              # 连同展柜一并编译
 tools/check.sh --only Button.axaml    # 仅合并指定控件层文件（并行开发用）
 
-python3 tools/audit.py                             # 控件层静默失效审计（11 项检查）
+python3 tools/audit.py                             # 控件层静默失效审计（12 项检查）
 dotnet test tests/Cobalt.Fluent.Tests               # 292 项回归测试
 dotnet run  --project samples/Cobalt.Fluent.Gallery # 运行展柜
 ```

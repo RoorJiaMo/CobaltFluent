@@ -10,6 +10,7 @@
       <Color x:Key="TextFillColorSecondary">#9E000000</Color>
       <Color x:Key="TextFillColorTertiary">#72000000</Color>
       <Color x:Key="TextFillColorDisabled">#5C000000</Color>
+      <Color x:Key="TextFillColorStale">#8A000000</Color>
       <Color x:Key="TextOnAccentFillColorPrimary">#FFFFFFFF</Color>
       <Color x:Key="TextOnAccentFillColorSecondary">#B2FFFFFF</Color>
       <Color x:Key="AccentTextFillColorPrimary">#FF003E92</Color>
@@ -80,8 +81,9 @@
       <!-- 安全色 -->
       <Color x:Key="SafetyRed">#FFC42B1C</Color>
       <Color x:Key="SafetyRedHigh">#FFE81123</Color>
-      <Color x:Key="SafetyYellow">#FFFFB900</Color>
+      <Color x:Key="SafetyYellow">#FFFFDD00</Color>
       <Color x:Key="TextOnSafetyFillColorPrimary">#FFFFFFFF</Color>
+      <Color x:Key="TextOnSafetyYellowFillColorPrimary">#FF000000</Color>
       <Color x:Key="SafetyOverlayFillColorDefault">#29FFFFFF</Color>
       <Color x:Key="SafetyOverlayFillColorSecondary">#42FFFFFF</Color>
       <Color x:Key="SafetyOverlayStrokeColorDefault">#3DFFFFFF</Color>
@@ -99,6 +101,7 @@
       <SolidColorBrush x:Key="TextFillColorSecondaryBrush" Color="{StaticResource TextFillColorSecondary}" />
       <SolidColorBrush x:Key="TextFillColorTertiaryBrush" Color="{StaticResource TextFillColorTertiary}" />
       <SolidColorBrush x:Key="TextFillColorDisabledBrush" Color="{StaticResource TextFillColorDisabled}" />
+      <SolidColorBrush x:Key="TextFillColorStaleBrush" Color="{StaticResource TextFillColorStale}" />
       <SolidColorBrush x:Key="TextOnAccentFillColorPrimaryBrush" Color="{StaticResource TextOnAccentFillColorPrimary}" />
       <SolidColorBrush x:Key="TextOnAccentFillColorSecondaryBrush" Color="{StaticResource TextOnAccentFillColorSecondary}" />
       <SolidColorBrush x:Key="AccentTextFillColorPrimaryBrush" Color="{StaticResource AccentTextFillColorPrimary}" />
@@ -163,6 +166,7 @@
       <SolidColorBrush x:Key="SafetyRedHighBrush" Color="{StaticResource SafetyRedHigh}" />
       <SolidColorBrush x:Key="SafetyYellowBrush" Color="{StaticResource SafetyYellow}" />
       <SolidColorBrush x:Key="TextOnSafetyFillColorPrimaryBrush" Color="{StaticResource TextOnSafetyFillColorPrimary}" />
+      <SolidColorBrush x:Key="TextOnSafetyYellowFillColorPrimaryBrush" Color="{StaticResource TextOnSafetyYellowFillColorPrimary}" />
       <SolidColorBrush x:Key="SafetyOverlayFillColorDefaultBrush" Color="{StaticResource SafetyOverlayFillColorDefault}" />
       <SolidColorBrush x:Key="SafetyOverlayFillColorSecondaryBrush" Color="{StaticResource SafetyOverlayFillColorSecondary}" />
       <SolidColorBrush x:Key="SafetyOverlayStrokeColorDefaultBrush" Color="{StaticResource SafetyOverlayStrokeColorDefault}" />
@@ -198,6 +202,7 @@
       <Color x:Key="TextFillColorSecondary">#C5FFFFFF</Color>
       <Color x:Key="TextFillColorTertiary">#87FFFFFF</Color>
       <Color x:Key="TextFillColorDisabled">#5DFFFFFF</Color>
+      <Color x:Key="TextFillColorStale">#87FFFFFF</Color>
       <Color x:Key="TextOnAccentFillColorPrimary">#FF000000</Color>
       <Color x:Key="TextOnAccentFillColorSecondary">#80000000</Color>
       <Color x:Key="AccentTextFillColorPrimary">#FF99EBFF</Color>
@@ -266,10 +271,11 @@
       <Color x:Key="ChartAxisLine">#87FFFFFF</Color>
       <Color x:Key="ChartBand">#0DFFFFFF</Color>
       <!-- 安全色 -->
-      <Color x:Key="SafetyRed">#FFE81123</Color>
-      <Color x:Key="SafetyRedHigh">#FFFF4343</Color>
-      <Color x:Key="SafetyYellow">#FFFFB900</Color>
+      <Color x:Key="SafetyRed">#FFD13438</Color>
+      <Color x:Key="SafetyRedHigh">#FFE81123</Color>
+      <Color x:Key="SafetyYellow">#FFFFDD00</Color>
       <Color x:Key="TextOnSafetyFillColorPrimary">#FFFFFFFF</Color>
+      <Color x:Key="TextOnSafetyYellowFillColorPrimary">#FF000000</Color>
       <Color x:Key="SafetyOverlayFillColorDefault">#29FFFFFF</Color>
       <Color x:Key="SafetyOverlayFillColorSecondary">#42FFFFFF</Color>
       <Color x:Key="SafetyOverlayStrokeColorDefault">#3DFFFFFF</Color>
@@ -287,6 +293,7 @@
       <SolidColorBrush x:Key="TextFillColorSecondaryBrush" Color="{StaticResource TextFillColorSecondary}" />
       <SolidColorBrush x:Key="TextFillColorTertiaryBrush" Color="{StaticResource TextFillColorTertiary}" />
       <SolidColorBrush x:Key="TextFillColorDisabledBrush" Color="{StaticResource TextFillColorDisabled}" />
+      <SolidColorBrush x:Key="TextFillColorStaleBrush" Color="{StaticResource TextFillColorStale}" />
       <SolidColorBrush x:Key="TextOnAccentFillColorPrimaryBrush" Color="{StaticResource TextOnAccentFillColorPrimary}" />
       <SolidColorBrush x:Key="TextOnAccentFillColorSecondaryBrush" Color="{StaticResource TextOnAccentFillColorSecondary}" />
       <SolidColorBrush x:Key="AccentTextFillColorPrimaryBrush" Color="{StaticResource AccentTextFillColorPrimary}" />
@@ -351,6 +358,7 @@
       <SolidColorBrush x:Key="SafetyRedHighBrush" Color="{StaticResource SafetyRedHigh}" />
       <SolidColorBrush x:Key="SafetyYellowBrush" Color="{StaticResource SafetyYellow}" />
       <SolidColorBrush x:Key="TextOnSafetyFillColorPrimaryBrush" Color="{StaticResource TextOnSafetyFillColorPrimary}" />
+      <SolidColorBrush x:Key="TextOnSafetyYellowFillColorPrimaryBrush" Color="{StaticResource TextOnSafetyYellowFillColorPrimary}" />
       <SolidColorBrush x:Key="SafetyOverlayFillColorDefaultBrush" Color="{StaticResource SafetyOverlayFillColorDefault}" />
       <SolidColorBrush x:Key="SafetyOverlayFillColorSecondaryBrush" Color="{StaticResource SafetyOverlayFillColorSecondary}" />
       <SolidColorBrush x:Key="SafetyOverlayStrokeColorDefaultBrush" Color="{StaticResource SafetyOverlayStrokeColorDefault}" />
