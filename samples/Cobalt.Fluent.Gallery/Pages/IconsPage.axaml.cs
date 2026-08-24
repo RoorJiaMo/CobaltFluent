@@ -6,7 +6,7 @@ using Cobalt.Fluent.Controls;
 namespace Cobalt.Fluent.Gallery.Pages;
 
 /// <summary>
-/// 图标总览。全库用到 36 个字形，
+/// 图标总览。全库用到 38 个字形，
 /// 本库改成矢量路径——嵌入式 Linux 上没有那套字体。这一页用来肉眼验收每个字形画得对不对。
 /// </summary>
 public partial class IconsPage : UserControl
@@ -59,7 +59,7 @@ public partial class IconsPage : UserControl
                 new TextBlock
                 {
                     Classes = { "lead" },
-                    Text = "这 36 个字形在本库中不使用字体渲染——"
+                    Text = "这 38 个字形在本库中不使用字体渲染——"
                          + "嵌入式 Linux（如 RK3568）上无法安装所需字体，字形会渲染为缺字方块。"
                          + "因此图标全部改以矢量路径绘制，16×16 设计尺寸，线型字形描边 1.2px 圆头圆角。"
                          + "若目标系统具备该字体，开启 SymbolIcon.UseGlyphFont 即可切回字体渲染。",

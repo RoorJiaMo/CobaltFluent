@@ -50,6 +50,7 @@ public static class SectionRegistry
         new SectionInfo("7 · HMI 专用", "JogButton", static () => new JogButtonPage()),
         new SectionInfo("7 · HMI 专用", "EStopButton", static () => new EStopButtonPage()),
         new SectionInfo("7 · HMI 专用", "DeviceStatusBar", static () => new DeviceStatusBarPage()),
+        new SectionInfo("7 · HMI 专用", "NumericKeypad", static () => new NumericKeypadPage()),
         new SectionInfo("8 · 日期时间", "CalendarDatePicker / TimePicker", static () => new DateTimePickerPage()),
         new SectionInfo("8 · 日期时间", "CalendarView / DateRange", static () => new CalendarViewPage()),
         new SectionInfo("9 · 图表", "选型与规格", static () => new ChartIntroPage()),

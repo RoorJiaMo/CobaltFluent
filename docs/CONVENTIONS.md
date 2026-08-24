@@ -114,7 +114,7 @@ xmlns:fc="using:Cobalt.Fluent.Controls"
                Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
 ```
 
-可用的 `Symbol` 值见 `src/Cobalt.Fluent/Controls/Symbol.cs`（36 个）。
+可用的 `Symbol` 值见 `src/Cobalt.Fluent/Controls/Symbol.cs`（38 个）。
 手上确实有那套字体的话，`SymbolIcon.UseGlyphFont="True"` 切回字体渲染。
 模板里给它起了名字的话，选择器要写 `fc|SymbolIcon#PART_Chevron`，
 **不是** `TextBlock#PART_Chevron` —— 选择器匹配不到不会报编译错，只是静默不生效。

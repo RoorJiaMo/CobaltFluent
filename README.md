@@ -6,7 +6,7 @@
 
 **A Windows 11 Fluent implementation for Avalonia**
 
-61 controls · 11 groups · light and dark themes · zero third-party dependencies · industrial HMI control set included
+62 controls · 11 groups · light and dark themes · zero third-party dependencies · industrial HMI control set included
 
 [![build](https://github.com/RoorJiaMo/CobaltFluent/actions/workflows/build.yml/badge.svg)](https://github.com/RoorJiaMo/CobaltFluent/actions/workflows/build.yml)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -40,7 +40,7 @@ References only Avalonia itself, `Avalonia.Themes.Fluent` and `Avalonia.Controls
 
 ### Verifiable specification
 
-Most controls ship a state matrix. CI renders all 48 gallery sections headlessly into 96 screenshots; a render failure fails the build.
+Most controls ship a state matrix. CI renders all 49 gallery sections headlessly into 98 screenshots; a render failure fails the build.
 
 </td>
 <td width="25%" valign="top">
@@ -100,7 +100,7 @@ xmlns:fc="using:Cobalt.Fluent.Controls"
 
 ## Gallery
 
-The gallery application contains 48 sections. A control section is laid out as the visual specification, an interactive demo, and a reference table of resource keys and pseudo-classes; 22 of them also freeze every pseudo-class side by side in a state matrix. Five further sections — the design baseline, typography, the icon list, and the introductions to groups 7 and 9 — carry prose and reference material rather than a control demo.
+The gallery application contains 49 sections. A control section is laid out as the visual specification, an interactive demo, and a reference table of resource keys and pseudo-classes; 22 of them also freeze every pseudo-class side by side in a state matrix. Five further sections — the design baseline, typography, the icon list, and the introductions to groups 7 and 9 — carry prose and reference material rather than a control demo.
 
 <table>
 <tr>
@@ -128,7 +128,7 @@ dotnet run --project samples/Cobalt.Fluent.Gallery
 11 groups. Baseline desktop control height is 32px.
 
 <details>
-<summary><b>Full list (61 controls)</b></summary>
+<summary><b>Full list (62 controls)</b></summary>
 
 <br>
 
@@ -139,13 +139,13 @@ dotnet run --project samples/Cobalt.Fluent.Gallery
 | **4** Collections | ListBox · DataGrid · TreeView | ListBoxItem template rewritten (adds the selection indicator bar) |
 | **5** Feedback | InfoBar · InfoBadge · ProgressBar · ProgressRing · ToolTip | InfoBar / InfoBadge / ProgressRing implemented here |
 | **6** Popups | Flyout · MenuFlyout · ContentDialog · TeachingTip · CommandBar | ContentDialog / TeachingTip / CommandBar implemented here |
-| **7** Industrial HMI | Readout · StatusIndicator · AlarmBanner · ParameterRow · JogButton · EStopButton · DeviceStatusBar | All implemented here |
+| **7** Industrial HMI | Readout · StatusIndicator · AlarmBanner · ParameterRow · JogButton · EStopButton · DeviceStatusBar · NumericKeypad | All implemented here |
 | **8** Date and time | CalendarDatePicker · TimePicker · Calendar · RangeCalendar | Built-ins re-themed; RangeCalendar implemented here (adds range-endpoint pseudo-classes). A date range is composed from two `CalendarDatePicker`s — there is no `DateRangePicker` type. |
 | **9** Charts | ChartFrame · TrendChart · Gauge · BarChart · Sparkline · ChartLegend | All drawn directly by this library |
 | **10** Data grid extras | DataGridToolbar · Pagination · EmptyState · Skeleton | All implemented here |
 | **11** Common additions | AutoSuggestBox · BreadcrumbBar · SegmentedControl · Chip · Stepper · GridSplitter · Toast · PersonPicture | All implemented here, except AutoSuggestBox (Avalonia's built-in `AutoCompleteBox`, re-themed) and GridSplitter |
 
-Full API reference in [`docs/CONTROLS.md`](docs/CONTROLS.md) (73 types, extracted from source by script).
+Full API reference in [`docs/CONTROLS.md`](docs/CONTROLS.md) (76 types, extracted from source by script).
 
 </details>
 
@@ -200,7 +200,7 @@ Configuration options for embedded graphics environments such as Mali GPUs:
 | Acrylic (live blur) | Override `AcrylicBackgroundFillColorDefaultBrush` with a solid colour |
 | Larger touch targets | Override `ControlHeight` / `ControlCornerRadius` / `OverlayCornerRadius` |
 
-Icons do not depend on Segoe Fluent Icons: all 37 glyphs are vector paths, so rendering is identical across platforms and no font needs to ship with the application. Where the target environment does have the font, `SymbolIcon.UseGlyphFont="True"` switches back to font rendering.
+Icons do not depend on Segoe Fluent Icons: all 38 glyphs are vector paths, so rendering is identical across platforms and no font needs to ship with the application. Where the target environment does have the font, `SymbolIcon.UseGlyphFont="True"` switches back to font rendering.
 
 ---
 
@@ -211,7 +211,7 @@ tools/check.sh                        # build the control library (copies to a t
 tools/check.sh --gallery              # build the gallery as well
 tools/check.sh --only Button.axaml    # merge only the named control-layer file (for parallel work)
 
-dotnet test tests/Cobalt.Fluent.Tests               # 74 regression tests
+dotnet test tests/Cobalt.Fluent.Tests               # 125 regression tests
 dotnet run  --project samples/Cobalt.Fluent.Gallery # run the gallery
 ```
 
@@ -238,8 +238,8 @@ dotnet run --project tools/Cobalt.Fluent.Shots -- artifacts/shots "shell:Readout
 | Document | Contents |
 |---|---|
 | [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md) | Development conventions — layering, resource-key reference, pseudo-class list, invariants, and a set of pitfalls the compiler cannot catch |
-| [`docs/CONTROLS.md`](docs/CONTROLS.md) | Control API reference (73 types, extracted from source by `tools/gen_api_docs.py`) |
-| Gallery | 48 sections: visual specification + interactive demo + resource-key reference + source viewer, with a state matrix in 22 of them |
+| [`docs/CONTROLS.md`](docs/CONTROLS.md) | Control API reference (76 types, extracted from source by `tools/gen_api_docs.py`) |
+| Gallery | 49 sections: visual specification + interactive demo + resource-key reference + source viewer, with a state matrix in 22 of them |
 
 Read `CONVENTIONS.md` before changing a control. Before opening a PR, run the build, the tests and the generators locally — CI runs the same checks, plus a headless render of every section.
 

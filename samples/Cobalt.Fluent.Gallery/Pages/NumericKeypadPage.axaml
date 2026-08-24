@@ -1,0 +1,106 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             xmlns:fc="using:Cobalt.Fluent.Controls"
+             x:Class="Cobalt.Fluent.Gallery.Pages.NumericKeypadPage">
+
+  <StackPanel HorizontalAlignment="Left">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="NumericKeypad" />
+      <Border Classes="tag"><TextBlock Text="7 · HMI 专用" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead"
+               Text="触摸屏数值输入。工业面板绝大多数不配物理键盘，缺少该控件时 ParameterRow 一类控件在真实设备上无法修改数值。按键基准 56px：桌面 32px 为鼠标尺度，触摸操作至少需要 40px，现场普遍戴手套操作，需再提高一档。" />
+
+    <TextBlock Classes="sub" Text="独立使用" />
+    <Border Classes="panel">
+      <StackPanel Orientation="Horizontal" Spacing="24">
+        <fc:NumericKeypad Label="腔体温度" Unit="°C"
+                          Minimum="20" Maximum="120" Format="F1"
+                          Text="85.0" />
+        <TextBlock Classes="note" MaxWidth="300" VerticalAlignment="Top"
+                   Text="绑定 Text、监听 Committed 即可独立工作。量程在输入开始之前即显示，避免输入完成后才提示越界。" />
+      </StackPanel>
+    </Border>
+
+    <TextBlock Classes="sub" Text="三条输入规则" />
+    <Border Classes="panel">
+      <StackPanel Spacing="16">
+
+        <StackPanel Spacing="4">
+          <TextBlock Text="一、输入过程中不做量程拦截" FontWeight="SemiBold" />
+          <TextBlock Classes="note" MaxWidth="620"
+                     Text="将 5 修改为 50 必然经过中间态 5。逐键校验会导致该类目标值无法输入。因此按键永不拒收，仅在提交时闸住：CanCommit 实时反映是否可提交，确认键随之禁用。" />
+        </StackPanel>
+
+        <StackPanel Spacing="4">
+          <TextBlock Text="二、越界时拒绝，不做静默限幅" FontWeight="SemiBold" />
+          <TextBlock Classes="note" MaxWidth="620"
+                     Text="上限为 120 而输入 150 时，将其改写为 120 后提交是最危险的处理方式——操作员据此认为设备接收的是 150。本控件不提交，由操作员自行修改。" />
+        </StackPanel>
+
+        <StackPanel Spacing="4">
+          <TextBlock Text="三、首次按数字替换整个缓冲" FontWeight="SemiBold" />
+          <TextBlock Classes="note" MaxWidth="620"
+                     Text="打开键盘时缓冲为当前值 85.0，若要改为 9 需先按五次退格，是触摸屏上的典型误操作来源。首键替换沿用计算器约定；退格与符号键则在既有缓冲上继续编辑。" />
+        </StackPanel>
+
+      </StackPanel>
+    </Border>
+
+    <TextBlock Classes="sub" Text="越界状态" />
+    <Border Classes="panel">
+      <StackPanel Orientation="Horizontal" Spacing="24">
+        <fc:NumericKeypad Label="腔体温度" Unit="°C"
+                          Minimum="20" Maximum="120" Format="F1"
+                          Text="150" />
+        <TextBlock Classes="note" MaxWidth="300" VerticalAlignment="Top"
+                   Text="越界时回显与提示同时转为 caution 色，确认键禁用而非隐藏——按键位置发生跳动会导致下一次按空。此处使用 caution 而非 critical：输入尚未成型不等同于设备故障，两者共用同一红色会稀释真正的故障色。" />
+      </StackPanel>
+    </Border>
+
+    <TextBlock Classes="sub" Text="交互演示 — 挂接 ParameterRow 走完整回路" />
+    <Border Classes="play">
+      <StackPanel Spacing="16">
+        <fc:ParameterRow x:Name="Row"
+                         Label="腔体温度" Unit="°C"
+                         Minimum="20" Maximum="120" Format="F1"
+                         Setpoint="85" ActualValue="84.6" />
+        <StackPanel Orientation="Horizontal" Spacing="24">
+          <fc:NumericKeypad x:Name="Pad" />
+          <StackPanel Spacing="8" MaxWidth="300" VerticalAlignment="Top">
+            <TextBlock Classes="note"
+                       Text="Target 赋值后，量程、格式、单位与标签全部取自宿主；确认时写回宿主的 PendingText 并调用其 CommitPending，由宿主自身的状态机决定下发流程。" />
+            <TextBlock x:Name="Log" Classes="note" TextWrapping="Wrap" />
+            <Button x:Name="Readback" Content="模拟设备回读 95.5" />
+          </StackPanel>
+        </StackPanel>
+      </StackPanel>
+    </Border>
+
+    <TextBlock Classes="sub" Text="输入规则开关" />
+    <Border Classes="panel">
+      <StackPanel Orientation="Horizontal" Spacing="24">
+        <fc:NumericKeypad Label="批次计数" Unit="件"
+                          Minimum="0" Maximum="9999" Format="F0"
+                          AllowDecimal="False" AllowNegative="False"
+                          Text="120" />
+        <TextBlock Classes="note" MaxWidth="300" VerticalAlignment="Top"
+                   Text="整数参数关闭 AllowDecimal，非负参数关闭 AllowNegative，对应按键随之禁用。禁用而非移除：键位保持固定，操作员的肌肉记忆不受影响。" />
+      </StackPanel>
+    </Border>
+
+    <g:MapBlock Note="物理小键盘与纯键盘可达：0–9 与小键盘数字、小数点、Backspace 退格、Delete 清空、减号切换符号、Enter 确认、Esc 取消；带 Ctrl / Alt / Win 的组合键一律放行给应用，不被本控件处理。挂接通过 INumericInputTarget 接口完成，使用方自有控件实现该接口即可复用同一键盘，无需依赖本库的具体控件类型。">
+      <g:MapRow Key="类型" Value="NumericKeypad : TemplatedControl" />
+      <g:MapRow Key="属性" Value="Text · Minimum · Maximum · Format=F1 · Unit · Label · AllowNegative=true · AllowDecimal=true · MaxLength=12 · Target" />
+      <g:MapRow Key="只读" Value="Value · CanCommit · RangeText · ValidationText · DecimalSeparatorText" />
+      <g:MapRow Key="方法" Value="LoadValue（外部重设缓冲一律走这里）· Append · Backspace · Clear · ToggleSign · Commit · Cancel" />
+      <g:MapRow Key="事件" Value="Committed（带解析后的值） · Cancelled" />
+      <g:MapRow Key="伪类" Value=":empty :invalid :outofrange" />
+      <g:MapRow Key="资源键" Value="KeypadKeySize=56 · KeypadKeyButton · KeypadCommitButton" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

@@ -48,7 +48,7 @@ public enum ParameterWriteState
 /// 整张表的列宽用 <c>Grid.IsSharedSizeScope</c> + SharedSizeGroup 对齐，别每行各算各的。
 /// </summary>
 [PseudoClasses(":dirty", ":writing", ":failed", ":outofrange", ":readonly")]
-public class ParameterRow : TemplatedControl
+public class ParameterRow : TemplatedControl, INumericInputTarget
 {
     /// <summary>上次成功下发并回读到的值。失败时回滚到它。</summary>
     private double? _lastApplied;
@@ -369,6 +369,20 @@ public class ParameterRow : TemplatedControl
         WriteState = ParameterWriteState.Clean;
         PendingText = applied.ToString(Format, CultureInfo.CurrentCulture);
         SetState(ParameterWriteState.Failed, message ?? "下发失败", canApply: false);
+    }
+
+    /// <summary>
+    /// <see cref="INumericInputTarget"/> 的下发入口。转调 <see cref="Apply"/>——
+    /// 键盘不该绕过这里的量程判定与状态机自己写值。
+    ///
+    /// 正在下发（等回读）、只读、或本行自身判定不通过时返回 false，
+    /// 由键盘负责回滚并且不报「已确认」。
+    /// </summary>
+    public bool CommitPending()
+    {
+        if (!CanApply) return false;
+        Apply();
+        return true;
     }
 
     /// <summary>放弃修改，回到上次成功值。</summary>

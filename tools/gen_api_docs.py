@@ -71,7 +71,7 @@ def parse_file(path):
             continue
 
         m = re.match(
-            r"public (?:sealed |abstract )?(class|enum) (\w+)(?:\s*:\s*([\w<>, .]+))?", stripped)
+            r"public (?:sealed |abstract )?(class|enum|interface) (\w+)(?:\s*:\s*([\w<>, .]+))?", stripped)
         if m:
             types.append({
                 "kind": m.group(1),
@@ -89,6 +89,26 @@ def parse_file(path):
 
         if types:
             current = types[-1]
+
+            # 接口成员没有 public 修饰符，属性体又写在一行（string? Label { get; }），
+            # 下面那两条按 public 起头的规则一条都匹配不到，只会产出一个空条目。
+            # 「使用方要自己实现这个接口」正是它存在的理由，成员表不能是空的。
+            if current["kind"] == "interface":
+                m = re.match(r"([\w<>?\[\], .]+?) (\w+)\s*\{\s*get", stripped)
+                if m:
+                    current["props"].append(
+                        (m.group(2), m.group(1).strip(), strip_doc(pending_doc)))
+                    pending_doc = []
+                    i += 1
+                    continue
+
+                m = re.match(r"([\w<>?\[\], .]+?) (\w+)\((.*?)\);", stripped)
+                if m:
+                    current["methods"].append(
+                        (m.group(2), m.group(1).strip(), m.group(3), strip_doc(pending_doc)))
+                    pending_doc = []
+                    i += 1
+                    continue
 
             if current["kind"] == "enum":
                 m = re.match(r"(\w+)\s*(?:=\s*\d+\s*)?,", stripped)

@@ -38,6 +38,7 @@
         <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/Flyout.axaml" />
         <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/HmiActuator.axaml" />
         <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/HmiAlarm.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/HmiKeypad.axaml" />
         <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/HmiParameter.axaml" />
         <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/HmiReadout.axaml" />
         <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/HmiStatusBar.axaml" />

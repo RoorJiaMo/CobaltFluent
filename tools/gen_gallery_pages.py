@@ -34,7 +34,8 @@ SECTIONS = [
         ("总则", "HmiIntroPage"), ("Readout", "ReadoutPage"),
         ("StatusIndicator", "StatusIndicatorPage"), ("AlarmBanner", "AlarmBannerPage"),
         ("ParameterRow", "ParameterRowPage"), ("JogButton", "JogButtonPage"),
-        ("EStopButton", "EStopButtonPage"), ("DeviceStatusBar", "DeviceStatusBarPage")]),
+        ("EStopButton", "EStopButtonPage"), ("DeviceStatusBar", "DeviceStatusBarPage"),
+        ("NumericKeypad", "NumericKeypadPage")]),
     ("8 · 日期时间", [
         ("CalendarDatePicker / TimePicker", "DateTimePickerPage"),
         ("CalendarView / DateRange", "CalendarViewPage")]),

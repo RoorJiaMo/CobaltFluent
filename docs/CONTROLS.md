@@ -187,6 +187,63 @@ WinUI / FluentAvalonia 里不存在，全部新写。涉及人身和设备安全
 
 成对/成组的点动按钮容器（正转-反转、开阀-关阀）。 存在的意义只有一个：让相接处不圆、不双线。 实现上给子按钮打 `jog-first` / `jog-last` / `jog-only` 三个类， 圆角规则写在 JogButton 的 ControlTheme 里。 不用 `:nth-child` 选择器是因为 Avalonia 的 ControlTheme 里不允许出现子代选择器。
 
+### `INumericInputTarget`
+
+能被 `NumericKeypad` 挂接的数值输入宿主。 `ParameterRow` 实现了它。使用方自己的控件实现这个接口就能复用同一个键盘， 不必依赖本库的具体控件类型——这是「可选挂接」的全部含义。
+
+| 属性 | 类型 | 说明 |
+|---|---|---|
+| `Label` | `string?` | 正在编辑什么。显示在键盘抬头。 |
+| `Unit` | `string?` | 工程单位。跟在量程提示后面。 |
+| `Minimum` | `double` | — |
+| `Maximum` | `double` | — |
+| `Format` | `string` | 量程提示的数字格式。不用来格式化正在输入的缓冲。 |
+| `PendingText` | `string?` | 待下发的文本。键盘确认时写回这里。 |
+
+| 成员 | 说明 |
+|---|---|
+| `CommitPending()` | 把 `PendingText` 真正下发出去。 返回 false 表示宿主此刻不受理（正在下发、只读、宿主自身判定不通过）， 键盘据此回滚并且不抛出确认事件——「界面说已下发、设备没收到」是本组要防的事故。 |
+
+### `NumericKeypad` : `TemplatedControl`
+
+数字键盘。触摸屏上位机的必需件——工业面板绝大多数没有物理键盘， 没有它，`ParameterRow` 这类控件在真实设备上根本改不了值。 三条硬约束，都不是外观问题： 1. **输入过程中不做量程拦截。** 把 5 改成 50 必然要经过中间态 5 → 50， 逐键校验会让一大批合法目标值根本输不进去。所以键盘允许自由输入， 只在提交那一刻闸住——`CanCommit` 实时反映能不能提交， 确认键随之禁用，但按键本身永远不拒收。 2. **超量程时拒绝，不静默限幅。** 上限 120 而操作员输了 150， 悄悄改成 120 提交是最危险的做法：他以为设备收到的是 150。 要么他自己改，要么不下发。 3. **首次按数字替换整个缓冲，不是追加。** 打开键盘时缓冲里是当前值 85.0， 要改成 9 却得先按五次退格，是触摸屏上典型的误操作来源。 首键替换是计算器沿用几十年的约定，退格与符号键则在既有缓冲上继续编辑。 独立使用时绑 `Text`、听 `Committed` 即可； 给 `Target` 赋一个 `INumericInputTarget` 则量程、单位、 格式与标签全部跟随宿主，确认时写回宿主并触发其下发。
+
+**伪类**：`:empty` · `:invalid` · `:outofrange`
+
+| 属性 | 类型 | 说明 |
+|---|---|---|
+| `Text` | `string?` | 正在输入的文本。外部赋值会重置「首键替换」状态。 |
+| `Minimum` | `double` | — |
+| `Maximum` | `double` | — |
+| `Format` | `string` | 量程提示的数字格式。不用来格式化正在输入的缓冲—— 边输边格式化会把光标位置和小数点抢走。 |
+| `Unit` | `string?` | — |
+| `Label` | `string?` | 正在编辑什么。抬头必须写清楚——操作员面前经常同时开着几个参数。 |
+| `AllowNegative` | `bool` | 允许负值。温度、偏差允许；转速、时长不允许。 |
+| `AllowDecimal` | `bool` | 允许小数。整数参数（计数、序号）关掉，小数点键随之禁用。 |
+| `MaxLength` | `int` | 缓冲最大字符数，含负号与小数点。防的是按住不放刷出一屏数字。 |
+| `Target` | `INumericInputTarget?` | 挂接的输入宿主。赋值时量程、格式、单位、标签与当前文本一次性从宿主同步过来， 确认时写回宿主的 `PendingText` 并调用 `CommitPending`。为 null 时键盘完全独立。 |
+| `Value` | `double?` | 缓冲解析出来的值。解析不出来时为 null。 |
+| `CanCommit` | `bool` | 能否提交。空缓冲、解析失败、超量程时为 false，确认键随之禁用。 |
+| `RangeText` | `string?` | 量程提示，如「20.0 – 120.0 °C」。两端都无界时为 null。 输入之前就把边界摆出来，比输完再报错省一次来回。 |
+| `DecimalSeparatorText` | `string` | 小数点键的键面文字。按下去插入的是当前文化的小数点分隔符， 键面必须跟着走——触摸屏上键面是操作员唯一的可见线索。 |
+| `ValidationText` | `string?` | 为什么不能提交。可以提交时为 null。 |
+| `Committed` | `event EventHandler<NumericKeypadCommittedEventArgs>?` | 确认。只有 `CanCommit` 为 true 时才会触发。 |
+| `Cancelled` | `event EventHandler<RoutedEventArgs>?` | 取消。缓冲不变，由使用方决定关闭还是复位。 |
+
+| 成员 | 说明 |
+|---|---|
+| `LoadValue(string? text)` | 装入一个待编辑的值，并回到「首键替换」状态。外部重设缓冲一律走这里。 不能只写 `Text`：Avalonia 对相等的新值不发变更通知， 新值恰好等于当前缓冲时 `OnTextChanged` 根本不触发，_pristine 会停在上一次编辑的 false。 一块键盘轮流服务多个参数时，这会把上一个参数的残留缓冲带进下一个参数的设定值。 |
+| `Append(string token)` | 追加一个字符。只认 0–9 与小数点分隔符，其余静默忽略。 不做量程校验——中间态必须能输进来。 |
+| `Backspace()` | 退格一位。在既有缓冲上编辑，不触发首键替换。 |
+| `Clear()` | 清空。和退格分开——戴手套连按退格是常见误操作，清空要独立一键。 |
+| `ToggleSign()` | 正负号切换。是切换不是追加，按两次回到原样。负号取自当前文化 （瑞典语等用的是 U+2212 而不是 ASCII 连字符，写死 '-' 会拼出双负号）。 `AllowNegative` 为 false 时只禁止加负号；把已有的负值改成正值 永远允许——那是往合法方向走，挡住只会逼操作员退格重输。 |
+| `Commit()` | 提交。`CanCommit` 为 false 时是空操作—— 不会把超量程的值限幅到边界后提交。 |
+| `Cancel()` | 取消。不动缓冲，由使用方决定收起还是复位。 |
+
+### `NumericKeypadCommittedEventArgs`
+
+确认事件。`Value` 是解析并通过量程校验后的值。
+
 ### `ParameterWriteState`
 
 参数下发状态机。
@@ -199,7 +256,7 @@ WinUI / FluentAvalonia 里不存在，全部新写。涉及人身和设备安全
 | `Failed` | 下发失败，值已回滚到上次成功值。 |
 | `OutOfRange` | 输入超量程，不允许下发。 |
 
-### `ParameterRow` : `TemplatedControl`
+### `ParameterRow` : `TemplatedControl, INumericInputTarget`
 
 参数行。过程控制的主力控件。 **核心是把「我改了」和「设备收到了」区分开** —— 这两者之间的空档是事故高发区： 操作员改完数字就走，以为已生效，实际上还躺在输入框里。 状态机：`Clean → Dirty →（下发）→ Writing →（回读）→ Clean` 或 `Writing →（失败）→ Failed`，超量程时进 `OutOfRange` 且禁止下发。 两个容易写错的地方： 1. **下发成功后填回读值，不是输入值。** 设备可能做了限幅或量化—— 你写 85.3，它按 0.5 步进量化成 85.5。显示输入值就是在骗人。 所以 `CompleteWrite` 收的是设备回读回来的值。 2. **失败要回滚到上次成功值**，不能把失败的输入留在框里。 界面上 `:dirty` 要三重提示（整行淡黄底 + 输入框底边变色 + 行尾徽章）—— 一屏二十行参数时，只改 2px 边框根本看不见。 整张表的列宽用 `Grid.IsSharedSizeScope` + SharedSizeGroup 对齐，别每行各算各的。
 
@@ -230,6 +287,7 @@ WinUI / FluentAvalonia 里不存在，全部新写。涉及人身和设备安全
 | `Apply()` | 请求下发。超量程或没改动时是空操作。 进 `Writing` 之后就等着应用侧回调 `CompleteWrite` / `FailWrite`。 |
 | `CompleteWrite(double readbackValue)` | 下发成功。 必须是**设备回读回来的值**， 不是刚才写下去的值——设备可能做了限幅或量化，显示输入值等于骗人。 |
 | `FailWrite(string? message = null)` | 下发失败。值回滚到上次成功值，让操作员看到设备上真实生效的是什么。 |
+| `CommitPending()` | `INumericInputTarget` 的下发入口。转调 `Apply`—— 键盘不该绕过这里的量程判定与状态机自己写值。 正在下发（等回读）、只读、或本行自身判定不通过时返回 false， 由键盘负责回滚并且不报「已确认」。 |
 | `Revert()` | 放弃修改，回到上次成功值。 |
 
 ### `ParameterTable` : `ItemsControl`
@@ -945,7 +1003,7 @@ Toast 的承载层。挂在窗口的 OverlayLayer 上，右下角堆叠，不进
 
 ### `Symbol`
 
-图标名。全库用到的 36 个字形，全部画成矢量路径。 为什么不直接用字体：目标平台里有嵌入式 Linux（RK3568 那类）， 上面没有 Segoe Fluent Icons，用字体会渲染成豆腐块。 所以本库的图标全部是矢量路径，跨平台像素一致，也不用往安装包里塞字体。 手上确实有那套字体的话，用 `Glyph` 直接给码位。
+图标名。全库用到的 38 个字形，全部画成矢量路径。 为什么不直接用字体：目标平台里有嵌入式 Linux（RK3568 那类）， 上面没有 Segoe Fluent Icons，用字体会渲染成豆腐块。 所以本库的图标全部是矢量路径，跨平台像素一致，也不用往安装包里塞字体。 手上确实有那套字体的话，用 `Glyph` 直接给码位。
 
 | 取值 | 说明 |
 |---|---|
@@ -987,6 +1045,7 @@ Toast 的承载层。挂在窗口的 OverlayLayer 上，右下角堆叠，不进
 | `Error` | — |
 | `GlobalNav` | — |
 | `Brightness` | — |
+| `Backspace` | 退格。数字键盘用；线型轮廓内嵌一个叉，和 Fluent 的画法一致。 |
 
 ### `SymbolIcon` : `Control`
 

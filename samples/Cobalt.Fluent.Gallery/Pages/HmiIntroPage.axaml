@@ -68,7 +68,7 @@
                Text="Readout → StatusIndicator → ParameterRow → AlarmBanner → DeviceStatusBar → JogButton → EStopButton。前三个是纯显示/输入，最容易验证；后两个涉及安全语义，需配合实际设备联调。" />
 
     <g:MapBlock Note="这四个控件的交互本身即规格，无法仅依据静态图实现：ParameterRow（dirty→writing→clean/failed，成功填回读值而非输入值）、JogButton（多个停止触发点 + 看门狗）、EStopButton（触发自锁，必须复位）、TrendChart（trackball 十字线）。">
-      <g:MapRow Key="覆盖" Value="Readout · StatusIndicator · AlarmBanner · ParameterRow · JogButton · EStopButton · DeviceStatusBar（含 Heartbeat / JogGroup / ParameterTable）" />
+      <g:MapRow Key="覆盖" Value="Readout · StatusIndicator · AlarmBanner · ParameterRow · JogButton · EStopButton · DeviceStatusBar · NumericKeypad（含 Heartbeat / JogGroup / ParameterTable）" />
       <g:MapRow Key="基类" Value="TemplatedControl（JogButton 与 EStopButton 继承 Button，需要按压语义）" />
       <g:MapRow Key="伪类" Value="全部自定义，在属性变化里 PseudoClasses.Set(&quot;:dirty&quot;, v)" />
       <g:MapRow Key="嵌入式" Value="StatusIndicator.IsPulseEnabled · AlarmBanner.IsBreathingEnabled——Mali GPU 上同屏十几个并发动画会掉帧，禁用后用静态形状补强" />

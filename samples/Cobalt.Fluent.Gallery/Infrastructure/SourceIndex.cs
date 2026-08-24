@@ -66,6 +66,7 @@ public static class SourceIndex
         ["JogButtonPage"] = ["controls/Hmi/JogButton.cs", "controls/Hmi/JogGroup.cs", "themes/Controls/HmiActuator.axaml"],
         ["EStopButtonPage"] = ["controls/Hmi/EStopButton.cs", "themes/Controls/HmiActuator.axaml"],
         ["DeviceStatusBarPage"] = ["controls/Hmi/DeviceStatusBar.cs", "controls/Hmi/Heartbeat.cs", "themes/Controls/HmiStatusBar.axaml"],
+        ["NumericKeypadPage"] = ["controls/Hmi/NumericKeypad.cs", "themes/Controls/HmiKeypad.axaml"],
 
         ["DateTimePickerPage"] = ["themes/Controls/DateTime.axaml"],
         ["CalendarViewPage"] = ["controls/DateTimeControls/RangeCalendar.cs", "themes/Controls/DateTime.axaml"],

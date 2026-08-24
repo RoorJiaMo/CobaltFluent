@@ -112,6 +112,12 @@ internal static class SymbolGeometry
             "M8,1.8 V3.2 M8,12.8 V14.2 M1.8,8 H3.2 M12.8,8 H14.2 " +
             "M3.6,3.6 L4.6,4.6 M11.4,11.4 L12.4,12.4 " +
             "M12.4,3.6 L11.4,4.6 M4.6,11.4 L3.6,12.4", true, "\uE706"),
+
+        // 退格：左指五边形轮廓 + 里面一个叉。尖端指向删除方向，
+        // 小尺寸下光靠箭头分不出是「返回」还是「删除」，叉是必需的。
+        [Symbol.Backspace] = new(
+            "M6,3.4 H13.4 V12.6 H6 L2.2,8 Z " +
+            "M8.4,6.2 L11.6,9.8 M11.6,6.2 L8.4,9.8", true, "\uE750"),
     };
 
     internal static Geometry? Get(Symbol symbol)

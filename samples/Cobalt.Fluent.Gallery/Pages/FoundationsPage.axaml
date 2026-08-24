@@ -35,7 +35,7 @@
     </StackPanel>
 
     <TextBlock Classes="lead"
-               Text="全库共用的几条硬性规则。它们不是风格偏好，而是 57 个控件同屏呈现仍能分辨层次的前提——单独审视一个控件时，多种画法都可成立；多个控件并列时，只有一套一致的层、圆角、阴影和字重才能避免视觉冲突。后面每一节的规格都建立在这四条之上。" />
+               Text="全库共用的几条硬性规则。它们不是风格偏好，而是 62 个控件同屏呈现仍能分辨层次的前提——单独审视一个控件时，多种画法都可成立；多个控件并列时，只有一套一致的层、圆角、阴影和字重才能避免视觉冲突。后面每一节的规格都建立在这四条之上。" />
 
     <TextBlock Classes="sub" Text="画面只有两层 — base layer / content layer" />
     <Border Classes="panel" HorizontalAlignment="Stretch">

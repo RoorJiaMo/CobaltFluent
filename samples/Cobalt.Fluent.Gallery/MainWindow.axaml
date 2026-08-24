@@ -32,7 +32,7 @@
           </Panel>
           <TextBlock Text="Cobalt.Fluent" Theme="{StaticResource SubtitleTextBlockStyle}" />
           <Border Classes="tag" VerticalAlignment="Center">
-            <TextBlock Text="Avalonia 11.3 · 57 控件" />
+            <TextBlock Text="Avalonia 11.3 · 62 控件" />
           </Border>
         </StackPanel>
 

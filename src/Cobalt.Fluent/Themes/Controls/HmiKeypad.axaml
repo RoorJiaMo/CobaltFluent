@@ -1,0 +1,252 @@
+<!-- NumericKeypad —— 第 7 组，触摸屏数值输入。
+     工业面板绝大多数没有物理键盘，参数改不了值这一整组控件就失去意义。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:fc="using:Cobalt.Fluent.Controls">
+
+  <!-- 按键基准 56px。桌面的 32px 是鼠标尺度，触摸至少要 40，
+       而工业现场普遍戴手套操作，再往上抬一档才按得准。 -->
+  <x:Double x:Key="KeypadKeySize">56</x:Double>
+
+  <ControlTheme x:Key="KeypadKeyButton" TargetType="Button">
+    <!-- 键本身不参与焦点：整块键盘是一个可聚焦部件。键可聚焦的话，
+         点过任意一个键之后焦点就落在那个 Button 上，之后物理 Enter 被
+         Button 自己的 KeyDown 转成 Click，冒泡不到 NumericKeypad.OnKeyDown，
+         回车确认直接失灵。Tab 逐个走过 16 个键也不是想要的行为。 -->
+    <Setter Property="Focusable" Value="False" />
+    <Setter Property="Height" Value="{DynamicResource KeypadKeySize}" />
+    <Setter Property="MinWidth" Value="{DynamicResource KeypadKeySize}" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="FontSize" Value="20" />
+    <Setter Property="Margin" Value="2" />
+    <Setter Property="Background" Value="{DynamicResource ControlFillColorDefaultBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource ControlStrokeColorDefaultBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="Button">
+        <Border x:Name="Root"
+                Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}">
+          <Border.Transitions>
+            <Transitions>
+              <BrushTransition Property="Background" Duration="0:0:0.083" />
+            </Transitions>
+          </Border.Transitions>
+          <ContentPresenter Content="{TemplateBinding Content}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Foreground="{TemplateBinding Foreground}"
+                            FontSize="{TemplateBinding FontSize}"
+                            FontWeight="{TemplateBinding FontWeight}" />
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^:pointerover /template/ Border#Root">
+      <Setter Property="Background" Value="{DynamicResource ControlFillColorSecondaryBrush}" />
+    </Style>
+    <Style Selector="^:pressed /template/ Border#Root">
+      <Setter Property="Background" Value="{DynamicResource ControlFillColorTertiaryBrush}" />
+    </Style>
+    <Style Selector="^:disabled /template/ Border#Root">
+      <Setter Property="Background" Value="{DynamicResource ControlFillColorDisabledBrush}" />
+    </Style>
+    <Style Selector="^:disabled /template/ ContentPresenter">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+    </Style>
+  </ControlTheme>
+
+  <!-- 确认键。跨两行，是整块键盘上最大的目标，且离数字区最远——
+       它是唯一一个会真的往设备写值的键，不能和退格、清空挤在一起。 -->
+  <ControlTheme x:Key="KeypadCommitButton" TargetType="Button"
+                BasedOn="{StaticResource KeypadKeyButton}">
+    <Setter Property="Height" Value="NaN" />
+    <Setter Property="VerticalAlignment" Value="Stretch" />
+    <Setter Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextOnAccentFillColorPrimaryBrush}" />
+
+    <Style Selector="^:pointerover /template/ Border#Root">
+      <Setter Property="Background" Value="{DynamicResource AccentFillColorSecondaryBrush}" />
+    </Style>
+    <Style Selector="^:pressed /template/ Border#Root">
+      <Setter Property="Background" Value="{DynamicResource AccentFillColorTertiaryBrush}" />
+    </Style>
+    <!-- 超量程时确认键**禁用而不隐藏**：位置一跳，下一次按就按空了 -->
+    <Style Selector="^:disabled /template/ Border#Root">
+      <Setter Property="Background" Value="{DynamicResource AccentFillColorDisabledBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource AccentFillColorDisabledBrush}" />
+    </Style>
+  </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type fc:NumericKeypad}" TargetType="fc:NumericKeypad">
+    <!-- 整块键盘是焦点单元：物理小键盘要能用，纯键盘可达也是无障碍的底线。
+         写在 Setter 里而不是控件构造函数里——构造函数赋值是 local value，
+         使用方就没法再用样式关掉了。 -->
+    <Setter Property="Focusable" Value="True" />
+    <Setter Property="FocusAdorner" Value="{StaticResource FluentFocusAdorner}" />
+    <Setter Property="Background" Value="{DynamicResource LayerFillColorDefaultBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource CardStrokeColorDefaultBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{DynamicResource OverlayCornerRadius}" />
+    <Setter Property="Padding" Value="12" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="VerticalAlignment" Value="Top" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:NumericKeypad">
+        <Border Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Padding="{TemplateBinding Padding}">
+          <!-- 不写死总宽：列宽由 KeypadKeySize 推出来（4 列 + 每键左右各 2 的外边距），
+               覆盖那个 token 抬高键面时整块键盘跟着长，而不是按键互相重叠后溢出面板。 -->
+          <StackPanel Spacing="8">
+
+            <!-- 抬头：在改哪个参数 + 允许的范围。范围要在输入之前就摆出来，
+                 输完再报错等于白输一次。 -->
+            <Grid ColumnDefinitions="*,Auto">
+              <StackPanel Spacing="1">
+                <TextBlock x:Name="PART_Label"
+                           Text="{TemplateBinding Label}"
+                           FontWeight="SemiBold"
+                           TextTrimming="CharacterEllipsis"
+                           IsVisible="{TemplateBinding Label,
+                                       Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                <TextBlock x:Name="PART_Range"
+                           Text="{TemplateBinding RangeText}"
+                           FontSize="{DynamicResource CaptionFontSize}"
+                           LineHeight="{DynamicResource CaptionLineHeight}"
+                           FontFeatures="{StaticResource TabularNumbers}"
+                           Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                           IsVisible="{TemplateBinding RangeText,
+                                       Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+              </StackPanel>
+
+              <!-- 取消放在抬头，离确认键最远 -->
+              <!-- subtle icon 是库里给 32 见方图标按钮准备的变体。裸写 Width="32"
+                   会被默认 Button 主题的 MinWidth=ControlMinWidth(64) 夹回去，量出来是 64×32。 -->
+              <Button x:Name="PART_Cancel"
+                      Grid.Column="1"
+                      Classes="subtle icon"
+                      Focusable="False"
+                      VerticalAlignment="Top">
+                <fc:SymbolIcon Symbol="Cancel" FontSize="12" />
+              </Button>
+            </Grid>
+
+            <!-- 回显。等宽数字，右对齐——数字跳动时不该左右晃 -->
+            <Border Background="{DynamicResource ControlFillColorDefaultBrush}"
+                    BorderBrush="{DynamicResource ControlStrokeColorDefaultBrush}"
+                    BorderThickness="1"
+                    CornerRadius="{DynamicResource ControlCornerRadius}"
+                    Padding="10,6">
+              <StackPanel Spacing="2">
+                <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Right">
+                  <TextBlock x:Name="PART_Display"
+                             Text="{TemplateBinding Text}"
+                             FontFamily="{DynamicResource DisplayControlThemeFontFamily}"
+                             FontSize="28"
+                             FontWeight="SemiBold"
+                             LineHeight="36"
+                             FontFeatures="{StaticResource TabularNumbers}"
+                             Foreground="{DynamicResource TextFillColorPrimaryBrush}" />
+                  <TextBlock x:Name="PART_Unit"
+                             Text="{TemplateBinding Unit}"
+                             FontSize="14"
+                             VerticalAlignment="Bottom"
+                             Margin="0,0,0,5"
+                             Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+                </StackPanel>
+
+                <!-- 为什么不能提交。空缓冲不报错——还没开始输就骂人很烦 -->
+                <TextBlock x:Name="PART_Validation"
+                           Text="{TemplateBinding ValidationText}"
+                           FontSize="{DynamicResource CaptionFontSize}"
+                           LineHeight="{DynamicResource CaptionLineHeight}"
+                           TextAlignment="Right"
+                           Foreground="{DynamicResource TextFillColorTertiaryBrush}"
+                           IsVisible="{TemplateBinding ValidationText,
+                                       Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+              </StackPanel>
+            </Border>
+
+            <!-- 键区。7-8-9 在上，和计算器一致（电话是 1-2-3 在上，
+                 工业面板沿用计算器排布，改了会让老操作员按错）。 -->
+            <Grid RowDefinitions="Auto,Auto,Auto,Auto"
+                  ColumnDefinitions="Auto,Auto,Auto,Auto"
+                  HorizontalAlignment="Left">
+
+              <Button x:Name="PART_Digit7" Grid.Row="0" Grid.Column="0" Content="7"
+                      Theme="{StaticResource KeypadKeyButton}" />
+              <Button x:Name="PART_Digit8" Grid.Row="0" Grid.Column="1" Content="8"
+                      Theme="{StaticResource KeypadKeyButton}" />
+              <Button x:Name="PART_Digit9" Grid.Row="0" Grid.Column="2" Content="9"
+                      Theme="{StaticResource KeypadKeyButton}" />
+              <Button x:Name="PART_Backspace" Grid.Row="0" Grid.Column="3"
+                      Theme="{StaticResource KeypadKeyButton}">
+                <fc:SymbolIcon Symbol="Backspace" FontSize="18" />
+              </Button>
+
+              <Button x:Name="PART_Digit4" Grid.Row="1" Grid.Column="0" Content="4"
+                      Theme="{StaticResource KeypadKeyButton}" />
+              <Button x:Name="PART_Digit5" Grid.Row="1" Grid.Column="1" Content="5"
+                      Theme="{StaticResource KeypadKeyButton}" />
+              <Button x:Name="PART_Digit6" Grid.Row="1" Grid.Column="2" Content="6"
+                      Theme="{StaticResource KeypadKeyButton}" />
+              <!-- 清空与退格分开：戴手套连按退格是常见误操作，清空必须是独立一键 -->
+              <Button x:Name="PART_Clear" Grid.Row="1" Grid.Column="3" Content="C"
+                      FontWeight="SemiBold"
+                      Theme="{StaticResource KeypadKeyButton}" />
+
+              <Button x:Name="PART_Digit1" Grid.Row="2" Grid.Column="0" Content="1"
+                      Theme="{StaticResource KeypadKeyButton}" />
+              <Button x:Name="PART_Digit2" Grid.Row="2" Grid.Column="1" Content="2"
+                      Theme="{StaticResource KeypadKeyButton}" />
+              <Button x:Name="PART_Digit3" Grid.Row="2" Grid.Column="2" Content="3"
+                      Theme="{StaticResource KeypadKeyButton}" />
+              <Button x:Name="PART_Commit" Grid.Row="2" Grid.Column="3" Grid.RowSpan="2"
+                      IsEnabled="{TemplateBinding CanCommit}"
+                      Theme="{StaticResource KeypadCommitButton}">
+                <fc:SymbolIcon Symbol="CheckMark" FontSize="20" />
+              </Button>
+
+              <Button x:Name="PART_Sign" Grid.Row="3" Grid.Column="0" Content="±"
+                      IsEnabled="{TemplateBinding AllowNegative}"
+                      Theme="{StaticResource KeypadKeyButton}" />
+              <Button x:Name="PART_Digit0" Grid.Row="3" Grid.Column="1" Content="0"
+                      Theme="{StaticResource KeypadKeyButton}" />
+              <!-- 键面文字取自控件的 DecimalSeparatorText：按下去插入的是当前文化的
+                   小数点，键面写死 "." 在小数点是逗号的文化下就与实际行为不符。 -->
+              <Button x:Name="PART_Decimal" Grid.Row="3" Grid.Column="2"
+                      Content="{TemplateBinding DecimalSeparatorText}"
+                      IsEnabled="{TemplateBinding AllowDecimal}"
+                      Theme="{StaticResource KeypadKeyButton}" />
+            </Grid>
+          </StackPanel>
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- 空缓冲：回显位淡下去，但**不报错**——还没开始输就提示是噪音 -->
+    <Style Selector="^:empty /template/ TextBlock#PART_Display">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorDisabledBrush}" />
+    </Style>
+
+    <!-- 超量程 / 解析不出来：回显与提示一起变 caution。
+         用 caution 不用 critical——这是输入还没成型，不是设备出事了，
+         两者用同一个红会稀释真正的故障色。 -->
+    <Style Selector="^:invalid /template/ TextBlock#PART_Display">
+      <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCautionBrush}" />
+    </Style>
+    <Style Selector="^:invalid /template/ TextBlock#PART_Validation">
+      <Setter Property="Foreground" Value="{DynamicResource SystemFillColorCautionBrush}" />
+    </Style>
+  </ControlTheme>
+</ResourceDictionary>
