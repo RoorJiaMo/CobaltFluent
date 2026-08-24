@@ -1,11 +1,13 @@
 using System.Windows.Input;
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
 using Avalonia.Controls.Templates;
 using Avalonia.Interactivity;
 using Avalonia.Metadata;
+using Cobalt.Fluent.Automation;
 
 namespace Cobalt.Fluent.Controls;
 
@@ -331,4 +333,7 @@ public class AlarmBanner : TemplatedControl
 
         RaiseEvent(new RoutedEventArgs(AcknowledgedEvent));
     }
+
+    /// <summary>见 <see cref="Cobalt.Fluent.Automation.AlarmBannerAutomationPeer"/>。</summary>
+    protected override AutomationPeer OnCreateAutomationPeer() => new AlarmBannerAutomationPeer(this);
 }

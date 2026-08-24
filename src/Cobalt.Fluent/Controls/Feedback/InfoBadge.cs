@@ -1,7 +1,9 @@
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
+using Cobalt.Fluent.Automation;
 
 namespace Cobalt.Fluent.Controls;
 
@@ -90,4 +92,7 @@ public class InfoBadge : TemplatedControl
         PseudoClasses.Set(":dot", IsDot);
         PseudoClasses.Set(":solid", IsSolid);
     }
+
+    /// <summary>见 <see cref="Cobalt.Fluent.Automation.InfoBadgeAutomationPeer"/>。</summary>
+    protected override AutomationPeer OnCreateAutomationPeer() => new InfoBadgeAutomationPeer(this);
 }

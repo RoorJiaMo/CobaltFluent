@@ -1,10 +1,12 @@
 using System.Windows.Input;
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Threading;
+using Cobalt.Fluent.Automation;
 
 namespace Cobalt.Fluent.Controls;
 
@@ -361,4 +363,7 @@ public class EStopButton : Button
 
         RaiseEvent(new RoutedEventArgs(ReleasedEvent));
     }
+
+    /// <summary>见 <see cref="Cobalt.Fluent.Automation.EStopButtonAutomationPeer"/>。</summary>
+    protected override AutomationPeer OnCreateAutomationPeer() => new EStopButtonAutomationPeer(this);
 }

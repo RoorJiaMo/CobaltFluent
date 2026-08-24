@@ -1,9 +1,11 @@
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Layout;
 using Avalonia.Media;
+using Cobalt.Fluent.Automation;
 
 namespace Cobalt.Fluent.Controls;
 
@@ -147,4 +149,7 @@ public class ChartLegend : TemplatedControl
             _panel.Children.Add(item);
         }
     }
+
+    /// <summary>见 <see cref="Cobalt.Fluent.Automation.ChartLegendAutomationPeer"/>。</summary>
+    protected override AutomationPeer OnCreateAutomationPeer() => new ChartLegendAutomationPeer(this);
 }

@@ -1,8 +1,10 @@
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
 using Avalonia.VisualTree;
+using Cobalt.Fluent.Automation;
 
 namespace Cobalt.Fluent.Controls;
 
@@ -100,4 +102,6 @@ public class AppBarButton : Button
 /// <summary>命令栏里的竖分隔线，1×24。</summary>
 public class AppBarSeparator : TemplatedControl
 {
+    /// <summary>装饰性元素，主动退出自动化树。见 <see cref="Cobalt.Fluent.Automation.DecorativeAutomationPeer"/>。</summary>
+    protected override AutomationPeer OnCreateAutomationPeer() => new DecorativeAutomationPeer(this);
 }

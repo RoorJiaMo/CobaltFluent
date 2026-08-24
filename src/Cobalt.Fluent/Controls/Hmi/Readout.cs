@@ -1,9 +1,11 @@
 using System.Globalization;
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
 using Avalonia.Threading;
+using Cobalt.Fluent.Automation;
 
 namespace Cobalt.Fluent.Controls;
 
@@ -385,4 +387,7 @@ public class Readout : TemplatedControl
         < 3600 => $"{(int)ago.TotalMinutes} 分",
         _ => $"{(int)ago.TotalHours} 小时",
     };
+
+    /// <summary>见 <see cref="Cobalt.Fluent.Automation.ReadoutAutomationPeer"/>。</summary>
+    protected override AutomationPeer OnCreateAutomationPeer() => new ReadoutAutomationPeer(this);
 }

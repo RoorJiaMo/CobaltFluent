@@ -1,8 +1,10 @@
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
+using Cobalt.Fluent.Automation;
 
 namespace Cobalt.Fluent.Controls;
 
@@ -182,4 +184,7 @@ public class Pagination : TemplatedControl
         pages.Add(count);
         return pages;
     }
+
+    /// <summary>见 <see cref="Cobalt.Fluent.Automation.PaginationAutomationPeer"/>。</summary>
+    protected override AutomationPeer OnCreateAutomationPeer() => new PaginationAutomationPeer(this);
 }

@@ -1,8 +1,10 @@
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
+using Cobalt.Fluent.Automation;
 
 namespace Cobalt.Fluent.Controls;
 
@@ -109,4 +111,7 @@ public class PersonPicture : TemplatedControl
             _ => $"{parts[0][0]}{parts[^1][0]}".ToUpperInvariant(),
         };
     }
+
+    /// <summary>见 <see cref="Cobalt.Fluent.Automation.PersonPictureAutomationPeer"/>。</summary>
+    protected override AutomationPeer OnCreateAutomationPeer() => new PersonPictureAutomationPeer(this);
 }

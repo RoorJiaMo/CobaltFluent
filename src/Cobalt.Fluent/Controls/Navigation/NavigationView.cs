@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Collections;
 using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
@@ -6,6 +7,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
 using Avalonia.Metadata;
+using Cobalt.Fluent.Automation;
 
 namespace Cobalt.Fluent.Controls;
 
@@ -180,6 +182,9 @@ public class NavigationView : TemplatedControl
             }
         }
     }
+
+    /// <summary>见 <see cref="Cobalt.Fluent.Automation.NavigationViewAutomationPeer"/>。</summary>
+    protected override AutomationPeer OnCreateAutomationPeer() => new NavigationViewAutomationPeer(this);
 }
 
 /// <summary>导航项。</summary>
@@ -239,4 +244,6 @@ public class NavigationViewItemHeader : ContentControl
 /// <summary>导航分隔线。</summary>
 public class NavigationViewItemSeparator : TemplatedControl
 {
+    /// <summary>装饰性元素，主动退出自动化树。见 <see cref="Cobalt.Fluent.Automation.DecorativeAutomationPeer"/>。</summary>
+    protected override AutomationPeer OnCreateAutomationPeer() => new DecorativeAutomationPeer(this);
 }

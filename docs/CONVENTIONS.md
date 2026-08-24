@@ -144,6 +144,53 @@ dotnet run --project tools/Cobalt.Fluent.Shots -- artifacts/shots Button both
 Avalonia 的 XAML 编译器会报 `AVLN2000`（属性不存在）、`AVLN2200`（值转不过去）这类错，
 所以**编译通过 ≠ 好看，但编译不过一定是错的**。写完必须编译。
 
+## 自动化对等体
+
+每个直接继承 `Control` / `TemplatedControl` 的控件都要覆写 `OnCreateAutomationPeer`
+（`automation-peer` 检查会拦），对等体统一放在 `src/Cobalt.Fluent/Automation/`。
+
+这件事在工业场景里不是可选的：**HMI 的验收普遍用 UI Automation 驱动界面跑回归**，
+测试台要能读出读数、参数状态、急停有没有锁上。没有对等体时这些控件在 Inspect 里
+只是一团没有名字的 `Custom` 矩形，使用方的脚本根本抓不到——而界面上完全看不出来。
+
+三条原则：
+
+**1. `Value` 只放机器可读的那个量，判读上下文放 `ItemStatus`。**
+
+测试台读到 `"85.4"` 无从判断这是实时值还是五分钟前的死值，而这两种情况在屏幕上
+也只差一个灰度。过期、偏离、写入中这些一律进 `ItemStatus`，混进 `Value` 会让断言
+没法写。同理，枚举状态给枚举名而不是显示文字——显示文字会随本地化变，
+断言挂在它上面的话，界面一翻译脚本就全红。
+
+```csharp
+public string Value => Control.DisplayValue ?? "";           // "85.4"
+protected override string? GetItemTypeCore() => Control.Unit; // "°C"，不拼进 Value
+protected override string? GetItemStatusCore() => PeerText.Join(
+    Control.StaleText, Control.Classes.Contains(":deviating") ? "偏离设定值" : null);
+```
+
+**2. 危险动作不通过自动化模式暴露成一次调用。**
+
+急停复位默认要求长按，那道门存在的理由就是防误碰。让自动化客户端一次
+`Toggle()` 就把自锁解掉，等于给它开了一条现场操作员都没有的近路。
+`EStopButtonAutomationPeer.Toggle()` 因此只触发、不解锁，已锁定时抛
+`ElementNotEnabledException`；需要复位请显式调 `EStopButton.Reset()`。
+
+宿主的拒收闸同样不能绕过：`AlarmBannerAutomationPeer.Invoke()` 走
+`Acknowledge()`，宿主 `CanExecute` 为 false 时照样确认不了。
+
+**3. 装饰性元素主动退出自动化树。**
+
+占位骨架、分隔线、图标进树只是噪音，会把真正要读的东西淹掉。这类控件返回
+`DecorativeAutomationPeer`（`NoneAutomationPeer` 的别名），`IsControlElement` 与
+`IsContentElement` 都答否，客户端遍历时整个跳过。条件性的也一样——关掉的
+`InfoBar`、没有名字的 `PersonPicture` 都靠 `IsControlElementCore()` 退出。
+
+**活动区域**：凭空出现的元素（报警、通知、浮层）必须覆写 `GetLiveSettingCore`，
+否则读屏软件与自动化客户端都要靠轮询才发现它，而报警的价值全在于第一时间被察觉。
+`AlarmSeverity.Alarm` / `Fault` 用 `Assertive`（打断当前朗读），`Warning` 用
+`Polite`，`Info` 不播报。
+
 ## 静默失效审计
 
 ```bash
@@ -155,7 +202,7 @@ python3 tools/audit.py --list   # 列出各项检查覆盖的历史缺陷
 在真实路径上整个不成立，而且失效方向朝着「一切正常」**。这一类缺陷在本库里
 成片出现过——一轮对抗性审查确认了 55 条，没有一条是编译器或既有测试能发现的。
 
-`tools/audit.py` 把其中可机械检测的模式固化了下来，10 项检查，每一项都对应
+`tools/audit.py` 把其中可机械检测的模式固化了下来，11 项检查，每一项都对应
 一个真实发生过的缺陷：
 
 | 检查 | 它抓的那个历史缺陷 |
@@ -170,6 +217,7 @@ python3 tools/audit.py --list   # 列出各项检查覆盖的历史缺陷
 | `timer-cleanup` | `EStopButton` 不做卸载清理，长按定时器在控件离开可视树后仍会解锁急停 |
 | `wallclock` | 墙钟 `DateTime.Now` 相减：系统时间回拨多久，就有多久所有读数被判成新鲜 |
 | `unread-property` | `JogButton.RequiresConfirm` 声明、文档、对照表俱全，全库无人读取——危险轴上开了等于没开 |
+| `automation-peer` | 25 个直接继承 `Control` / `TemplatedControl` 的控件没有对等体，在 UI Automation 里只是一团没有名字的 `Custom` 矩形 |
 
 **新加检查的门槛**：能举出一个它本该抓到的历史缺陷，且在当前代码上零误报。
 写完拿历史版本验一遍是必须的——抓不到它本该抓的 bug，这检查就是摆设：

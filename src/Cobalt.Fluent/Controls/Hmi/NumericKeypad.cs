@@ -1,10 +1,12 @@
 using System.Globalization;
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Cobalt.Fluent.Automation;
 
 namespace Cobalt.Fluent.Controls;
 
@@ -627,6 +629,10 @@ public class NumericKeypad : TemplatedControl
         var text = $"{(lo ? "…" : Bound(Minimum))} – {(hi ? "…" : Bound(Maximum))}";
         return string.IsNullOrEmpty(Unit) ? text : $"{text} {Unit}";
     }
+
+
+    /// <summary>见 <see cref="Cobalt.Fluent.Automation.NumericKeypadAutomationPeer"/>。</summary>
+    protected override AutomationPeer OnCreateAutomationPeer() => new NumericKeypadAutomationPeer(this);
 }
 
 /// <summary>确认事件。<see cref="Value"/> 是解析并通过量程校验后的值。</summary>

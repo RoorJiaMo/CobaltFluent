@@ -1,9 +1,11 @@
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Collections;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Media;
 using Avalonia.Metadata;
+using Cobalt.Fluent.Automation;
 
 namespace Cobalt.Fluent.Controls;
 
@@ -164,4 +166,7 @@ public class BarChart : Control
     private FormattedText Text(string text, IBrush brush) => new(
         text, System.Globalization.CultureInfo.CurrentCulture, FlowDirection.LeftToRight,
         new Typeface(TextElement.GetFontFamily(this)), 10, brush);
+
+    /// <summary>见 <see cref="Cobalt.Fluent.Automation.BarChartAutomationPeer"/>。</summary>
+    protected override AutomationPeer OnCreateAutomationPeer() => new BarChartAutomationPeer(this);
 }

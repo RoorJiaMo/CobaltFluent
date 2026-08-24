@@ -1,8 +1,10 @@
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
 using Avalonia.Threading;
+using Cobalt.Fluent.Automation;
 
 namespace Cobalt.Fluent.Controls;
 
@@ -171,4 +173,7 @@ public class Heartbeat : TemplatedControl
 
         base.OnDetachedFromVisualTree(e);
     }
+
+    /// <summary>见 <see cref="Cobalt.Fluent.Automation.HeartbeatAutomationPeer"/>。</summary>
+    protected override AutomationPeer OnCreateAutomationPeer() => new HeartbeatAutomationPeer(this);
 }

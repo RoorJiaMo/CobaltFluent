@@ -1,9 +1,11 @@
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
 using Avalonia.Metadata;
 using Avalonia.Threading;
+using Cobalt.Fluent.Automation;
 
 namespace Cobalt.Fluent.Controls;
 
@@ -207,4 +209,7 @@ public class DeviceStatusBar : TemplatedControl
         LastResponse = DateTime.Now;
         _heartbeat?.Beat();
     }
+
+    /// <summary>见 <see cref="Cobalt.Fluent.Automation.DeviceStatusBarAutomationPeer"/>。</summary>
+    protected override AutomationPeer OnCreateAutomationPeer() => new DeviceStatusBarAutomationPeer(this);
 }

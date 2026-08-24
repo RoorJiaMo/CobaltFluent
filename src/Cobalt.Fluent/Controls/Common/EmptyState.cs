@@ -1,3 +1,5 @@
+using Avalonia.Automation.Peers;
+using Cobalt.Fluent.Automation;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
@@ -56,4 +58,7 @@ public class EmptyState : TemplatedControl
         get => GetValue(ActionCommandProperty);
         set => SetValue(ActionCommandProperty, value);
     }
+
+    /// <summary>见 <see cref="Cobalt.Fluent.Automation.EmptyStateAutomationPeer"/>。</summary>
+    protected override AutomationPeer OnCreateAutomationPeer() => new EmptyStateAutomationPeer(this);
 }

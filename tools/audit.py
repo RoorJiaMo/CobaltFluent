@@ -358,6 +358,55 @@ def _own_region(text, decl_start, name):
     return region
 
 
+def _class_body(text, start):
+    """从类声明处按花括号配对取出类体。返回 (body, end_index)。
+
+    只能配对，不能用「下一个 `^}`」——嵌套类和文件末尾的枚举都会让后者错位。
+    """
+    brace = text.find("{", start)
+    if brace < 0:
+        return "", len(text)
+    depth, i = 0, brace
+    while i < len(text):
+        if text[i] == "{":
+            depth += 1
+        elif text[i] == "}":
+            depth -= 1
+            if depth == 0:
+                return text[brace:i + 1], i
+        i += 1
+    return text[brace:], len(text)
+
+
+def check_automation_peer():
+    """直接继承 Control / TemplatedControl 的控件必须覆写 OnCreateAutomationPeer。
+
+    历史缺陷：本库 25 个直接继承 Control / TemplatedControl 的控件全部没有对等体，
+    在 Inspect 和 UI Automation 客户端里退化成一团没有名字的 Custom 矩形。
+    工业 HMI 的验收脚本普遍用 UI Automation 驱动界面跑回归，使用方的脚本
+    根本抓不到这些控件——而界面上完全看不出来。
+
+    只查直接继承这两个基类的：从 Button / RangeBase / TabItem 派生的控件
+    继承到的是 Avalonia 自己的对等体，本来就有名字有类型，不在本检查范围。
+
+    装饰性元素也要覆写——用 DecorativeAutomationPeer 显式退出自动化树，
+    比默认落到无名 Custom 节点更明确。
+    """
+    decl = re.compile(
+        r"^public\s+(?:sealed\s+)?(?:abstract\s+)?class\s+(\w+)\s*:\s*"
+        r"(?:Avalonia\.Controls\.(?:Primitives\.)?)?(TemplatedControl|Control)\b", re.M)
+    for path in cs_files():
+        text = read(path)
+        for m in decl.finditer(text):
+            name = m.group(1)
+            body, _ = _class_body(text, m.end())
+            if "OnCreateAutomationPeer" in body:
+                continue
+            report("automation-peer", path, line_of(text, m.start()), name,
+                   f"{name} 直接继承 {m.group(2)} 却没有覆写 OnCreateAutomationPeer："
+                   f"自动化客户端只能看到一个没有名字的 Custom 矩形")
+
+
 CHECKS = [
     ("parts", check_parts),
     ("pseudo-declared", check_pseudo_declared),
@@ -369,6 +418,7 @@ CHECKS = [
     ("timer-cleanup", check_timer_cleanup),
     ("wallclock", check_wallclock),
     ("unread-property", check_unread_property),
+    ("automation-peer", check_automation_peer),
 ]
 
 

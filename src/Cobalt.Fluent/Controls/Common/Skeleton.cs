@@ -1,7 +1,9 @@
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
+using Cobalt.Fluent.Automation;
 
 namespace Cobalt.Fluent.Controls;
 
@@ -31,4 +33,7 @@ public class Skeleton : TemplatedControl
     }
 
     public Skeleton() => PseudoClasses.Set(":shimmer", true);
+
+    /// <summary>装饰性元素，主动退出自动化树。见 <see cref="Cobalt.Fluent.Automation.DecorativeAutomationPeer"/>。</summary>
+    protected override AutomationPeer OnCreateAutomationPeer() => new DecorativeAutomationPeer(this);
 }

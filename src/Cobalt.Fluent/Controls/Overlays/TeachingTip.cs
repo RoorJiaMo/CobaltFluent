@@ -1,3 +1,5 @@
+using Avalonia.Automation.Peers;
+using Cobalt.Fluent.Automation;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
@@ -149,4 +151,7 @@ public class TeachingTip : TemplatedControl
         PseudoClasses.Set(":left", p == TeachingTipPlacement.Left);
         PseudoClasses.Set(":right", p == TeachingTipPlacement.Right);
     }
+
+    /// <summary>见 <see cref="Cobalt.Fluent.Automation.TeachingTipAutomationPeer"/>。</summary>
+    protected override AutomationPeer OnCreateAutomationPeer() => new TeachingTipAutomationPeer(this);
 }

@@ -1,7 +1,9 @@
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Primitives;
+using Cobalt.Fluent.Automation;
 
 namespace Cobalt.Fluent.Controls;
 
@@ -123,4 +125,7 @@ public class StatusIndicator : TemplatedControl
             _ => Symbol.None,
         };
     }
+
+    /// <summary>见 <see cref="Cobalt.Fluent.Automation.StatusIndicatorAutomationPeer"/>。</summary>
+    protected override AutomationPeer OnCreateAutomationPeer() => new StatusIndicatorAutomationPeer(this);
 }

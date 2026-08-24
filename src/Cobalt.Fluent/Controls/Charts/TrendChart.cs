@@ -1,10 +1,12 @@
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Collections;
 using Avalonia.Controls;
 using Avalonia.Controls.Documents;
 using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Metadata;
+using Cobalt.Fluent.Automation;
 
 namespace Cobalt.Fluent.Controls;
 
@@ -376,4 +378,7 @@ public class TrendChart : Control
         new Typeface(TextElement.GetFontFamily(this)),
         10,
         brush);
+
+    /// <summary>见 <see cref="Cobalt.Fluent.Automation.TrendChartAutomationPeer"/>。</summary>
+    protected override AutomationPeer OnCreateAutomationPeer() => new TrendChartAutomationPeer(this);
 }

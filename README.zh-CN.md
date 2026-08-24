@@ -187,6 +187,33 @@ dotnet run --project samples/Cobalt.Fluent.Gallery
 
 ---
 
+## UI Automation
+
+每个控件都提供自动化对等体。这件事在工业场景里比通常更要紧：**HMI 的验收普遍
+用 UI Automation 驱动界面跑回归**，而没有对等体的控件在 Inspect 里只是一团没有
+名字的 `Custom` 矩形，使用方的测试台根本抓不到——界面本身却完全看不出异常。
+
+三条原则：
+
+- **`Value` 只放机器可读的那个量，判读上下文放 `ItemStatus`。**
+  测试台读到 `"85.4"` 无从判断这是实时值还是五分钟前的死值，而这两种情况在屏幕上
+  也只差一个灰度。过期、偏离、写入中一律进 `ItemStatus`，单位进 `ItemType`，
+  绝不拼进 `Value`。枚举状态给枚举名而不是显示文字——显示文字随本地化变，
+  断言挂在它上面的话，界面一翻译脚本就全红。
+- **危险动作不通过自动化模式暴露成一次调用。** 急停复位要求长按，理由就是防误碰；
+  让客户端一次 `Toggle()` 就把自锁解掉，等于给它开了一条现场操作员都没有的近路。
+  `EStopButtonAutomationPeer.Toggle()` 只触发不解锁，已锁定时抛
+  `ElementNotEnabledException`。宿主的拒收闸同样不绕过：`AlarmBanner` 的 `Invoke()`
+  走 `Acknowledge()`，宿主命令 `CanExecute == false` 时自动化照样确认不了。
+- **装饰性元素主动退出自动化树。** 占位骨架、分隔线、图标进树只是噪音，会把真正
+  要读的东西淹掉，因此返回一个「既不是控件元素也不是内容元素」的对等体。
+  条件性的也一样：关掉的 `InfoBar`、没有名字的 `PersonPicture` 都会退出。
+
+凭空出现的元素——报警、通知、浮层——都声明为活动区域，客户端不必轮询就能得知。
+`AlarmSeverity.Alarm` 与 `Fault` 用 `Assertive`，`Warning` 用 `Polite`，`Info` 不播报。
+
+---
+
 ## 嵌入式与触摸屏适配
 
 针对 Mali GPU 等嵌入式图形环境提供以下配置项：
@@ -211,8 +238,8 @@ tools/check.sh                        # 编译控件库（复制至临时目录�
 tools/check.sh --gallery              # 连同展柜一并编译
 tools/check.sh --only Button.axaml    # 仅合并指定控件层文件（并行开发用）
 
-python3 tools/audit.py                             # 控件层静默失效审计（10 项检查）
-dotnet test tests/Cobalt.Fluent.Tests               # 189 项回归测试
+python3 tools/audit.py                             # 控件层静默失效审计（11 项检查）
+dotnet test tests/Cobalt.Fluent.Tests               # 260 项回归测试
 dotnet run  --project samples/Cobalt.Fluent.Gallery # 运行展柜
 ```
 

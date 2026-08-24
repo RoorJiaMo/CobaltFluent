@@ -187,6 +187,39 @@ This group has no counterpart in WinUI or FluentAvalonia. The constraints below 
 
 ---
 
+## UI Automation
+
+Every control exposes an automation peer. This matters more than usual here: **HMI
+acceptance testing is commonly driven through UI Automation**, and a control without
+a peer shows up in Inspect as an unnamed `Custom` rectangle that the customer's test
+harness cannot address — while the screen itself looks perfectly correct.
+
+Three rules shape the peers:
+
+- **`Value` carries the machine-readable quantity; interpretation goes in `ItemStatus`.**
+  A harness reading `"85.4"` cannot tell a live reading from one frozen five minutes ago,
+  and on screen the two differ only by a shade of grey. Staleness, deviation and
+  write-in-progress are all `ItemStatus`; the unit is `ItemType`, never concatenated into
+  `Value`. Enum-backed state reports the enum name, not the display text — display text
+  moves with localisation, and an assertion pinned to it breaks on translation.
+- **Dangerous actions are not exposed as a single automation call.** E-stop reset requires
+  a press-and-hold precisely to prevent accidental release; letting a client undo the latch
+  with one `Toggle()` would hand it a shortcut the operator on the floor does not have.
+  `EStopButtonAutomationPeer.Toggle()` engages only — it throws `ElementNotEnabledException`
+  when already latched. Host veto gates are honoured too: `AlarmBanner`'s `Invoke()` goes
+  through `Acknowledge()`, so a host whose command reports `CanExecute == false` still
+  cannot be acknowledged from automation.
+- **Decorative elements leave the automation tree.** Skeletons, separators and icons add
+  noise that buries what a client actually needs to read, so they return a peer that reports
+  neither a control nor a content element. Conditional cases follow the same rule: a closed
+  `InfoBar` and a `PersonPicture` with no name both drop out.
+
+Elements that appear out of nowhere — alarms, notifications, toasts — declare a live region,
+so a client learns about them without polling. `AlarmSeverity.Alarm` and `Fault` are
+`Assertive`, `Warning` is `Polite`, `Info` is silent.
+
+---
+
 ## Embedded and touch-panel targets
 
 Configuration options for embedded graphics environments such as Mali GPUs:
@@ -211,8 +244,8 @@ tools/check.sh                        # build the control library (copies to a t
 tools/check.sh --gallery              # build the gallery as well
 tools/check.sh --only Button.axaml    # merge only the named control-layer file (for parallel work)
 
-python3 tools/audit.py                             # control-layer silent-failure audit (10 checks)
-dotnet test tests/Cobalt.Fluent.Tests               # 189 regression tests
+python3 tools/audit.py                             # control-layer silent-failure audit (11 checks)
+dotnet test tests/Cobalt.Fluent.Tests               # 260 regression tests
 dotnet run  --project samples/Cobalt.Fluent.Gallery # run the gallery
 ```
 

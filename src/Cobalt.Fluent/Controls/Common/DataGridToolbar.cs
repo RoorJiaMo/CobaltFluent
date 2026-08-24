@@ -1,8 +1,10 @@
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Collections;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Metadata;
+using Cobalt.Fluent.Automation;
 
 namespace Cobalt.Fluent.Controls;
 
@@ -33,4 +35,7 @@ public class DataGridToolbar : TemplatedControl
     }
 
     public DataGridToolbar() => Items = [];
+
+    /// <summary>见 <see cref="Cobalt.Fluent.Automation.DataGridToolbarAutomationPeer"/>。</summary>
+    protected override AutomationPeer OnCreateAutomationPeer() => new DataGridToolbarAutomationPeer(this);
 }

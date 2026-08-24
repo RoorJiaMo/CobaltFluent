@@ -1,3 +1,5 @@
+using Avalonia.Automation.Peers;
+using Cobalt.Fluent.Automation;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
@@ -157,6 +159,9 @@ public class InfoBar : TemplatedControl
             _ => Symbol.Info,
         };
     }
+
+    /// <summary>见 <see cref="Cobalt.Fluent.Automation.InfoBarAutomationPeer"/>。</summary>
+    protected override AutomationPeer OnCreateAutomationPeer() => new InfoBarAutomationPeer(this);
 }
 
 /// <summary>InfoBar 的四个级别：informational / success / warning / error。</summary>

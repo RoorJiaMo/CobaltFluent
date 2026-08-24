@@ -1,7 +1,9 @@
 using Avalonia;
+using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
 using Avalonia.Media;
+using Cobalt.Fluent.Automation;
 
 namespace Cobalt.Fluent.Controls;
 
@@ -131,4 +133,7 @@ public class Sparkline : Control
             LineCap = PenLineCap.Round,
         }, line);
     }
+
+    /// <summary>见 <see cref="Cobalt.Fluent.Automation.SparklineAutomationPeer"/>。</summary>
+    protected override AutomationPeer OnCreateAutomationPeer() => new SparklineAutomationPeer(this);
 }
