@@ -37,6 +37,12 @@
     <AvaloniaResource Include="Assets/**" />
   </ItemGroup>
 
+  <!-- 抽稀这类纯算法是 internal 的：它不是控件 API，但必须能单独测——
+       靠渲染结果反推抽稀对不对，等于用截图测算法。 -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="Cobalt.Fluent.Tests" />
+  </ItemGroup>
+
   <!-- Themes/Controls 下新增一个文件却忘了重建合并列表，是这套结构最容易踩的坑：
        编译照样通过，控件却静默地退回 Avalonia 内置主题，很难发现。
        所以在这里自动重建。只在本仓库源码树里生效（脚本存在才跑），

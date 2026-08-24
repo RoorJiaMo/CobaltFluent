@@ -233,6 +233,14 @@ Configuration options for embedded graphics environments such as Mali GPUs:
 | Acrylic (live blur) | Override `AcrylicBackgroundFillColorDefaultBrush` with a solid colour |
 | Larger touch targets | Override `ControlHeight` / `ControlCornerRadius` / `OverlayCornerRadius` |
 
+Long trends need no configuration: `TrendChart` and `Sparkline` cap their vertex count at
+the plot's pixel width. An 8-hour shift sampled at 1 Hz is 28,800 points per channel, which
+would put 36 vertices in every pixel column of an 800 px plot. Rendering runs min/max
+decimation first — two points per column, the minimum and the maximum — so the envelope
+matches the full-resolution curve and a three-sample overshoot still shows. Plain
+every-Nth downsampling would drop that overshoot, which is the thing the operator opened
+the trend to see.
+
 Icons do not depend on Segoe Fluent Icons: all 38 glyphs are vector paths, so rendering is identical across platforms and no font needs to ship with the application. Where the target environment does have the font, `SymbolIcon.UseGlyphFont="True"` switches back to font rendering.
 
 ---
@@ -245,7 +253,7 @@ tools/check.sh --gallery              # build the gallery as well
 tools/check.sh --only Button.axaml    # merge only the named control-layer file (for parallel work)
 
 python3 tools/audit.py                             # control-layer silent-failure audit (11 checks)
-dotnet test tests/Cobalt.Fluent.Tests               # 260 regression tests
+dotnet test tests/Cobalt.Fluent.Tests               # 292 regression tests
 dotnet run  --project samples/Cobalt.Fluent.Gallery # run the gallery
 ```
 

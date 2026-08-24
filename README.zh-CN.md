@@ -227,6 +227,12 @@ dotnet run --project samples/Cobalt.Fluent.Gallery
 | 亚克力（实时模糊） | 覆盖 `AcrylicBackgroundFillColorDefaultBrush` 为实色 |
 | 触摸目标放大 | 覆盖 `ControlHeight` / `ControlCornerRadius` / `OverlayCornerRadius` |
 
+长趋势不需要配置：`TrendChart` 与 `Sparkline` 的顶点数按绘图区像素宽度封顶。
+一个 8 小时班次按 1 Hz 采样是 28800 点/通道，全量画的话 800 px 宽的绘图区上
+每像素列摊到 36 个顶点。渲染前先做 min/max 抽稀——每列只留极大和极小两个点，
+包络与全量一致，持续三个采样点的超调照样看得见。换成「每 N 个取一个」就会把
+那次超调抹掉，而操作员调出趋势图正是为了看它。
+
 图标不依赖 Segoe Fluent Icons：38 个字形全部实现为矢量路径，跨平台渲染一致，亦无需随应用分发字体。若目标环境已具备该字体，可通过 `SymbolIcon.UseGlyphFont="True"` 切换回字体渲染。
 
 ---
@@ -239,7 +245,7 @@ tools/check.sh --gallery              # 连同展柜一并编译
 tools/check.sh --only Button.axaml    # 仅合并指定控件层文件（并行开发用）
 
 python3 tools/audit.py                             # 控件层静默失效审计（11 项检查）
-dotnet test tests/Cobalt.Fluent.Tests               # 260 项回归测试
+dotnet test tests/Cobalt.Fluent.Tests               # 292 项回归测试
 dotnet run  --project samples/Cobalt.Fluent.Gallery # 运行展柜
 ```
 

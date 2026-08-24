@@ -12,7 +12,13 @@ namespace Cobalt.Fluent.Controls;
 
 /// <summary>
 /// 趋势图。自绘，不依赖图表库 —— 单通道 / 少通道的 strip chart 这样最轻，
-/// RK3568 这类板子上值得这么做。数据量真的很大时再换 ScottPlot / LiveCharts2。
+/// RK3568 这类板子上值得这么做。
+///
+/// **顶点数按绘图区宽度封顶。** 一个 8 小时班次按 1 Hz 采样是 28800 点/通道，
+/// 全量画的话 800 px 宽的绘图区上每像素列摊到 36 个顶点。渲染前走 min/max 抽稀，
+/// 每像素列只留极大和极小两个点——包络与全量一致，尖峰一个不丢，
+/// 见 <see cref="ChartSampling.Decimate"/>。真要做缩放平移、多轴、上万通道时
+/// 再换 ScottPlot / LiveCharts2。
 ///
 /// **十字线是 trackball 模式**：跟随指针的 X 坐标，同时给出所有系列在该时刻的值，
 /// 不是 hover 最近点。触摸屏上没有 hover，鼠标场景逐点 hover 也太累。
@@ -229,6 +235,16 @@ public class TrendChart : Control
     private double IndexToPixel(int index, int count, Rect plot) =>
         count < 2 ? plot.X : plot.X + plot.Width * index / (count - 1.0);
 
+    /// <summary>抽稀输出缓冲。每帧复用，别在渲染路径上分配。</summary>
+    private readonly List<(int Index, double Value)> _samples = [];
+
+    /// <summary>把一条曲线抽稀到它在屏幕上实际占据的像素列数。</summary>
+    private void DecimateForPlot(ChartSeries series, int count, Rect plot) =>
+        ChartSampling.Decimate(
+            series.Values,
+            ChartSampling.ColumnsFor(series.Values.Count, count, plot.Width),
+            _samples);
+
     public override void Render(DrawingContext context)
     {
         base.Render(context);
@@ -247,7 +263,7 @@ public class TrendChart : Control
         var axisPen = new Pen(axis ?? Brushes.Gray, 1);
 
         // --- 容差带（画在最底下，别盖住曲线） ---
-        if (band is not null && Setpoint is { } sp && Tolerance > 0)
+        if (band is not null && Setpoint is { } sp && double.IsFinite(sp) && Tolerance > 0)
         {
             var top = YToPixel(sp + Tolerance, plot);
             var bottom = YToPixel(sp - Tolerance, plot);
@@ -279,7 +295,7 @@ public class TrendChart : Control
         DrawLevel(context, AlarmLow, ChartLineStyle.Limit, plot);
 
         // 报警上限标签放绘图区内左上 —— 放右边会和末值标注叠在一起
-        if (AlarmHigh is { } high && !string.IsNullOrEmpty(AlarmHighLabel))
+        if (AlarmHigh is { } high && double.IsFinite(high) && !string.IsNullOrEmpty(AlarmHighLabel))
         {
             var critical = ChartPalette.Resolve(this, "SystemFillColorCriticalBrush") ?? Brushes.Red;
             var text = FormatText(AlarmHighLabel!, critical);
@@ -295,21 +311,31 @@ public class TrendChart : Control
         {
             if (series.IsHidden || series.Values.Count < 2) continue;
 
+            DecimateForPlot(series, count, plot);
+            if (_samples.Count < 2) continue;
+
             var pen = ChartPalette.PenFor(this, series);
             var geometry = new StreamGeometry();
             using (var ctx = geometry.Open())
             {
-                for (var i = 0; i < series.Values.Count; i++)
+                var open = false;
+                foreach (var (index, value) in _samples)
                 {
-                    var point = new Point(
-                        IndexToPixel(i, count, plot),
-                        YToPixel(series.Values[i], plot));
+                    // NaN = 通信中断。断开图形，不要连过去——一条从中断前直连到
+                    // 恢复后的直线，看上去是一段平稳过程，而那段时间根本没有数据。
+                    if (double.IsNaN(value))
+                    {
+                        if (open) { ctx.EndFigure(false); open = false; }
+                        continue;
+                    }
 
-                    if (i == 0) ctx.BeginFigure(point, false);
-                    else ctx.LineTo(point);
+                    var point = new Point(IndexToPixel(index, count, plot), YToPixel(value, plot));
+
+                    if (open) ctx.LineTo(point);
+                    else { ctx.BeginFigure(point, false); open = true; }
                 }
 
-                ctx.EndFigure(false);
+                if (open) ctx.EndFigure(false);
             }
 
             context.DrawGeometry(null, pen, geometry);
@@ -322,7 +348,10 @@ public class TrendChart : Control
     private void DrawLevel(DrawingContext context, double? value, ChartLineStyle style, Rect plot)
     {
         if (value is not { } v) return;
-        if (v < YMinimum || v > YMaximum) return;
+
+        // 取反写而不是 `v < YMinimum || v > YMaximum`：NaN 和任何数比较都为 false，
+        // 后者会放 NaN 过去，YToPixel 算出 NaN 像素，整条限值线画到不确定的位置。
+        if (!(v >= YMinimum && v <= YMaximum)) return;
 
         var pen = ChartPalette.PenFor(this, new ChartSeries { LineStyle = style });
         var y = YToPixel(v, plot);
@@ -365,9 +394,13 @@ public class TrendChart : Control
         {
             if (series.IsHidden || index >= series.Values.Count) continue;
 
+            // 该时刻没有数据就不打点。画在 NaN 上的圆点会落到不确定的位置，
+            // 看起来像一个真实读数。
+            var value = series.Values[index];
+            if (!double.IsFinite(value)) continue;
+
             var brush = series.Brush ?? ChartPalette.SeriesBrush(this, series.PaletteIndex);
-            var y = YToPixel(series.Values[index], plot);
-            context.DrawEllipse(brush, null, new Point(x, y), 3, 3);
+            context.DrawEllipse(brush, null, new Point(x, YToPixel(value, plot)), 3, 3);
         }
     }
 
