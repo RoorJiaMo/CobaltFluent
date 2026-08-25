@@ -168,7 +168,7 @@ public class AlarmBanner : TemplatedControl
 
     /// <summary>确认按钮上的字。</summary>
     public static readonly StyledProperty<string> AcknowledgeContentProperty =
-        AvaloniaProperty.Register<AlarmBanner, string>(nameof(AcknowledgeContent), "确认");
+        AvaloniaProperty.Register<AlarmBanner, string>(nameof(AcknowledgeContent));
 
     public string AcknowledgeContent
     {
@@ -178,7 +178,7 @@ public class AlarmBanner : TemplatedControl
 
     /// <summary>详情按钮上的字。</summary>
     public static readonly StyledProperty<string> DetailsContentProperty =
-        AvaloniaProperty.Register<AlarmBanner, string>(nameof(DetailsContent), "详情");
+        AvaloniaProperty.Register<AlarmBanner, string>(nameof(DetailsContent));
 
     public string DetailsContent
     {
@@ -249,7 +249,21 @@ public class AlarmBanner : TemplatedControl
         });
     }
 
-    public AlarmBanner() => Refresh();
+    /// <summary>换语言之后重算已经显示出来的文字。见 <see cref="CobaltStrings.CurrentChanged"/>。</summary>
+    private readonly StringsWatcher _strings;
+
+    public AlarmBanner()
+    {
+        _strings = new StringsWatcher(Refresh);
+
+        // 默认措辞跟着 CobaltStrings 走。用 SetCurrentValue 而不是在 Register 里写死：
+        // 注册的默认值在静态构造时就定死了，换语言带不动它；而在构造函数里直接赋值
+        // 会产生 local value，样式 Setter 从此静默失效。SetCurrentValue 两头都躲开。
+        SetCurrentValue(AcknowledgeContentProperty, CobaltStrings.Current.Acknowledge);
+        SetCurrentValue(DetailsContentProperty, CobaltStrings.Current.Details);
+
+        Refresh();
+    }
 
     private void Refresh()
     {
@@ -265,7 +279,7 @@ public class AlarmBanner : TemplatedControl
             severity == AlarmSeverity.Alarm && !IsAcknowledged && IsBreathingEnabled);
 
         TimeText = Timestamp?.ToString("HH:mm:ss");
-        AdditionalText = AdditionalCount > 0 ? $"另有 {AdditionalCount} 条同类报警" : null;
+        AdditionalText = AdditionalCount > 0 ? CobaltStrings.Current.AdditionalAlarms(AdditionalCount) : null;
 
         Glyph = severity switch
         {
@@ -336,4 +350,15 @@ public class AlarmBanner : TemplatedControl
 
     /// <summary>见 <see cref="Cobalt.Fluent.Automation.AlarmBannerAutomationPeer"/>。</summary>
     protected override AutomationPeer OnCreateAutomationPeer() => new AlarmBannerAutomationPeer(this);
+
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        _strings.Attach();
+    }
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnDetachedFromVisualTree(e);
+        _strings.Detach();
+    }
 }

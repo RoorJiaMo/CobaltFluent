@@ -49,7 +49,12 @@ def report(check, path, line, key, message):
 
 
 def cs_files(where=CONTROLS):
-    return sorted(glob.glob(os.path.join(where, "**/*.cs"), recursive=True))
+    """源码。**必须排掉 obj/ 与 bin/**——生成的 AssemblyInfo.cs 会把 csproj 里的
+    元数据（含 Description）当成源码扫进来，报出一堆改不动的东西。"""
+    return sorted(
+        p for p in glob.glob(os.path.join(where, "**/*.cs"), recursive=True)
+        if f"{os.sep}obj{os.sep}" not in p and f"{os.sep}bin{os.sep}" not in p
+    )
 
 
 def axaml_files(where=THEMES):
@@ -564,6 +569,108 @@ def check_contrast():
                        f"合成之后的对比度取决于底下画了什么，保证不成立")
 
 
+def _blank_noncode(text):
+    """把注释、字符串以外的东西留着，注释抹成空格。返回同长度的串。"""
+    out, i, n = [], 0, len(text)
+    while i < n:
+        c = text[i]
+        if c == "/" and i + 1 < n and text[i + 1] == "/":
+            j = text.find("\n", i)
+            j = n if j < 0 else j
+            out.append(" " * (j - i))
+            i = j
+        elif c == "/" and i + 1 < n and text[i + 1] == "*":
+            j = text.find("*/", i + 2)
+            j = n if j < 0 else j + 2
+            out.append(" " * (j - i))
+            i = j
+        elif c == '"':
+            verbatim = i > 0 and text[i - 1] == "@"
+            j = i + 1
+            while j < n:
+                if not verbatim and text[j] == "\\":
+                    j += 2
+                    continue
+                if text[j] == '"':
+                    if verbatim and j + 1 < n and text[j + 1] == '"':
+                        j += 2
+                        continue
+                    j += 1
+                    break
+                j += 1
+            out.append(text[i:j])
+            i = j
+        else:
+            out.append(c)
+            i += 1
+    return "".join(out)
+
+
+CJK = re.compile(r"[\u4e00-\u9fff]")
+CS_LITERAL = re.compile(r'\$?@?"(?:[^"\\]|\\.)*"')
+
+
+def check_hardcoded_strings():
+    """控件层不许出现面向最终用户的中文字面量。
+
+    历史缺陷：控件层曾经写死了 59 处中文，其中一部分是控件内部算出来的只读投影
+    （Readout 的「数据过期」、ParameterRow 的「待下发」、Pagination 的
+    「共 N 条 · 第 x / y 页」）——**使用方一个字都改不了**。一个德国团队装上包，
+    读数上永远显示「数据过期」，没有任何 API 能改。而这批文字同时进了自动化的
+    ItemStatus，所以他们的验收脚本也只能断言在中文上。
+
+    面向最终用户的文字一律走 CobaltStrings。异常消息不在此列——那是给开发者和
+    测试看的，按库的惯例用英文，所以这里连英文异常一起放行（它们本来就没有中文）。
+    """
+    for path in cs_files(LIB):
+        if os.sep + "Localization" + os.sep in path:
+            continue  # 中文实现本身当然全是中文
+
+        text = read(path)
+        code = _blank_noncode(text)
+        for m in CS_LITERAL.finditer(code):
+            literal = m.group(0)
+            if not CJK.search(literal):
+                continue
+
+            line = line_of(text, m.start())
+            source = text.split("\n")[line - 1]
+            if "Exception(" in source or "throw " in source:
+                continue
+
+            report("hardcoded-strings", path, line, literal.strip('$@"')[:24],
+                   f"面向用户的中文写死在控件层：{literal[:40]}。"
+                   f"使用方改不了——换成 CobaltStrings 里的成员")
+
+    # 主题层：属性值里的中文（注释里的用法示例不算）
+    for path in axaml_files(LIB):
+        text = re.sub(r"<!--.*?-->", "", read(path), flags=re.S)
+        for m in re.finditer(r'(\w+)="([^"]*)"', text):
+            if not CJK.search(m.group(2)):
+                continue
+            report("hardcoded-strings", path, line_of(text, m.start()), m.group(1),
+                   f"面向用户的中文写死在主题层：{m.group(0)[:40]}。"
+                   f"提升成控件属性，默认值从 CobaltStrings 取")
+
+
+def check_strings_unsubscribe():
+    """订阅了语言变更就必须退订。
+
+    静态事件持有实例引用是典型的泄漏源：一屏几十个 Readout 反复建销，
+    忘了退订就一个都回收不掉——而这个泄漏在功能上完全看不出来，只是内存一路涨。
+    和 timer-cleanup 是同一类，只是这次挂在静态事件上而不是定时器上。
+    """
+    for path in cs_files(LIB):
+        text = read(path)
+        attach = len(re.findall(r"_strings\.Attach\(\)", text))
+        detach = len(re.findall(r"_strings\.Detach\(\)", text))
+        if attach and attach != detach:
+            m = re.search(r"_strings\.Attach\(\)", text)
+            report("strings-unsubscribe", path, line_of(text, m.start()), "StringsWatcher",
+                   f"订阅了 {attach} 次语言变更但只退订 {detach} 次："
+                   f"静态事件会把控件实例一直拴住")
+
+
 CHECKS = [
     ("parts", check_parts),
     ("pseudo-declared", check_pseudo_declared),
@@ -577,6 +684,8 @@ CHECKS = [
     ("unread-property", check_unread_property),
     ("automation-peer", check_automation_peer),
     ("contrast", check_contrast),
+    ("hardcoded-strings", check_hardcoded_strings),
+    ("strings-unsubscribe", check_strings_unsubscribe),
 ]
 
 

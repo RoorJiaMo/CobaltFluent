@@ -65,8 +65,7 @@ E-stop latching, multi-source jog stop, event-driven heartbeat and stale-value r
 ## Getting started
 
 ```bash
-# Not on nuget.org yet. Until the first release, reference the project directly:
-dotnet add reference path/to/src/Cobalt.Fluent/Cobalt.Fluent.csproj
+dotnet add package Cobalt.Fluent
 ```
 
 ```xml
@@ -287,6 +286,58 @@ CI runs `tools/aot-gate.sh`, which has two halves, because warnings alone are no
 
 ---
 
+## Localization
+
+Text the controls generate themselves goes through `CobaltStrings`, which picks an
+implementation from `CultureInfo.CurrentUICulture` — Chinese for `zh*`, English for
+everything else. Replace the whole set to use your own wording:
+
+```csharp
+CobaltStrings.Current = new CobaltStringsZhHans();   // pin Chinese
+CobaltStrings.Current = new MyPlantStrings();        // your plant's terminology
+```
+
+There is no resx. `ResourceManager` resolves satellite assemblies by reflection, which
+would fail this repository's NativeAOT gate; plain virtual members cost nothing at runtime
+and can be replaced wholesale.
+
+Three kinds of text go to three different places, and the boundary matters:
+
+| | Where | Why |
+|---|---|---|
+| On-screen text, `Name` / `ItemStatus` / `HelpText` | `CobaltStrings` | Read by humans; localized, per the UIA convention |
+| `IValueProvider.Value` | **Never localized** | This is what a test harness asserts on. Localize it and every customer's acceptance script turns red the day the UI is translated |
+| Exception messages | English literals | Read by developers and test rigs, following the convention for libraries |
+
+Strings exposed as property defaults (`AcknowledgeContent`, column headers) resolve at
+construction, so a language change does not rewrite instances that already exist — for an
+HMI, language is a deployment-time or shift-change decision, and adding a projection layer
+to every property to support hot switching is not worth it. Text a control computes itself
+*does* update: those controls subscribe to `CobaltStrings.CurrentChanged` while attached.
+
+---
+
+## NuGet package
+
+```bash
+tools/aot-gate.sh      # NativeAOT publish, then run the native binary
+tools/pack-gate.sh     # pack, then consume the installed package
+```
+
+The package ships XML documentation (the prose is Chinese; signatures and parameter names
+are not), a symbol package, and SourceLink metadata, so stepping into the library from a
+consuming application works.
+
+`pack-gate.sh` has two halves for the same reason the AOT gate does: **a control library
+that builds fine under a project reference and breaks under a package reference is the
+classic failure** — the compiled XAML does not make it into the assembly, no template
+applies, and nothing inside the repository can see it. So the gate packs, installs into a
+throwaway project, and exercises the result. It also runs under invariant globalization,
+which is the one place the English default path is tested — the regression suite pins the
+language to keep its own results deterministic.
+
+---
+
 ## Embedded and touch-panel targets
 
 Configuration options for embedded graphics environments such as Mali GPUs:
@@ -319,9 +370,10 @@ tools/check.sh                        # build the control library (copies to a t
 tools/check.sh --gallery              # build the gallery as well
 tools/check.sh --only Button.axaml    # merge only the named control-layer file (for parallel work)
 
-python3 tools/audit.py                             # control-layer silent-failure audit (12 checks)
+python3 tools/audit.py                             # control-layer silent-failure audit (14 checks)
 tools/aot-gate.sh                                  # NativeAOT publish, then run the native binary
-dotnet test tests/Cobalt.Fluent.Tests               # 320 regression tests
+tools/pack-gate.sh                                 # pack, then consume the installed package
+dotnet test tests/Cobalt.Fluent.Tests               # 340 regression tests
 dotnet run  --project samples/Cobalt.Fluent.Gallery # run the gallery
 ```
 

@@ -303,13 +303,14 @@ public class AutomationPeerTests
         var stop = Mount(new EStopButton());
         var toggle = Provider<IToggleProvider>(stop);
 
+        // ToggleState 是机器可读的那个锚点，不随语言变；ItemStatus 是给人读的，会变。
         Assert.Equal(ToggleState.Off, toggle.ToggleState);
-        Assert.Contains("Ready", Status(stop));
+        Assert.Contains(CobaltStrings.Current.Ready, Status(stop));
 
         stop.Engage();
 
         Assert.Equal(ToggleState.On, toggle.ToggleState);
-        Assert.Contains("Engaged", Status(stop));
+        Assert.Contains(CobaltStrings.Current.Engaged, Status(stop));
     }
 
     [AvaloniaFact]
@@ -366,11 +367,15 @@ public class AutomationPeerTests
     {
         var jog = Mount(new JogButton { Content = "X 轴" });
 
-        Assert.Contains("Idle", Status(jog));
+        // 点动此前只有 ItemStatus 一个出口，本地化之后脚本就没有不随语言变的锚点了。
+        // 对等体因此补了 IValueProvider——Value 给枚举式的英文，ItemStatus 给人读的。
+        Assert.Equal("Idle", Provider<IValueProvider>(jog).Value);
+        Assert.Contains(CobaltStrings.Current.Idle, Status(jog));
 
         jog.RaiseEvent(KeyDown(Key.Space));
 
-        Assert.Contains("Jogging", Status(jog));
+        Assert.Equal("Jogging", Provider<IValueProvider>(jog).Value);
+        Assert.Contains(CobaltStrings.Current.Jogging, Status(jog));
     }
 
     [AvaloniaFact]
@@ -387,7 +392,7 @@ public class AutomationPeerTests
         jog.Stop(JogStopReason.KeyReleased);
 
         Assert.True(jog.IsJogging);
-        Assert.Contains("停止指令未下发", Status(jog));
+        Assert.Contains(CobaltStrings.Current.StopCommandNotSent, Status(jog));
     }
 
     // ---- 八、Heartbeat / DeviceStatusBar ------------------------------------

@@ -91,11 +91,11 @@
                    下发失败后没有出路这件事，正是这一列存在的理由。 -->
               <Button x:Name="PART_Revert"
                       Classes="subtle"
-                      Content="撤销"
+                      Content="{TemplateBinding RevertContent}"
                       MinWidth="48"
                       IsVisible="False" />
               <Button x:Name="PART_Apply"
-                      Content="下发"
+                      Content="{TemplateBinding ApplyContent}"
                       MinWidth="56"
                       IsEnabled="{TemplateBinding CanApply}"
                       IsVisible="{TemplateBinding IsReadOnly,

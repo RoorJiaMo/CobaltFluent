@@ -86,7 +86,14 @@ public class Pagination : TemplatedControl
         SiblingCountProperty.Changed.AddClassHandler<Pagination>((x, _) => x.Refresh());
     }
 
-    public Pagination() => Refresh();
+    /// <summary>换语言之后重算已经显示出来的文字。见 <see cref="CobaltStrings.CurrentChanged"/>。</summary>
+    private readonly StringsWatcher _strings;
+
+    public Pagination()
+    {
+        _strings = new StringsWatcher(Refresh);
+        Refresh();
+    }
 
     private Panel? _pagesPanel;
 
@@ -158,8 +165,8 @@ public class Pagination : TemplatedControl
         var current = Math.Clamp(CurrentPage, 1, count);
 
         InfoText = TotalItems > 0
-            ? $"共 {TotalItems:N0} 条 · 第 {current} / {count} 页"
-            : $"第 {current} / {count} 页";
+            ? CobaltStrings.Current.PageInfo(TotalItems, current, count)
+            : CobaltStrings.Current.PageInfoWithoutTotal(current, count);
 
         Pages = BuildPages(current, count, Math.Max(0, SiblingCount));
         RebuildPageButtons();
@@ -187,4 +194,15 @@ public class Pagination : TemplatedControl
 
     /// <summary>见 <see cref="Cobalt.Fluent.Automation.PaginationAutomationPeer"/>。</summary>
     protected override AutomationPeer OnCreateAutomationPeer() => new PaginationAutomationPeer(this);
+
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        _strings.Attach();
+    }
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnDetachedFromVisualTree(e);
+        _strings.Detach();
+    }
 }

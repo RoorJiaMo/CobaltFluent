@@ -39,6 +39,14 @@ public enum ContentDialogButton
 /// </summary>
 public class ContentDialog : ContentControl
 {
+    public ContentDialog()
+    {
+        // 默认措辞跟着 CobaltStrings 走。用 SetCurrentValue 而不是在 Register 里写死：
+        // 注册的默认值在静态构造时就定死了，换语言带不动它；而在构造函数里直接赋值
+        // 会产生 local value，样式 Setter 从此静默失效。SetCurrentValue 两头都躲开。
+        SetCurrentValue(CloseButtonTextProperty, CobaltStrings.Current.Cancel);
+    }
+
     private TaskCompletionSource<ContentDialogResult>? _completion;
     private Panel? _host;
     private Button? _primary;
@@ -73,7 +81,7 @@ public class ContentDialog : ContentControl
     }
 
     public static readonly StyledProperty<string?> CloseButtonTextProperty =
-        AvaloniaProperty.Register<ContentDialog, string?>(nameof(CloseButtonText), "取消");
+        AvaloniaProperty.Register<ContentDialog, string?>(nameof(CloseButtonText));
 
     public string? CloseButtonText
     {
@@ -132,7 +140,7 @@ public class ContentDialog : ContentControl
             return _completion.Task;
 
         var layer = OverlayLayer.GetOverlayLayer(owner)
-            ?? throw new InvalidOperationException("找不到 OverlayLayer：owner 还没挂到视觉树上。");
+            ?? throw new InvalidOperationException("No OverlayLayer found: the owner is not attached to a visual tree yet.");
 
         _completion = new TaskCompletionSource<ContentDialogResult>();
 

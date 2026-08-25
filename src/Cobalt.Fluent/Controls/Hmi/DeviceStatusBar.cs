@@ -145,8 +145,13 @@ public class DeviceStatusBar : TemplatedControl
         PollRateProperty.Changed.AddClassHandler<DeviceStatusBar>((x, _) => x.Refresh());
     }
 
+    /// <summary>换语言之后重算已经显示出来的文字。见 <see cref="CobaltStrings.CurrentChanged"/>。</summary>
+    private readonly StringsWatcher _strings;
+
     public DeviceStatusBar()
     {
+        _strings = new StringsWatcher(Refresh);
+
         Items = [];
         Refresh();
     }
@@ -168,6 +173,7 @@ public class DeviceStatusBar : TemplatedControl
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnAttachedToVisualTree(e);
+        _strings.Attach();
 
         _clock = new DispatcherTimer(
             TimeSpan.FromSeconds(1), DispatcherPriority.Background,
@@ -178,6 +184,7 @@ public class DeviceStatusBar : TemplatedControl
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
+        _strings.Detach();
         _clock?.Stop();
         _clock = null;
         base.OnDetachedFromVisualTree(e);
@@ -192,12 +199,12 @@ public class DeviceStatusBar : TemplatedControl
 
         StateText = state switch
         {
-            ConnectionState.Connected => "已连接",
-            ConnectionState.Degraded => "通信不稳",
-            _ => "通信中断",
+            ConnectionState.Connected => CobaltStrings.Current.Connected,
+            ConnectionState.Degraded => CobaltStrings.Current.Degraded,
+            _ => CobaltStrings.Current.Disconnected,
         };
 
-        PollRateText = PollRate > 0 ? $"轮询 {PollRate:0.#} Hz" : null;
+        PollRateText = PollRate > 0 ? CobaltStrings.Current.PollRate(PollRate) : null;
     }
 
     /// <summary>

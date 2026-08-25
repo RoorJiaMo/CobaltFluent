@@ -58,16 +58,16 @@ public class ReadoutAutomationPeer(Readout owner) : ControlAutomationPeer(owner)
     /// </summary>
     protected override string? GetItemStatusCore() => PeerText.Join(
         Control.StaleText,
-        Control.Classes.Contains(":deviating") ? "偏离设定值" : null,
-        Control.Classes.Contains(":invalid") ? "读值无效" : null,
-        Control.Classes.Contains(":nodata") ? "无数据" : null);
+        Control.Classes.Contains(":deviating") ? CobaltStrings.Current.DeviatingFromSetpoint : null,
+        Control.Classes.Contains(":invalid") ? CobaltStrings.Current.ReadingInvalid : null,
+        Control.Classes.Contains(":nodata") ? CobaltStrings.Current.NoData : null);
 
     public string Value => Control.DisplayValue ?? "";
 
     public bool IsReadOnly => true;
 
     public void SetValue(string? value) =>
-        throw new ElementNotEnabledException("Readout 是只读显示控件，设定值请写 ParameterRow。");
+        throw new ElementNotEnabledException("Readout is a read-only display. Write setpoints through ParameterRow.");
 }
 
 /// <summary>
@@ -90,7 +90,7 @@ public class StatusIndicatorAutomationPeer(StatusIndicator owner)
     public bool IsReadOnly => true;
 
     public void SetValue(string? value) =>
-        throw new ElementNotEnabledException("设备状态由设备侧决定，界面不可写。");
+        throw new ElementNotEnabledException("Device state is owned by the device and cannot be written from the UI.");
 }
 
 /// <summary>
@@ -104,14 +104,14 @@ public class HeartbeatAutomationPeer(Heartbeat owner) : ControlAutomationPeer(ow
 
     protected override string GetClassNameCore() => nameof(Heartbeat);
 
-    protected override string? GetNameCore() => "通信心跳";
+    protected override string? GetNameCore() => CobaltStrings.Current.HeartbeatName;
 
     public string Value => Control.IsStopped ? "Stopped" : "Beating";
 
     public bool IsReadOnly => true;
 
     public void SetValue(string? value) =>
-        throw new ElementNotEnabledException("心跳由通信事件驱动，界面不可写。");
+        throw new ElementNotEnabledException("The heartbeat is driven by link events and cannot be written from the UI.");
 }
 
 /// <summary>
@@ -135,8 +135,8 @@ public class AlarmBannerAutomationPeer(AlarmBanner owner)
         PeerText.Join(Control.Severity.ToString(), Control.Title, Control.Detail);
 
     protected override string? GetItemStatusCore() => PeerText.Join(
-        Control.IsAcknowledged ? "已确认" : "未确认",
-        Control.AdditionalCount > 0 ? $"另有 {Control.AdditionalCount} 条同类报警" : null);
+        Control.IsAcknowledged ? CobaltStrings.Current.Acknowledged : CobaltStrings.Current.Unacknowledged,
+        Control.AdditionalCount > 0 ? CobaltStrings.Current.AdditionalAlarms(Control.AdditionalCount) : null);
 
     protected override AutomationLiveSetting GetLiveSettingCore() => Control.Severity switch
     {
@@ -174,7 +174,7 @@ public class ParameterRowAutomationPeer(ParameterRow owner)
 
     protected override string? GetHelpTextCore() =>
         double.IsFinite(Control.Minimum) || double.IsFinite(Control.Maximum)
-            ? $"量程 {Control.Minimum} – {Control.Maximum}"
+            ? CobaltStrings.Current.RangeHelp(Control.Minimum, Control.Maximum)
             : null;
 
     public string Value => Control.PendingText ?? "";
@@ -185,7 +185,7 @@ public class ParameterRowAutomationPeer(ParameterRow owner)
     public void SetValue(string? value)
     {
         if (IsReadOnly)
-            throw new ElementNotEnabledException("参数行当前不可编辑（只读或正在等待设备回读）。");
+            throw new ElementNotEnabledException("This parameter row is not editable right now (read-only, or waiting for the device read-back).");
 
         Control.PendingText = value;
     }
@@ -195,7 +195,7 @@ public class ParameterRowAutomationPeer(ParameterRow owner)
 /// 点动按钮。继承 Button 的对等体，补上方向与「正在动作」——
 /// 一屏多个点动键时，只有 Content 文字的话自动化客户端分不出哪个是哪个轴。
 /// </summary>
-public class JogButtonAutomationPeer(JogButton owner) : ButtonAutomationPeer(owner)
+public class JogButtonAutomationPeer(JogButton owner) : ButtonAutomationPeer(owner), IValueProvider
 {
     private JogButton Control => (JogButton)Owner;
 
@@ -206,8 +206,23 @@ public class JogButtonAutomationPeer(JogButton owner) : ButtonAutomationPeer(own
         Control.Direction == JogDirection.None ? null : Control.Direction.ToString());
 
     protected override string? GetItemStatusCore() => PeerText.Join(
-        Control.IsJogging ? "Jogging" : "Idle",
-        Control.Classes.Contains(":stopfailed") ? "停止指令未下发" : null);
+        Control.IsJogging ? CobaltStrings.Current.Jogging : CobaltStrings.Current.Idle,
+        Control.Classes.Contains(":stopfailed") ? CobaltStrings.Current.StopCommandNotSent : null);
+
+    /// <summary>
+    /// 机器可读的运动状态。<b>ItemStatus 会随语言变，这个不会。</b>
+    ///
+    /// 急停靠 <see cref="EStopButtonAutomationPeer.ToggleState"/> 提供不随语言变的锚点，
+    /// 点动此前没有对应的东西——把 ItemStatus 本地化之后，验收脚本就只剩一句
+    /// 会随界面语言变的中文可断言。这个属性补上那个缺口。
+    /// </summary>
+    public string Value => Control.IsJogging ? "Jogging" : "Idle";
+
+    public bool IsReadOnly => true;
+
+    public void SetValue(string? value) =>
+        throw new ElementNotEnabledException(
+            "Jogging is a held motion command and must not be started through a single automation call.");
 }
 
 /// <summary>
@@ -230,8 +245,8 @@ public class EStopButtonAutomationPeer(EStopButton owner)
     protected override string? GetHelpTextCore() => Control.HardwareLocationHint;
 
     protected override string? GetItemStatusCore() => PeerText.Join(
-        Control.IsEngaged ? "Engaged" : "Ready",
-        Control.Classes.Contains(":engagefailed") ? "急停指令未下发" : null);
+        Control.IsEngaged ? CobaltStrings.Current.Engaged : CobaltStrings.Current.Ready,
+        Control.Classes.Contains(":engagefailed") ? CobaltStrings.Current.EngageCommandNotSent : null);
 
     public ToggleState ToggleState => Control.IsEngaged ? ToggleState.On : ToggleState.Off;
 
@@ -239,7 +254,7 @@ public class EStopButtonAutomationPeer(EStopButton owner)
     {
         if (Control.IsEngaged)
             throw new ElementNotEnabledException(
-                "急停已锁定。复位需要显式操作，不能通过 Toggle 绕过防误碰的长按。");
+                "The E-stop is latched. Reset is an explicit operation and must not be reached\n                 through Toggle, which would bypass the press-and-hold guard.");
 
         Control.Engage();
     }
@@ -256,7 +271,7 @@ public class DeviceStatusBarAutomationPeer(DeviceStatusBar owner) : ControlAutom
     protected override string GetClassNameCore() => nameof(DeviceStatusBar);
 
     /// <summary>端点地址就是这条状态栏的身份——一屏可能挂着好几台设备。</summary>
-    protected override string? GetNameCore() => PeerText.Join(Control.Endpoint, "设备状态");
+    protected override string? GetNameCore() => PeerText.Join(Control.Endpoint, CobaltStrings.Current.DeviceStatusName);
 
     protected override string? GetItemStatusCore() => PeerText.Join(
         Control.ConnectionState.ToString(), Control.StateText, Control.PollRateText);
@@ -276,14 +291,14 @@ public class NumericKeypadAutomationPeer(NumericKeypad owner)
 
     protected override string GetClassNameCore() => nameof(NumericKeypad);
 
-    protected override string? GetNameCore() => PeerText.Join(Control.Label, "数字键盘");
+    protected override string? GetNameCore() => PeerText.Join(Control.Label, CobaltStrings.Current.NumericKeypadName);
 
     protected override string? GetItemTypeCore() => Control.Unit;
 
     protected override string? GetHelpTextCore() => Control.RangeText;
 
     protected override string? GetItemStatusCore() => PeerText.Join(
-        Control.CanCommit ? "可提交" : "不可提交",
+        Control.CanCommit ? CobaltStrings.Current.CanCommit : CobaltStrings.Current.CannotCommit,
         Control.ValidationText);
 
     public string Value => Control.Text ?? "";

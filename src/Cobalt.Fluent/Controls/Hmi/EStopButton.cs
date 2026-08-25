@@ -101,11 +101,11 @@ public class EStopButton : Button
         set => SetValue(HardwareLocationHintProperty, value);
     }
 
-    /// <summary>钮下方那行说明字，未触发时显示。</summary>
-    public static readonly StyledProperty<string> CaptionProperty =
-        AvaloniaProperty.Register<EStopButton, string>(nameof(Caption), "就绪");
+    /// <summary>钮下方那行说明字，未触发时显示。留空则用 <see cref="CobaltStrings"/> 里的措辞。</summary>
+    public static readonly StyledProperty<string?> CaptionProperty =
+        AvaloniaProperty.Register<EStopButton, string?>(nameof(Caption));
 
-    public string Caption
+    public string? Caption
     {
         get => GetValue(CaptionProperty);
         set => SetValue(CaptionProperty, value);
@@ -115,11 +115,10 @@ public class EStopButton : Button
     /// 急停指令没能下发时那行说明字。默认直接把人指向硬件急停——
     /// 软件路径已经证明不通了，这时候唯一还能信的就是硬接线的那个。
     /// </summary>
-    public static readonly StyledProperty<string> EngageFailedCaptionProperty =
-        AvaloniaProperty.Register<EStopButton, string>(
-            nameof(EngageFailedCaption), "急停指令未下发 · 立即使用硬件急停");
+    public static readonly StyledProperty<string?> EngageFailedCaptionProperty =
+        AvaloniaProperty.Register<EStopButton, string?>(nameof(EngageFailedCaption));
 
-    public string EngageFailedCaption
+    public string? EngageFailedCaption
     {
         get => GetValue(EngageFailedCaptionProperty);
         set => SetValue(EngageFailedCaptionProperty, value);
@@ -128,10 +127,10 @@ public class EStopButton : Button
     private bool _engageFailed;
 
     /// <summary>触发后那行说明字。要明确写出「需复位」——自锁了但没人告诉操作员是最糟的。</summary>
-    public static readonly StyledProperty<string> EngagedCaptionProperty =
-        AvaloniaProperty.Register<EStopButton, string>(nameof(EngagedCaption), "已触发 · 需复位");
+    public static readonly StyledProperty<string?> EngagedCaptionProperty =
+        AvaloniaProperty.Register<EStopButton, string?>(nameof(EngagedCaption));
 
-    public string EngagedCaption
+    public string? EngagedCaption
     {
         get => GetValue(EngagedCaptionProperty);
         set => SetValue(EngagedCaptionProperty, value);
@@ -181,16 +180,24 @@ public class EStopButton : Button
         EngageFailedCaptionProperty.Changed.AddClassHandler<EStopButton>((x, _) => x.UpdateCaption());
     }
 
+    /// <summary>换语言之后重算已经显示出来的文字。见 <see cref="CobaltStrings.CurrentChanged"/>。</summary>
+    private readonly StringsWatcher _strings;
+
     public EStopButton()
     {
+        _strings = new StringsWatcher(UpdateCaption);
+
         PseudoClasses.Set(":engaged", false);
         UpdateCaption();
     }
 
+    // 三个 caption 都留空注册、在这里回落，而不是把默认值写进 Register：
+    // 注册的默认值在静态构造时就定死了，之后换 CobaltStrings.Current 也带不动它。
+    // 空值回落既让默认跟着语言走，也让运行时换语言能生效。
     private void UpdateCaption() =>
-        CaptionText = _engageFailed ? EngageFailedCaption
-            : IsEngaged ? EngagedCaption
-            : Caption;
+        CaptionText = _engageFailed ? EngageFailedCaption ?? CobaltStrings.Current.EStopCommandNotSent
+            : IsEngaged ? EngagedCaption ?? CobaltStrings.Current.EStopEngaged
+            : Caption ?? CobaltStrings.Current.EStopReady;
 
     protected override void OnPointerPressed(PointerPressedEventArgs e)
     {
@@ -274,6 +281,7 @@ public class EStopButton : Button
     /// </summary>
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
+        _strings.Detach();
         CancelReset();
         _actionKeyDown = false;
         base.OnDetachedFromVisualTree(e);
@@ -366,4 +374,10 @@ public class EStopButton : Button
 
     /// <summary>见 <see cref="Cobalt.Fluent.Automation.EStopButtonAutomationPeer"/>。</summary>
     protected override AutomationPeer OnCreateAutomationPeer() => new EStopButtonAutomationPeer(this);
+
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        _strings.Attach();
+    }
 }

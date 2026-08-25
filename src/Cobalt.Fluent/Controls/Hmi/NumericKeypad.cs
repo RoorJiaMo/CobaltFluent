@@ -289,7 +289,14 @@ public class NumericKeypad : TemplatedControl
 
     // Focusable 由 ControlTheme 的 Setter 给（本库惯例），写在构造函数里是 local value，
     // 使用方就没法再用样式关掉了。
-    public NumericKeypad() => Evaluate();
+    /// <summary>换语言之后重算已经显示出来的文字。见 <see cref="CobaltStrings.CurrentChanged"/>。</summary>
+    private readonly StringsWatcher _strings;
+
+    public NumericKeypad()
+    {
+        _strings = new StringsWatcher(Evaluate);
+        Evaluate();
+    }
 
     /// <summary>
     /// 装入一个待编辑的值，并回到「首键替换」状态。<b>外部重设缓冲一律走这里。</b>
@@ -591,17 +598,17 @@ public class NumericKeypad : TemplatedControl
             // 空缓冲不报错——还没开始输就提示是噪音。不能提交，但不占那行提示位。
             problem = null;
         else if (Value is null)
-            problem = "无法解析";          // 只剩「-」或「0.」这类中间态
+            problem = CobaltStrings.Current.NotANumber;          // 只剩「-」或「0.」这类中间态
         // 写成 !(x >= Minimum) 而不是 x < Minimum：边界本身是 NaN 时前者为 true（拒），
         // 后者为 false（放行）。量程判定要失败即拒。
         else if (!(Value >= Minimum))
         {
-            problem = $"低于下限 {Bound(Minimum)}";
+            problem = CobaltStrings.Current.BelowMinimum(Bound(Minimum));
             outOfRange = true;
         }
         else if (!(Value <= Maximum))
         {
-            problem = $"高于上限 {Bound(Maximum)}";
+            problem = CobaltStrings.Current.AboveMaximum(Bound(Maximum));
             outOfRange = true;
         }
         else
@@ -630,6 +637,18 @@ public class NumericKeypad : TemplatedControl
         return string.IsNullOrEmpty(Unit) ? text : $"{text} {Unit}";
     }
 
+
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        _strings.Attach();
+    }
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnDetachedFromVisualTree(e);
+        _strings.Detach();
+    }
 
     /// <summary>见 <see cref="Cobalt.Fluent.Automation.NumericKeypadAutomationPeer"/>。</summary>
     protected override AutomationPeer OnCreateAutomationPeer() => new NumericKeypadAutomationPeer(this);

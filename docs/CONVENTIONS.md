@@ -248,6 +248,65 @@ tools/aot-gate.sh              # 发布 + 真跑一遍原生二进制，CI 里�
 第三方程序集的告警登记到 `tools/aot-allow.txt`，**每条必须写明理由**。
 本仓库自己的代码不允许登记进去。
 
+## 本地化
+
+**控件层不许出现面向最终用户的中文字面量**（`hardcoded-strings` 检查会拦）。
+控件内部生成的文字一律走 `CobaltStrings`，默认按 `CurrentUICulture` 选。
+
+不用 resx：`ResourceManager` 靠反射查卫星程序集，会顶红 `tools/aot-gate.sh`。
+用普通的虚成员——零反射、能单独测、整块可换。
+
+新加一句话要改两个文件：`CobaltStrings`（英文，默认）和 `CobaltStringsZhHans`。
+漏了不用担心，`LocalizationTests` 会逐成员反射核对，并且会分别报出
+「漏了没覆写」和「覆写了但原样抄了英文」——后者上一条测试是绿的。
+
+三类文字的去向不一样：
+
+| | 去哪 | 为什么 |
+|---|---|---|
+| 屏幕上的字、`Name` / `ItemStatus` / `HelpText` | `CobaltStrings` | 给人读的，按 UIA 约定要本地化 |
+| `IValueProvider.Value` | **不本地化** | 脚本的锚点。本地化了，使用方的验收脚本会在界面翻译那天全红 |
+| 异常消息 | 英文字面量 | 给开发者和测试看的，按库的惯例 |
+
+作为属性默认值的文字（`AcknowledgeContent`、表头这些）在构造函数里用
+**`SetCurrentValue`** 取，不要写进 `Register` 的默认值，也不要直接赋值：
+
+- 写进 `Register`：默认值在静态构造时定死，换语言带不动它。
+- 构造函数里直接赋值：产生 local value，**样式 Setter 从此静默失效**。
+- `SetCurrentValue`：样式能覆盖、显式赋值能覆盖，都没有时用语言默认值。三种情况都对。
+
+控件内部算出来的文字支持运行时换语言：持一个 `StringsWatcher`，挂载时 `Attach()`、
+卸载时 `Detach()`。**必须成对**——静态事件持有实例引用是典型的泄漏源，
+一屏几十个 `Readout` 反复建销，忘了退订就一个都回收不掉，而这个泄漏在功能上
+完全看不出来。`strings-unsubscribe` 检查会核对次数。
+
+### 测试为什么把语言钉死
+
+`tests/.../TestApp.cs` 用 `[ModuleInitializer]` 把 `CobaltStrings.Current` 钉成中文，
+截图工具（`tools/Cobalt.Fluent.Shots`）也钉。不钉的话这两样都耦合在跑它的机器的
+locale 上：本地是中文、CI runner 是英文，同一份代码两边结果不同。
+截图那边更要命——「渲染回归」这道闸口的前提正是渲染确定。
+
+代价是「非中文 locale 拿到英文」这条默认路径在仓库里没有东西在跑，
+所以它由 `tools/pack-gate.sh` 的使用方探针覆盖：那个探针在固定区域性下跑。
+
+## NuGet 打包
+
+```bash
+tools/pack-gate.sh              # 打包 + 从装上的包里用一遍，CI 里同一条命令
+```
+
+**项目引用一路绿、包引用炸掉，是控件库最经典的翻车方式**：AXAML 没编进 dll，
+模板全都套不上，而在仓库里怎么测都测不出来。所以闸口和 AOT 那道一样有两半——
+打包之后要真的装一遍、真的用一遍。
+
+包内容的硬要求（缺一样闸口就红）：`nuspec`、`README.md`、`LICENSE`、
+`lib/net8.0/*.dll`、`lib/net8.0/*.xml`（IntelliSense 靠它）、`.snupkg` 符号包，
+以及 nuspec 里的 `<repository>`（SourceLink 断了使用方就单步不进来）。
+
+发版本时改 `<Version>`，并把 `PackageValidationBaselineVersion` 设成上一个稳定版——
+破坏性 API 变更会在打包阶段直接报错，而不是等使用方升级时才炸。
+
 ## 静默失效审计
 
 ```bash
@@ -259,7 +318,7 @@ python3 tools/audit.py --list   # 列出各项检查覆盖的历史缺陷
 在真实路径上整个不成立，而且失效方向朝着「一切正常」**。这一类缺陷在本库里
 成片出现过——一轮对抗性审查确认了 55 条，没有一条是编译器或既有测试能发现的。
 
-`tools/audit.py` 把其中可机械检测的模式固化了下来，12 项检查，每一项都对应
+`tools/audit.py` 把其中可机械检测的模式固化了下来，14 项检查，每一项都对应
 一个真实发生过的缺陷：
 
 | 检查 | 它抓的那个历史缺陷 |
@@ -275,6 +334,8 @@ python3 tools/audit.py --list   # 列出各项检查覆盖的历史缺陷
 | `wallclock` | 墙钟 `DateTime.Now` 相减：系统时间回拨多久，就有多久所有读数被判成新鲜 |
 | `unread-property` | `JogButton.RequiresConfirm` 声明、文档、对照表俱全，全库无人读取——危险轴上开了等于没开 |
 | `automation-peer` | 25 个直接继承 `Control` / `TemplatedControl` 的控件没有对等体，在 UI Automation 里只是一团没有名字的 `Custom` 矩形 |
+| `hardcoded-strings` | 控件层写死了 59 处中文，其中一部分是内部算出来的只读投影——**使用方一个字都改不了** |
+| `strings-unsubscribe` | 订阅了语言变更却不退订：静态事件把控件实例一直拴住，功能上完全看不出来 |
 | `contrast` | 安全色一组五处不达标：已触发急停的白字 3.42、降级态那圈安全黄压红 2.69、「停止指令没能下发」的白字压黄 1.72、`:engagefailed` 的黄环压浅底 1.55。同时守住高对比度变体的 AAA 门槛与「不许半透明」 |
 
 **新加检查的门槛**：能举出一个它本该抓到的历史缺陷，且在当前代码上零误报。

@@ -3,6 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Styling;
 using Avalonia.Threading;
+using Cobalt.Fluent;
 using Cobalt.Fluent.Gallery;
 using Cobalt.Fluent.Gallery.Infrastructure;
 
@@ -28,6 +29,11 @@ internal static class Program
         var themes = args.Length > 2 ? args[2] : "light";
 
         Directory.CreateDirectory(outDir);
+
+        // 把界面语言钉成中文。展柜的文案是中文的，控件层的措辞得跟它一致——
+        // 不钉的话截图内容取决于跑它的机器的 locale：本地是中文、CI runner 是英文，
+        // 同一次提交产出两套截图，而「渲染回归」这道闸口的前提正是渲染确定。
+        CobaltStrings.Current = new CobaltStringsZhHans();
 
         AppBuilder.Configure<App>()
             .UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false })

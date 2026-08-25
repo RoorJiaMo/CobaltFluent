@@ -104,9 +104,9 @@ WinUI / FluentAvalonia 里不存在，全部新写。涉及人身和设备安全
 | `RequireHoldToReset` | `bool` | — |
 | `ResetHoldDuration` | `TimeSpan` | — |
 | `HardwareLocationHint` | `string?` | — |
-| `Caption` | `string` | — |
-| `EngageFailedCaption` | `string` | — |
-| `EngagedCaption` | `string` | — |
+| `Caption` | `string?` | — |
+| `EngageFailedCaption` | `string?` | — |
+| `EngagedCaption` | `string?` | — |
 | `CaptionText` | `string?` | 当前该显示哪行字。模板绑它。 |
 | `Engaged` | `event EventHandler<RoutedEventArgs>?` | — |
 | `Released` | `event EventHandler<RoutedEventArgs>?` | 已复位。用急停的行话叫「释放」，避免和 `Reset` 方法重名。 |
@@ -291,6 +291,8 @@ WinUI / FluentAvalonia 里不存在，全部新写。涉及人身和设备安全
 | `IsInputLocked` | `bool` | 输入框是否该锁住。只读，或正在等回读时都要锁—— Evaluate() 在 Writing 态直接 return，此时改框里的字不会被重新判定， 「写入中」的徽章下面可以并排显示一个从未下发、也从未校验过的数字。 |
 | `CanApply` | `bool` | 下发按钮是否可用。超量程、下发中、只读、没改动时都不可用。 |
 | `WriteRequested` | `event EventHandler<RoutedEventArgs>?` | — |
+| `ApplyContent` | `string?` | — |
+| `RevertContent` | `string?` | — |
 
 | 成员 | 说明 |
 |---|---|

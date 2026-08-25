@@ -211,8 +211,13 @@ public class Readout : TemplatedControl
         ValueMinCharsProperty.Changed.AddClassHandler<Readout>((x, _) => x.UpdateMinWidth());
     }
 
+    /// <summary>换语言之后重算已经显示出来的文字。见 <see cref="CobaltStrings.CurrentChanged"/>。</summary>
+    private readonly StringsWatcher _strings;
+
     public Readout()
     {
+        _strings = new StringsWatcher(Refresh);
+
         OnSizeChanged();
         Refresh();
     }
@@ -220,6 +225,7 @@ public class Readout : TemplatedControl
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnAttachedToVisualTree(e);
+        _strings.Attach();
 
         // 过期判断必须由定时器驱动。等下一次数据到达才判断的话，
         // 通信断了就永远不会触发——而那正是最需要报出来的情况。
@@ -232,6 +238,7 @@ public class Readout : TemplatedControl
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
+        _strings.Detach();
         _staleTimer?.Stop();
         _staleTimer = null;
         base.OnDetachedFromVisualTree(e);
@@ -329,22 +336,22 @@ public class Readout : TemplatedControl
         var deviating = toleranceUsable && delta is { } d && Math.Abs(d) > Tolerance;
         PseudoClasses.Set(":deviating", deviating && !stale);
 
-        StaleText = stale ? "数据过期" : unknownAge ? "新鲜度未知" : null;
+        StaleText = stale ? CobaltStrings.Current.DataStale : unknownAge ? CobaltStrings.Current.AgeUnknown : null;
 
         // ---- 文字。格式化集中在这里，整段兜异常 ------------------------------
         try
         {
-            DisplayValue = value is null ? "—" : finite ? Fmt(value.Value) : "无效";
+            DisplayValue = value is null ? NoValueGlyph : finite ? Fmt(value.Value) : CobaltStrings.Current.InvalidReading;
             StatusText = BuildStatusText(stale, setpoint, delta, toleranceUsable);
         }
         catch (FormatException)
         {
             // Format 非法。安全判定在上面已经全部算完，这里只是显示降级——
             // 绝不能让一个显示格式把过期与偏差判定一起带停。
-            DisplayValue = value is null ? "—"
+            DisplayValue = value is null ? NoValueGlyph
                 : finite ? value.Value.ToString(CultureInfo.CurrentCulture)
-                : "无效";
-            StatusText = "显示格式无效";
+                : CobaltStrings.Current.InvalidReading;
+            StatusText = CobaltStrings.Current.InvalidDisplayFormat;
         }
     }
 
@@ -363,10 +370,10 @@ public class Readout : TemplatedControl
             // 状态行又被整条换掉（文字也没了），断开前是否超差这一条判读上下文
             // 会在通信断开的瞬间从界面上彻底消失，只剩一个孤零零的数字。
             var ago = DateTime.Now - lastSeen;
-            var text = $"最后更新 {FormatAgo(ago)}前";
+            var text = CobaltStrings.Current.LastUpdated(ago);
 
             if (toleranceUsable && delta is { } d && Math.Abs(d) > Tolerance)
-                text += $" · 断开时偏差 {(d >= 0 ? "+" : "")}{Fmt(d)}";
+                text += CobaltStrings.Current.DeviationAtDisconnect(Signed(d));
 
             return text;
         }
@@ -374,19 +381,18 @@ public class Readout : TemplatedControl
         if (setpoint is not { } target) return null;
 
         if (!toleranceUsable)
-            return $"目标 {Fmt(target)} · 偏差监视不可用（容差 {Tolerance}）";
+            return CobaltStrings.Current.TargetWithoutDeviationWatch(Fmt(target), Tolerance);
 
-        if (delta is not { } diff) return $"目标 {Fmt(target)}";
+        if (delta is not { } diff) return CobaltStrings.Current.Target(Fmt(target));
 
-        return $"目标 {Fmt(target)} · 偏差 {(diff >= 0 ? "+" : "")}{Fmt(diff)}";
+        return CobaltStrings.Current.TargetWithDeviation(Fmt(target), Signed(diff));
     }
 
-    private static string FormatAgo(TimeSpan ago) => ago.TotalSeconds switch
-    {
-        < 60 => $"{(int)ago.TotalSeconds} 秒",
-        < 3600 => $"{(int)ago.TotalMinutes} 分",
-        _ => $"{(int)ago.TotalHours} 小时",
-    };
+    /// <summary>「没有值」的占位符。这是个符号不是词，不进本地化。</summary>
+    private const string NoValueGlyph = "—";
+
+    /// <summary>带符号的偏差。正号要显式写出来——「偏差 2」和「偏差 +2」读起来不一样。</summary>
+    private string Signed(double delta) => (delta >= 0 ? "+" : "") + Fmt(delta);
 
     /// <summary>见 <see cref="Cobalt.Fluent.Automation.ReadoutAutomationPeer"/>。</summary>
     protected override AutomationPeer OnCreateAutomationPeer() => new ReadoutAutomationPeer(this);

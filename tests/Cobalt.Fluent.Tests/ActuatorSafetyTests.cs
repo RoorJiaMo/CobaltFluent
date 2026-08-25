@@ -255,7 +255,7 @@ public class ActuatorSafetyTests
 
         Assert.True(stop.IsEngaged, "操作员确实按了，不能退回就绪");
         Assert.Contains(":engagefailed", stop.Classes);
-        Assert.Equal(stop.EngageFailedCaption, stop.CaptionText);
+        Assert.Equal(CobaltStrings.Current.EStopCommandNotSent, stop.CaptionText);
     }
 
     [AvaloniaFact]
@@ -268,7 +268,7 @@ public class ActuatorSafetyTests
 
         Assert.True(stop.IsEngaged);
         Assert.DoesNotContain(":engagefailed", stop.Classes);
-        Assert.Equal(stop.EngagedCaption, stop.CaptionText);
+        Assert.Equal(CobaltStrings.Current.EStopEngaged, stop.CaptionText);
     }
 
     [AvaloniaFact]
@@ -283,7 +283,7 @@ public class ActuatorSafetyTests
 
         Assert.False(stop.IsEngaged);
         Assert.DoesNotContain(":engagefailed", stop.Classes);
-        Assert.Equal(stop.Caption, stop.CaptionText);
+        Assert.Equal(CobaltStrings.Current.EStopReady, stop.CaptionText);
     }
 
     // ---- 辅助 ----------------------------------------------------------------
@@ -308,5 +308,29 @@ public class ActuatorSafetyTests
         public void Execute(object? parameter) => Executions++;
 
         public void Raise() => CanExecuteChanged?.Invoke(this, EventArgs.Empty);
+    }
+
+    [AvaloniaFact]
+    public void 显式给的说明字优先于语言默认值()
+    {
+        // 三个 caption 现在都是留空注册、在投影里回落到 CobaltStrings。
+        // 回落那条路走通了不代表覆盖那条路还在——留空注册最容易一起弄丢的
+        // 就是「使用方自己写的字」。
+        var stop = new EStopButton
+        {
+            Caption = "待命",
+            EngagedCaption = "已锁 · 需现场复位",
+            EngageFailedCaption = "指令未达 · 按硬件钮",
+        };
+
+        Assert.Equal("待命", stop.CaptionText);
+
+        stop.Engage();
+        Assert.Equal("已锁 · 需现场复位", stop.CaptionText);
+
+        stop.Reset();
+        stop.EngageCommand = new GateCommand { CanRun = false };
+        stop.Engage();
+        Assert.Equal("指令未达 · 按硬件钮", stop.CaptionText);
     }
 }

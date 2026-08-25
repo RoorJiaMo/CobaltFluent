@@ -12,8 +12,20 @@ namespace Cobalt.Fluent.Controls;
 /// </summary>
 public class ParameterTable : ItemsControl
 {
+    public ParameterTable()
+    {
+        // 默认措辞跟着 CobaltStrings 走。用 SetCurrentValue 而不是在 Register 里写死：
+        // 注册的默认值在静态构造时就定死了，换语言带不动它；而在构造函数里直接赋值
+        // 会产生 local value，样式 Setter 从此静默失效。SetCurrentValue 两头都躲开。
+        SetCurrentValue(LabelHeaderProperty, CobaltStrings.Current.ColumnParameter);
+        SetCurrentValue(ActualHeaderProperty, CobaltStrings.Current.ColumnActual);
+        SetCurrentValue(SetpointHeaderProperty, CobaltStrings.Current.ColumnSetpoint);
+        SetCurrentValue(UnitHeaderProperty, CobaltStrings.Current.ColumnUnit);
+        SetCurrentValue(StateHeaderProperty, CobaltStrings.Current.ColumnState);
+    }
+
     public static readonly StyledProperty<string> LabelHeaderProperty =
-        AvaloniaProperty.Register<ParameterTable, string>(nameof(LabelHeader), "参数");
+        AvaloniaProperty.Register<ParameterTable, string>(nameof(LabelHeader));
 
     public string LabelHeader
     {
@@ -22,7 +34,7 @@ public class ParameterTable : ItemsControl
     }
 
     public static readonly StyledProperty<string> ActualHeaderProperty =
-        AvaloniaProperty.Register<ParameterTable, string>(nameof(ActualHeader), "读值");
+        AvaloniaProperty.Register<ParameterTable, string>(nameof(ActualHeader));
 
     public string ActualHeader
     {
@@ -31,7 +43,7 @@ public class ParameterTable : ItemsControl
     }
 
     public static readonly StyledProperty<string> SetpointHeaderProperty =
-        AvaloniaProperty.Register<ParameterTable, string>(nameof(SetpointHeader), "设定");
+        AvaloniaProperty.Register<ParameterTable, string>(nameof(SetpointHeader));
 
     public string SetpointHeader
     {
@@ -40,10 +52,10 @@ public class ParameterTable : ItemsControl
     }
 
     public static readonly StyledProperty<string> UnitHeaderProperty =
-        AvaloniaProperty.Register<ParameterTable, string>(nameof(UnitHeader), "单位");
+        AvaloniaProperty.Register<ParameterTable, string>(nameof(UnitHeader));
 
     public static readonly StyledProperty<string> StateHeaderProperty =
-        AvaloniaProperty.Register<ParameterTable, string>(nameof(StateHeader), "状态");
+        AvaloniaProperty.Register<ParameterTable, string>(nameof(StateHeader));
 
     public string UnitHeader
     {

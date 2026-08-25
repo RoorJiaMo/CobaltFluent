@@ -285,8 +285,19 @@ public class ParameterRow : TemplatedControl, INumericInputTarget
 
     private void OnRevertClicked(object? sender, RoutedEventArgs e) => Revert();
 
+    /// <summary>换语言之后重算已经显示出来的文字。见 <see cref="CobaltStrings.CurrentChanged"/>。</summary>
+    private readonly StringsWatcher _strings;
+
     public ParameterRow()
     {
+        _strings = new StringsWatcher(Evaluate);
+
+        // 默认措辞跟着 CobaltStrings 走。用 SetCurrentValue 而不是在 Register 里写死：
+        // 注册的默认值在静态构造时就定死了，换语言带不动它；而在构造函数里直接赋值
+        // 会产生 local value，样式 Setter 从此静默失效。SetCurrentValue 两头都躲开。
+        SetCurrentValue(ApplyContentProperty, CobaltStrings.Current.Apply);
+        SetCurrentValue(RevertContentProperty, CobaltStrings.Current.Revert);
+
         _lastApplied = Setpoint;
         PendingText = Setpoint.ToString(Format, CultureInfo.CurrentCulture);
         UpdateActualText();
@@ -362,7 +373,7 @@ public class ParameterRow : TemplatedControl, INumericInputTarget
             || !IsValidBound(Maximum, double.PositiveInfinity)
             || Minimum > Maximum)
         {
-            SetState(ParameterWriteState.OutOfRange, "量程无效，禁止下发", canApply: false);
+            SetState(ParameterWriteState.OutOfRange, CobaltStrings.Current.RangeInvalid, canApply: false);
             return;
         }
 
@@ -374,9 +385,9 @@ public class ParameterRow : TemplatedControl, INumericInputTarget
         if (parsed is not { } value || !double.IsFinite(value)
             || !(value >= Minimum && value <= Maximum))
         {
-            var lo = double.IsNegativeInfinity(Minimum) ? "…" : Minimum.ToString(Format, CultureInfo.CurrentCulture);
-            var hi = double.IsPositiveInfinity(Maximum) ? "…" : Maximum.ToString(Format, CultureInfo.CurrentCulture);
-            SetState(ParameterWriteState.OutOfRange, $"超量程 {lo}–{hi}", canApply: false);
+            var lo = double.IsNegativeInfinity(Minimum) ? Unbounded : Minimum.ToString(Format, CultureInfo.CurrentCulture);
+            var hi = double.IsPositiveInfinity(Maximum) ? Unbounded : Maximum.ToString(Format, CultureInfo.CurrentCulture);
+            SetState(ParameterWriteState.OutOfRange, CobaltStrings.Current.OutOfRange(lo, hi), canApply: false);
             return;
         }
 
@@ -389,11 +400,34 @@ public class ParameterRow : TemplatedControl, INumericInputTarget
         if (sameText)
             SetState(
                 ParameterWriteState.Clean,
-                value == applied ? "已生效" : "显示精度内一致",
+                value == applied ? CobaltStrings.Current.Applied : CobaltStrings.Current.MatchesWithinPrecision,
                 canApply: false);
         else
-            SetState(ParameterWriteState.Dirty, "待下发", canApply: true);
+            SetState(ParameterWriteState.Dirty, CobaltStrings.Current.PendingWrite, canApply: true);
     }
+
+    /// <summary>下发按钮上的字。</summary>
+    public static readonly StyledProperty<string?> ApplyContentProperty =
+        AvaloniaProperty.Register<ParameterRow, string?>(nameof(ApplyContent));
+
+    public string? ApplyContent
+    {
+        get => GetValue(ApplyContentProperty);
+        set => SetValue(ApplyContentProperty, value);
+    }
+
+    /// <summary>撤销按钮上的字。</summary>
+    public static readonly StyledProperty<string?> RevertContentProperty =
+        AvaloniaProperty.Register<ParameterRow, string?>(nameof(RevertContent));
+
+    public string? RevertContent
+    {
+        get => GetValue(RevertContentProperty);
+        set => SetValue(RevertContentProperty, value);
+    }
+
+    /// <summary>无界那一侧的占位符。这是个符号不是词，不进本地化。</summary>
+    private const string Unbounded = "…";
 
     private void SetState(ParameterWriteState state, string? text, bool canApply)
     {
@@ -403,7 +437,7 @@ public class ParameterRow : TemplatedControl, INumericInputTarget
         // 未下发的编辑不该因为锁定就从屏幕上消失。
         if (IsReadOnly)
         {
-            text = "只读";
+            text = CobaltStrings.Current.ReadOnlyState;
             canApply = false;
         }
 
@@ -430,7 +464,7 @@ public class ParameterRow : TemplatedControl, INumericInputTarget
 
         // 必须先进 Writing 再派发：同步的 WriteRequested 处理器里直接调 CompleteWrite
         // 是合法用法，先派发后置状态会把它的结果覆盖掉。
-        SetState(ParameterWriteState.Writing, "写入中", canApply: false);
+        SetState(ParameterWriteState.Writing, CobaltStrings.Current.Writing, canApply: false);
 
         // 挂了命令却不能执行 = 指令没发出去。此时若仍停在 Writing，Evaluate 的第一行
         // 会冻结一切重新判定，CanApply 恒为 false，Apply 再也进不去，
@@ -488,7 +522,7 @@ public class ParameterRow : TemplatedControl, INumericInputTarget
         Setpoint = applied;
         PendingText = applied.ToString(Format, CultureInfo.CurrentCulture);
 
-        SetState(ParameterWriteState.Failed, message ?? "下发失败", canApply: false);
+        SetState(ParameterWriteState.Failed, message ?? CobaltStrings.Current.WriteFailed, canApply: false);
     }
 
     /// <summary>
@@ -514,4 +548,15 @@ public class ParameterRow : TemplatedControl, INumericInputTarget
 
     /// <summary>见 <see cref="Cobalt.Fluent.Automation.ParameterRowAutomationPeer"/>。</summary>
     protected override AutomationPeer OnCreateAutomationPeer() => new ParameterRowAutomationPeer(this);
+
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        _strings.Attach();
+    }
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnDetachedFromVisualTree(e);
+        _strings.Detach();
+    }
 }

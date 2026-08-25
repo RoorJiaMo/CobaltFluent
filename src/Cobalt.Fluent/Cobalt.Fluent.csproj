@@ -4,16 +4,34 @@
     <RootNamespace>Cobalt.Fluent</RootNamespace>
     <AssemblyName>Cobalt.Fluent</AssemblyName>
     <PackageId>Cobalt.Fluent</PackageId>
-    <Description>Windows 11 Fluent 控件库 for Avalonia —— 桌面基准 32px，含工业 HMI 专用控件。</Description>
+    <Title>Cobalt.Fluent — Windows 11 Fluent controls for Avalonia</Title>
+    <Description>Windows 11 Fluent controls for Avalonia, built on a 32px desktop baseline, with a group of industrial HMI controls that have no WinUI counterpart: readouts that keep the last known value when data goes stale, jog buttons with seven stop triggers, a latching E-stop, alarm banners that breathe instead of flashing, and parameter rows that write back what the device accepted. Ships high-contrast theme variants, UI Automation peers on every control, and publishes clean under TrimMode=full and NativeAOT.</Description>
     <IncludeBuildOutput>true</IncludeBuildOutput>
+
+    <!-- XML 文档进包，使用方能在 IntelliSense 里看到每个成员的说明。
+         **说明本身是中文的**——这批注释解释的是「为什么这么设计」，
+         多数是安全语义的推理过程，机翻会把那部分价值弄丢。
+         签名和参数名是英文的，所以对不读中文的使用方仍有基本可用性。 -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <!-- 可复现构建。同一份源码在任何机器上编出字节一致的产物——
+         使用方要核对「发布的这个包确实是这份源码编的」时靠它。 -->
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild Condition="'$(CI)' == 'true'">true</ContinuousIntegrationBuild>
+
+    <!-- 包校验。1.0 还没有基线版本可比，这里先打开框架兼容性那一档；
+         发 1.1 时把 PackageValidationBaselineVersion 设成 1.0.0，
+         破坏性 API 变更就会在打包阶段直接报错，而不是等使用方升级时才炸。 -->
+    <EnablePackageValidation>true</EnablePackageValidation>
 
     <!-- 编译绑定。反射绑定（ReflectionBindingExtension）在 TrimMode=full / NativeAOT 下
          可能被裁掉目标成员，绑定在运行时静默失效——界面照样画出来，只是那一处不更新了。
          打开这个开关之后，任何一处退回反射绑定都会变成编译错误。 -->
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
 
-    <!-- NuGet 包元数据。发包前把下面三处的 owner/repo 换成实际地址。 -->
-    <Version>0.1.0</Version>
+    <!-- NuGet 包元数据。 -->
+    <Version>1.0.0</Version>
+    <PackageReleaseNotes>First stable release. See CHANGELOG.md for the full list.</PackageReleaseNotes>
     <Authors>RoorJiaMo</Authors>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageProjectUrl>https://github.com/RoorJiaMo/CobaltFluent</PackageProjectUrl>
@@ -30,6 +48,17 @@
   <ItemGroup>
     <None Include="../../README.md" Pack="true" PackagePath="/" Visible="false" />
     <None Include="../../LICENSE" Pack="true" PackagePath="/" Visible="false" />
+  </ItemGroup>
+
+  <!-- 包图标。条件判断是必需的：PackageIcon 指向不存在的文件会直接导致打包失败，
+       而品牌资源不该是打包的硬依赖——和展柜的 ApplicationIcon 同一个处理。
+       放一个 128×128 的 Assets/icon.png 进来就会自动带上。 -->
+  <PropertyGroup Condition="Exists('$(MSBuildProjectDirectory)/Assets/icon.png')">
+    <PackageIcon>icon.png</PackageIcon>
+  </PropertyGroup>
+
+  <ItemGroup Condition="Exists('$(MSBuildProjectDirectory)/Assets/icon.png')">
+    <None Include="Assets/icon.png" Pack="true" PackagePath="/" Visible="false" />
   </ItemGroup>
 
   <ItemGroup>

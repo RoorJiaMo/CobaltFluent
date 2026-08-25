@@ -63,14 +63,14 @@ public class InfoBadgeAutomationPeer(InfoBadge owner) : ControlAutomationPeer(ow
     protected override string GetClassNameCore() => nameof(InfoBadge);
 
     protected override string? GetNameCore() =>
-        PeerText.Join(Control.Severity.ToString(), Control.IsDot ? "有更新" : Control.Text);
+        PeerText.Join(Control.Severity.ToString(), Control.IsDot ? CobaltStrings.Current.HasUpdates : Control.Text);
 
     public string Value => Control.IsDot ? "" : Control.Text ?? "";
 
     public bool IsReadOnly => true;
 
     public void SetValue(string? value) =>
-        throw new ElementNotEnabledException("角标由数据源决定，界面不可写。");
+        throw new ElementNotEnabledException("An InfoBadge is driven by its data source and cannot be written from the UI.");
 }
 
 /// <summary>引导提示。关掉时退出自动化树。</summary>
@@ -100,7 +100,7 @@ public class PaginationAutomationPeer(Pagination owner)
 
     protected override string GetClassNameCore() => nameof(Pagination);
 
-    protected override string? GetNameCore() => "分页";
+    protected override string? GetNameCore() => CobaltStrings.Current.PaginationName;
 
     protected override string? GetItemStatusCore() => Control.InfoText;
 
@@ -120,12 +120,12 @@ public class PaginationAutomationPeer(Pagination owner)
     public void SetValue(double value)
     {
         if (IsReadOnly)
-            throw new ElementNotEnabledException("分页当前没有任何页。");
+            throw new ElementNotEnabledException("The pager currently has no pages.");
 
         // NaN 与 ±∞ 直接拒收。`(int)double.NaN` 不抛异常，会悄悄落成 0——
         // 那样客户端写进一个非法值，读回来的却是一个看着正常的页码。
         if (!double.IsFinite(value))
-            throw new ArgumentOutOfRangeException(nameof(value), "页码必须是有限数。");
+            throw new ArgumentOutOfRangeException(nameof(value), "The page number must be a finite value.");
 
         // 夹进量程，和 PART_Prev / PART_Next 的做法一致。
         // 自动化不该能把控件推进一个指针操作根本到不了的状态——
@@ -181,7 +181,7 @@ public class NavigationViewAutomationPeer(NavigationView owner) : ControlAutomat
 
     protected override string GetClassNameCore() => nameof(NavigationView);
 
-    protected override string? GetNameCore() => "导航";
+    protected override string? GetNameCore() => CobaltStrings.Current.NavigationName;
 }
 
 /// <summary>图例。</summary>
@@ -191,7 +191,7 @@ public class ChartLegendAutomationPeer(ChartLegend owner) : ControlAutomationPee
 
     protected override string GetClassNameCore() => nameof(ChartLegend);
 
-    protected override string? GetNameCore() => "图例";
+    protected override string? GetNameCore() => CobaltStrings.Current.LegendName;
 }
 
 // ---------------------------------------------------------------------------
@@ -213,15 +213,16 @@ public class TrendChartAutomationPeer(TrendChart owner) : ControlAutomationPeer(
 
     protected override string GetClassNameCore() => nameof(TrendChart);
 
-    protected override string GetLocalizedControlTypeCore() => "趋势图";
+    protected override string GetLocalizedControlTypeCore() => CobaltStrings.Current.TrendChartName;
 
     protected override string? GetNameCore() =>
-        PeerText.Join("趋势图", Control.Series is { Count: > 0 } s ? $"{s.Count} 条曲线" : null);
+        PeerText.Join(CobaltStrings.Current.TrendChartName,
+            Control.Series is { Count: > 0 } s ? CobaltStrings.Current.SeriesCount(s.Count) : null);
 
     // TrackballIndex 是 int?：`>= 0` 在 null 上也答 false，但那是可空提升的
     // 副作用而不是这里想表达的判断。显式匹配，别让语义挂在比较运算的边角规则上。
     protected override string? GetItemStatusCore() =>
-        Control.TrackballIndex is { } i ? $"轨迹球位于第 {i} 点" : null;
+        Control.TrackballIndex is { } i ? CobaltStrings.Current.TrackballAt(i) : null;
 }
 
 /// <summary>柱状图。</summary>
@@ -233,10 +234,11 @@ public class BarChartAutomationPeer(BarChart owner) : ControlAutomationPeer(owne
 
     protected override string GetClassNameCore() => nameof(BarChart);
 
-    protected override string GetLocalizedControlTypeCore() => "柱状图";
+    protected override string GetLocalizedControlTypeCore() => CobaltStrings.Current.BarChartName;
 
     protected override string? GetNameCore() =>
-        PeerText.Join("柱状图", Control.Categories is { Count: > 0 } c ? $"{c.Count} 个分类" : null);
+        PeerText.Join(CobaltStrings.Current.BarChartName,
+            Control.Categories is { Count: > 0 } c ? CobaltStrings.Current.CategoryCount(c.Count) : null);
 }
 
 /// <summary>迷你趋势线。趋势方向是它唯一的语义。</summary>
@@ -248,9 +250,9 @@ public class SparklineAutomationPeer(Sparkline owner) : ControlAutomationPeer(ow
 
     protected override string GetClassNameCore() => nameof(Sparkline);
 
-    protected override string GetLocalizedControlTypeCore() => "迷你趋势线";
+    protected override string GetLocalizedControlTypeCore() => CobaltStrings.Current.SparklineName;
 
-    protected override string? GetNameCore() => PeerText.Join("趋势", Control.Trend.ToString());
+    protected override string? GetNameCore() => PeerText.Join(CobaltStrings.Current.TrendName, Control.Trend.ToString());
 }
 
 // ---------------------------------------------------------------------------

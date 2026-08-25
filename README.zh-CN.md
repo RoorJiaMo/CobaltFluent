@@ -65,8 +65,7 @@ Cobalt.Fluent 在 Avalonia 11.3 上完整实现 Windows 11 Fluent 的视觉规�
 ## 快速开始
 
 ```bash
-# 尚未发布到 nuget.org。首个版本发布前，直接引用工程：
-dotnet add reference path/to/src/Cobalt.Fluent/Cobalt.Fluent.csproj
+dotnet add package Cobalt.Fluent
 ```
 
 ```xml
@@ -275,6 +274,52 @@ CI 跑 `tools/aot-gate.sh`，它有两半——因为光查告警不够：
 
 ---
 
+## 本地化
+
+控件内部生成的文字全部走 `CobaltStrings`，默认按 `CultureInfo.CurrentUICulture` 选：
+`zh*` 给中文，其余给英文。整块可换：
+
+```csharp
+CobaltStrings.Current = new CobaltStringsZhHans();   // 固定中文
+CobaltStrings.Current = new MyPlantStrings();        // 厂内术语
+```
+
+不用 resx。`ResourceManager` 靠反射查卫星程序集，会顶红本仓库的 NativeAOT 闸口；
+普通虚成员运行时零开销，而且能整块替换。
+
+三类文字去三个地方，这条边界是要紧的：
+
+| | 去哪 | 为什么 |
+|---|---|---|
+| 屏幕上的字、`Name` / `ItemStatus` / `HelpText` | `CobaltStrings` | 给人读的，按 UIA 约定要本地化 |
+| `IValueProvider.Value` | **绝不本地化** | 这是测试台断言的锚点。本地化了，使用方的验收脚本会在界面翻译的那天全红 |
+| 异常消息 | 英文字面量 | 给开发者和测试台看的，按库的惯例 |
+
+作为属性默认值的文字（`AcknowledgeContent`、表头这些）在构造时取一次，
+换语言不会改写已经建出来的实例——对 HMI 来说语言通常是部署期或换班时的决定，
+为运行时热切换给每个属性加一层投影不划算。控件**内部算出来**的文字会跟着变：
+这些控件在挂载期间订阅 `CobaltStrings.CurrentChanged`。
+
+---
+
+## NuGet 包
+
+```bash
+tools/aot-gate.sh      # NativeAOT 发布，然后真跑一遍原生二进制
+tools/pack-gate.sh     # 打包，然后从装上的包里用一遍
+```
+
+包内带 XML 文档（说明是中文的，签名和参数名不是）、符号包和 SourceLink 元数据，
+使用方能从自己的应用单步进本库。
+
+`pack-gate.sh` 和 AOT 那道闸口一样有两半，理由相同：**控件库最经典的翻车方式，
+是项目引用一路绿、包引用炸掉**——编译后的 XAML 没进程序集，模板全都套不上，
+而仓库内部怎么测都看不见。所以闸口先打包，再装进一个一次性工程里真的用一遍。
+它还刻意跑在固定区域性下，那是仓库里唯一走英文默认路径的地方——
+回归测试为了自身结果确定，把语言钉死了。
+
+---
+
 ## 嵌入式与触摸屏适配
 
 针对 Mali GPU 等嵌入式图形环境提供以下配置项：
@@ -305,9 +350,10 @@ tools/check.sh                        # 编译控件库（复制至临时目录�
 tools/check.sh --gallery              # 连同展柜一并编译
 tools/check.sh --only Button.axaml    # 仅合并指定控件层文件（并行开发用）
 
-python3 tools/audit.py                             # 控件层静默失效审计（12 项检查）
+python3 tools/audit.py                             # 控件层静默失效审计（14 项检查）
 tools/aot-gate.sh                                  # NativeAOT 发布，然后真跑一遍原生二进制
-dotnet test tests/Cobalt.Fluent.Tests               # 320 项回归测试
+tools/pack-gate.sh                                 # 打包，然后从装上的包里用一遍
+dotnet test tests/Cobalt.Fluent.Tests               # 340 项回归测试
 dotnet run  --project samples/Cobalt.Fluent.Gallery # 运行展柜
 ```
 

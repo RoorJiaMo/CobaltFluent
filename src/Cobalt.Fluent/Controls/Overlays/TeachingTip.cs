@@ -58,7 +58,7 @@ public class TeachingTip : TemplatedControl
     }
 
     public static readonly StyledProperty<string?> CloseButtonContentProperty =
-        AvaloniaProperty.Register<TeachingTip, string?>(nameof(CloseButtonContent), "知道了");
+        AvaloniaProperty.Register<TeachingTip, string?>(nameof(CloseButtonContent));
 
     public string? CloseButtonContent
     {
@@ -111,7 +111,15 @@ public class TeachingTip : TemplatedControl
         IsOpenProperty.Changed.AddClassHandler<TeachingTip>((x, e) => x.IsVisible = e.NewValue is true);
     }
 
-    public TeachingTip() => Refresh();
+    public TeachingTip()
+    {
+        // 默认措辞跟着 CobaltStrings 走。用 SetCurrentValue 而不是在 Register 里写死：
+        // 注册的默认值在静态构造时就定死了，换语言带不动它；而在构造函数里直接赋值
+        // 会产生 local value，样式 Setter 从此静默失效。SetCurrentValue 两头都躲开。
+        SetCurrentValue(CloseButtonContentProperty, CobaltStrings.Current.GotIt);
+
+        Refresh();
+    }
 
     protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
     {
