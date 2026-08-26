@@ -112,6 +112,12 @@ public class CobaltStringsZhHans : CobaltStrings
 
     public override string EStopCommandNotSent => "急停指令未下发 · 立即使用硬件急停";
 
+    public override string NewTab => "新建标签";
+
+    public override string CloseTab => "关闭标签";
+
+    public override string TabStrip => "标签栏";
+
     public override string Cancel => "取消";
 
     public override string GotIt => "知道了";

@@ -250,6 +250,33 @@ public override void OnFrameworkInitializationCompleted()
 
 ---
 
+### 标签撕出成窗口
+
+`TabView` 支持拖拽重排、把标签撕出成独立窗口、以及拖回任意窗口的标签栏并入。
+撕出的窗口本身也是一个 `TabView`，所以可以继续往里拖。
+
+**这是桌面专有能力。** `Avalonia.LinuxFramebuffer`（DRM/KMS，嵌入式面板走的那条路）、
+移动端、浏览器都是单窗口的——它们的生命周期是 `ISingleViewApplicationLifetime`，
+只有一个 `MainView`，没有窗口列表。`CanTearOut` 报的就是「当前进程到底能不能做到」，
+做不到时不出那个视觉暗示，免得操作员拖了半天才发现没反应。重排在哪儿都能用。
+
+两条被排除的路子值得记下来：
+
+- **`Window.BeginMoveDrag`** 把窗口移动交给窗口管理器，此后进程收不到任何指针事件——
+  于是「把撕出去的标签拖回来」无从检测。Chrome 在 Windows 上自己实现窗口拖动正是这个原因。
+- **`DragDrop.DoDragDrop`** 是操作系统的剪贴板式拖放协议：载荷要能序列化，
+  而这里要搬的是一个活着的控件实例；各平台行为差异也大。
+
+实际走的是指针捕获：捕获之后即使光标离开窗口，`PointerMoved` 仍然送到源窗口。
+坐标用 `PointToScreen` 换算，预览窗用 `Window.Position` 跟随，落点由自己拿屏幕坐标
+去比对每个窗口的标签栏——不依赖操作系统的命中测试。全托管，裁剪与 NativeAOT 下都成立。
+
+预览窗设 `ShowActivated = false`。这一行是整个方案的支点：预览窗一旦抢走激活，
+源窗口的指针捕获就丢了，拖拽当场断在半路。
+
+键盘路径：`Ctrl+Shift+PageUp` / `PageDown` 把获得焦点的标签左右挪一格，
+沿用浏览器与 VS Code 的既有约定。拖拽是纯指针手势，而工业面板上不一定有鼠标。
+
 ## NativeAOT 与裁剪
 
 控件层不含反射绑定，使用方可以直接用 `PublishAot` + `TrimMode=full` 发布，
@@ -353,7 +380,7 @@ tools/check.sh --only Button.axaml    # 仅合并指定控件层文件（并行�
 python3 tools/audit.py                             # 控件层静默失效审计（14 项检查）
 tools/aot-gate.sh                                  # NativeAOT 发布，然后真跑一遍原生二进制
 tools/pack-gate.sh                                 # 打包，然后从装上的包里用一遍
-dotnet test tests/Cobalt.Fluent.Tests               # 340 项回归测试
+dotnet test tests/Cobalt.Fluent.Tests               # 368 项回归测试
 dotnet run  --project samples/Cobalt.Fluent.Gallery # 运行展柜
 ```
 

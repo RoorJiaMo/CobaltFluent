@@ -9,16 +9,31 @@
     <Setter Property="Template">
       <ControlTemplate TargetType="fc:TabView">
         <Grid RowDefinitions="Auto,*">
-          <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="2" VerticalAlignment="Bottom">
-            <ItemsPresenter ItemsPanel="{TemplateBinding ItemsPanel}" />
-            <Button x:Name="PART_AddButton"
-                    Classes="subtle icon"
-                    Height="32"
+          <!-- PART_Strip 是拖拽落点判定的量测基准：它的屏幕矩形决定「松手时算不算落在
+               这条标签栏上」。落点指示器压在它上面，用绝对边距定位到插入位置。 -->
+          <Panel x:Name="PART_Strip" Grid.Row="0">
+            <StackPanel Orientation="Horizontal" Spacing="2" VerticalAlignment="Bottom">
+              <ItemsPresenter ItemsPanel="{TemplateBinding ItemsPanel}" />
+              <Button x:Name="PART_AddButton"
+                      Classes="subtle icon"
+                      Height="32"
+                      VerticalAlignment="Bottom"
+                      IsVisible="{TemplateBinding IsAddButtonVisible}">
+                <fc:SymbolIcon Symbol="Add" FontSize="12" />
+              </Button>
+            </StackPanel>
+
+            <!-- 插入位置。不参与命中测试——它压在标签上面，会把落点判定抢走。 -->
+            <Border x:Name="PART_DropIndicator"
+                    Width="2"
+                    Height="24"
+                    HorizontalAlignment="Left"
                     VerticalAlignment="Bottom"
-                    IsVisible="{TemplateBinding IsAddButtonVisible}">
-              <fc:SymbolIcon Symbol="Add" FontSize="12" />
-            </Button>
-          </StackPanel>
+                    IsHitTestVisible="False"
+                    IsVisible="False"
+                    CornerRadius="1"
+                    Background="{DynamicResource AccentFillColorDefaultBrush}" />
+          </Panel>
 
           <Border Grid.Row="1"
                   Background="{DynamicResource LayerFillColorDefaultBrush}"

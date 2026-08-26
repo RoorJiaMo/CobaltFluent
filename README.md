@@ -260,6 +260,40 @@ would otherwise inherit the ordinary translucent value in silence.
 
 ---
 
+### Tearing tabs out into windows
+
+`TabView` supports drag-reorder, tearing a tab out into its own window, and dragging it back
+into any window's tab strip. The torn-out window is itself a `TabView`, so further tabs can be
+dropped into it.
+
+**This is a desktop-only capability.** `Avalonia.LinuxFramebuffer` (DRM/KMS, the embedded panel
+path), mobile and browser targets are all single-window — their lifetime is
+`ISingleViewApplicationLifetime`, which has one `MainView` and no window list. `CanTearOut`
+reports whether the current process can actually do it, so the affordance is not offered where
+dragging would silently do nothing. Reordering still works everywhere.
+
+Two mechanisms were ruled out and are worth recording:
+
+- **`Window.BeginMoveDrag`** hands the window move to the window manager, after which the
+  process receives no pointer events at all — so dragging a torn-out tab *back* cannot be
+  detected. This is why Chrome implements its own window dragging on Windows.
+- **`DragDrop.DoDragDrop`** is the OS clipboard-based drag protocol: the payload must be
+  serialisable, and what is being moved here is a live control instance. Its behaviour also
+  varies considerably per platform.
+
+What is used instead is pointer capture: once captured, `PointerMoved` keeps reaching the source
+window even after the cursor leaves it. Coordinates are converted with `PointToScreen`, the drag
+preview follows via `Window.Position`, and the drop target is resolved by comparing screen
+coordinates against each window's tab strip — no OS hit-testing involved. Fully managed, so it
+survives trimming and NativeAOT.
+
+The preview window sets `ShowActivated = false`. That one line is the pivot: if the preview
+takes activation, the source window loses pointer capture and the drag dies mid-gesture.
+
+Keyboard path: `Ctrl+Shift+PageUp` / `PageDown` moves the focused tab, following the convention
+browsers and VS Code already use. Dragging is a pointer-only gesture, and an industrial panel
+does not necessarily have a mouse.
+
 ## NativeAOT and trimming
 
 The control layer contains no reflection bindings, so a consuming application can publish with
@@ -373,7 +407,7 @@ tools/check.sh --only Button.axaml    # merge only the named control-layer file 
 python3 tools/audit.py                             # control-layer silent-failure audit (14 checks)
 tools/aot-gate.sh                                  # NativeAOT publish, then run the native binary
 tools/pack-gate.sh                                 # pack, then consume the installed package
-dotnet test tests/Cobalt.Fluent.Tests               # 340 regression tests
+dotnet test tests/Cobalt.Fluent.Tests               # 368 regression tests
 dotnet run  --project samples/Cobalt.Fluent.Gallery # run the gallery
 ```
 

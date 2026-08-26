@@ -656,7 +656,12 @@ InfoBar 的四个级别：informational / success / warning / error。
 |---|---|---|
 | `IsAddButtonVisible` | `bool` | — |
 | `AddCommand` | `ICommand?` | — |
+| `IsReorderEnabled` | `bool` | — |
+| `IsTearOutEnabled` | `bool` | — |
 | `TabCloseRequested` | `event EventHandler<TabCloseRequestedEventArgs>?` | 某个标签请求关闭。是否真的移除由使用方决定（可能要先提示保存）。 |
+| `TabAddRequested` | `event EventHandler<RoutedEventArgs>?` | 按了「+」。使用方在这里建自己的标签，建完把 `Handled` 置真。 三条路依次尝试：本事件 → `AddCommand` → 内置的空标签兜底。 有兜底是因为**「+」画出来了就不能是个死按钮**——按了没反应比按钮不存在更糟， 操作员会以为是卡住了而反复按。 |
+| `TabTearOutRequested` | `event EventHandler<TabViewTearOutEventArgs>?` | 某个标签被拖出了标签栏，需要一个承载它的窗口。 使用方把 `Window` 设成自己的窗口类型， 不设就用一个内置的最小窗口。 |
+| `TabMoved` | `event EventHandler<TabViewTabMovedEventArgs>?` | 一个标签从别的 TabView 搬了进来，或在本条标签栏内换了位置。 |
 
 ### `TabViewItem` : `TabItem`
 

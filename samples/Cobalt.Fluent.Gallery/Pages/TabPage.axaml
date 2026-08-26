@@ -112,9 +112,32 @@
       </StackPanel>
     </Border>
 
+    <TextBlock Classes="sub" Text="交互演示 — 拖拽重排 · 撕出成窗口 · 拖回并入" />
+    <Border Classes="play">
+      <StackPanel Spacing="12">
+        <fc:TabView x:Name="DragTabs" Width="560">
+          <fc:TabViewItem Header="腔体温度" Icon="Document">
+            <TextBlock Classes="note" Text="把这个标签拖到窗口外面，它会变成一个独立窗口。" />
+          </fc:TabViewItem>
+          <fc:TabViewItem Header="进料压力" Icon="Document">
+            <TextBlock Classes="note" Text="再把那个窗口的标签拖回这条标签栏，它就并回来了。" />
+          </fc:TabViewItem>
+          <fc:TabViewItem Header="主轴转速" Icon="Document">
+            <TextBlock Classes="note" Text="在标签栏内拖动则是重排，插入位置由那条竖线指示。" />
+          </fc:TabViewItem>
+        </fc:TabView>
+        <TextBlock x:Name="DragStatus" Classes="note" MaxWidth="700" />
+        <TextBlock Classes="note" MaxWidth="700"
+                   Text="插入位置按标签中线判定，不按边界：按边界的话拖到两个标签交界处时插入点会来回跳，落地位置取决于最后一帧光标停在哪一侧。撕出的窗口本身也是一个 TabView，所以可以继续往里拖第二个标签。" />
+        <TextBlock Classes="note" MaxWidth="700"
+                   Text="键盘路径：标签获得焦点后 Ctrl+Shift+PageUp / PageDown 左右挪一格（浏览器与 VS Code 的既有约定）。拖拽是纯指针手势，而工业面板上不一定有鼠标。" />
+      </StackPanel>
+    </Border>
+
     <g:MapBlock Note="TabControl 的指示条在 TabStripPlacement=Top 时为水平方向，宽度跟随 header 内容而非整个 TabItem——两侧需留出 12px。内置模板的 PART_SelectedPipe 位于 Padding 之内，横向 Stretch 会连同 TabItem 的 padding 一起铺满，故此处将其移到 Padding 之外作为兄弟节点，再以 Margin 显式保留 12。">
       <g:MapRow Key="控件" Value="TabControl / TabItem（Avalonia 内置）· fc:TabView / fc:TabViewItem（本库自带，不依赖 FluentAvalonia）" />
-      <g:MapRow Key="属性" Value="TabControl.TabStripPlacement=Top/Bottom/Left/Right · TabItem.Header · TabView.IsAddButtonVisible / AddCommand / TabCloseRequested 事件 · TabViewItem.Icon:Symbol / IsClosable" />
+      <g:MapRow Key="属性" Value="TabControl.TabStripPlacement=Top/Bottom/Left/Right · TabItem.Header · TabView.IsAddButtonVisible / AddCommand / IsReorderEnabled / IsTearOutEnabled / CanTearOut(只读) · TabView 事件：TabAddRequested / TabCloseRequested / TabTearOutRequested / TabMoved · TabViewItem.Icon:Symbol / IsClosable" />
+      <g:MapRow Key="部件" Value="PART_Strip（落点判定的量测基准）· PART_DropIndicator（插入位置，2px 竖线，不参与命中测试）· PART_AddButton · PART_Close" />
       <g:MapRow Key="选择器" Value="TabItem:selected · TabItem:pointerover:not(:selected) · TabItem:disabled · fc|TabViewItem:selected · fc|TabViewItem:closable" />
       <g:MapRow Key="资源键" Value="TabItemMinHeight=48 · TabItemPipeThickness=2 · TabViewItemHeight=36 · AccentFillColorDefaultBrush（指示条）· TextFillColorSecondaryBrush → PrimaryBrush（未选 / 选中）· SubtleFillColorSecondaryBrush（hover 底）· LayerFillColorDefaultBrush + CardStrokeColorDefaultBrush（TabView 选中标签与内容区连成一体）· DividerStrokeColorDefaultBrush（tab 条下的 1px 线）" />
     </g:MapBlock>

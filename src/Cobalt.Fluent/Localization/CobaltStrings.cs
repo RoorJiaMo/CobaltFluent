@@ -190,6 +190,17 @@ public class CobaltStrings
     /// <summary>急停指令没能下发。设备很可能还在动——措辞必须指向硬件急停。</summary>
     public virtual string EStopCommandNotSent => "Command not sent · use the hardware E-stop now";
 
+    // ---- TabView ------------------------------------------------------------
+
+    /// <summary>新建标签按钮的无障碍名字。</summary>
+    public virtual string NewTab => "New tab";
+
+    /// <summary>关闭标签按钮的无障碍名字。</summary>
+    public virtual string CloseTab => "Close tab";
+
+    /// <summary>标签栏本身的无障碍名字。</summary>
+    public virtual string TabStrip => "Tabs";
+
     // ---- 通用 ---------------------------------------------------------------
 
     public virtual string Cancel => "Cancel";

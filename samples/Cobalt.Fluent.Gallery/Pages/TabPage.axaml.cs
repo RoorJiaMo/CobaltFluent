@@ -15,8 +15,10 @@ public partial class TabPage : UserControl
         AvaloniaXamlLoader.Load(this);
 
         // 规格那一格的 TabView 也接上：展柜里没有死按钮，「+」画出来就得能按
-        foreach (var name in new[] { "SpecTabs", "PlayTabs" })
+        foreach (var name in new[] { "SpecTabs", "PlayTabs", "DragTabs" })
             Wire(this.FindControl<TabView>(name)!);
+
+        WireDragDemo();
     }
 
     private void Wire(TabView tabs)
@@ -32,6 +34,30 @@ public partial class TabPage : UserControl
             // 新开的立刻切过去 —— 浏览器就是这个行为，开完还停在原页会让人以为没开成
             tabs.SelectedItem = tab;
         });
+    }
+
+    /// <summary>
+    /// 拖拽演示。把控件报出来的能力和事件如实显示在页面上——
+    /// 撕出在单窗口平台（嵌入式 framebuffer、移动端、浏览器）上做不到，
+    /// 展柜不该假装它能用。
+    /// </summary>
+    private void WireDragDemo()
+    {
+        var tabs = this.FindControl<TabView>("DragTabs")!;
+        var status = this.FindControl<TextBlock>("DragStatus")!;
+
+        status.Text = tabs.CanTearOut
+            ? "本机可以撕出：把标签拖出窗口试试。"
+            : "本平台是单窗口的（framebuffer / 移动端 / 浏览器），撕出不可用——"
+              + "重排仍然可以。CanTearOut 报的就是这件事。";
+
+        tabs.TabMoved += (_, e) => status.Text = ReferenceEquals(e.From, e.To)
+            ? $"「{e.Tab.Header}」重排到第 {e.Index + 1} 位。"
+            : $"「{e.Tab.Header}」从另一个标签栏搬了进来，落在第 {e.Index + 1} 位。";
+
+        tabs.TabTearOutRequested += (_, e) =>
+            status.Text = $"「{e.Tab.Header}」撕出到屏幕 {e.ScreenPosition.X},{e.ScreenPosition.Y}。"
+                          + "新窗口本身也是 TabView，可以再往里拖。";
     }
 
     private static TabViewItem NewRecipeTab(string name) => new()

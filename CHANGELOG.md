@@ -2,6 +2,20 @@
 
 本项目遵循 [Semantic Versioning](https://semver.org/lang/zh-CN/)。
 
+## 未发布
+
+### 新增
+
+- `TabView` 支持拖拽重排、撕出成独立窗口、拖回并入。撕出是桌面专有能力，
+  `CanTearOut` 报出当前进程能不能做到——单窗口平台（嵌入式 framebuffer、移动端、
+  浏览器）上不出那个视觉暗示，而不是让操作员拖了才发现没反应。
+- 键盘重排：`Ctrl+Shift+PageUp` / `PageDown`。拖拽是纯指针手势，
+  而工业面板上不一定有鼠标。
+- `TabView.TabAddRequested` 事件。「+」的三条路依次尝试：事件 → `AddCommand` →
+  内置空标签兜底——画出来的按钮不能是死按钮。
+- `TabView.TabTearOutRequested` / `TabMoved` 事件。绑了 `ItemsSource` 时控件不改集合，
+  事件没人处理就拒绝搬，不留下一个既不在这边也不在那边的标签。
+
 ## 1.0.0
 
 首个稳定版本。
