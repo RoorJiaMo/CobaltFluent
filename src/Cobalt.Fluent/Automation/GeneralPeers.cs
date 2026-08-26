@@ -264,6 +264,32 @@ public class SparklineAutomationPeer(Sparkline owner) : ControlAutomationPeer(ow
 // ---------------------------------------------------------------------------
 
 /// <summary>
+/// 标题栏。
+///
+/// Name 是窗口标题（<see cref="TitleBar.EffectiveTitle"/>，没给 Title 时就是窗口自己的），
+/// <b>ItemStatus 报出贴靠布局到底可不可用</b>。
+///
+/// 「最大化钮悬停没弹出布局面板」是自绘标题栏最常见的投诉，而原因往往不在标题栏本身——
+/// 窗口设了不可缩放、跑在 Windows 10、最大化钮被藏起来，三种都会让 shell 不弹。
+/// 把结论摆在自动化树上，排查时一眼能看见，不用去猜。
+/// </summary>
+public class TitleBarAutomationPeer(TitleBar owner) : ControlAutomationPeer(owner)
+{
+    private TitleBar Control => (TitleBar)Owner;
+
+    protected override AutomationControlType GetAutomationControlTypeCore() =>
+        AutomationControlType.TitleBar;
+
+    protected override string GetClassNameCore() => nameof(TitleBar);
+
+    protected override string? GetNameCore() => Control.EffectiveTitle;
+
+    protected override string? GetItemStatusCore() => Control.SupportsSnapLayouts
+        ? CobaltStrings.Current.SnapLayoutsAvailable
+        : CobaltStrings.Current.SnapLayoutsUnavailable;
+}
+
+/// <summary>
 /// 装饰性元素的对等体。
 ///
 /// 用在：占位骨架（内容还没来）、分隔线（纯视觉分组）、图标（含义由它所在的

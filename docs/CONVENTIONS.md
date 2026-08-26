@@ -42,6 +42,8 @@
 
 几何与时长：`ControlCornerRadius`(4) · `OverlayCornerRadius`(8) · `ControlHeight`(32) ·
 `ControlMinWidth`(64) · `ControlPadding`(11,5,11,6) · `Space1..8` ·
+`TitleBarHeight`(32) · `TitleBarButtonWidth`(46)——后两个照 Windows 11 的系统标题栏取，
+对不上的话贴靠面板会弹在偏离按钮的位置 ·
 `ControlFasterAnimationDuration`(83ms) · `ControlFastAnimationDuration`(167ms) ·
 `ControlNormalAnimationDuration`(250ms) · `ControlSlowAnimationDuration`(333ms)
 
@@ -58,6 +60,7 @@
 | `:error` | 本库，校验不通过 |
 | `:dirty` · `:jogging` · `:engaged` 等第 7 组语义 | 本库，`PseudoClasses.Set(":dirty", v)` |
 | `:rangestart` · `:inrange` · `:rangeend` | 本库，`RangeCalendar` 按选中区间的首尾补出 |
+| `:maximized` · `:inactive` | 本库，`TitleBar` 跟随所在窗口的 `WindowState` / `IsActive` |
 
 内置有的别另起炉灶：Avalonia 已经给了 `:pointerover`，就不要再自己维护一个 `IsHovered`
 属性，两套状态迟早对不上。自定义的一律在类上用 `[PseudoClasses(...)]` 标出来，
@@ -114,10 +117,42 @@ xmlns:fc="using:Cobalt.Fluent.Controls"
                Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
 ```
 
-可用的 `Symbol` 值见 `src/Cobalt.Fluent/Controls/Symbol.cs`（38 个）。
+可用的 `Symbol` 值见 `src/Cobalt.Fluent/Controls/Symbol.cs`（41 个）。
 手上确实有那套字体的话，`SymbolIcon.UseGlyphFont="True"` 切回字体渲染。
 模板里给它起了名字的话，选择器要写 `fc|SymbolIcon#PART_Chevron`，
 **不是** `TextBlock#PART_Chevron` —— 选择器匹配不到不会报编译错，只是静默不生效。
+
+## 自绘标题栏：非客户区命中测试
+
+自绘标题栏会弄坏 Windows 11 的贴靠布局（Snap Layouts）。原因不在 Avalonia：
+自己画的按钮在 Windows 眼里只是客户区里一块像素，shell 不知道那是最大化钮，
+悬停面板于是不弹。修法是让 `WM_NCHITTEST` 在那块像素上返回 `HTMAXBUTTON`，
+Avalonia 把它包成了附加属性：
+
+```csharp
+using Avalonia.Controls;   // Win32Properties 在 Avalonia.Controls 里
+
+Win32Properties.SetNonClientHitTestResult(maximizeButton, Win32Properties.Win32HitTestValue.MaxButton);
+```
+
+不需要 P/Invoke，也不需要按平台分支编译——非 Windows 后端根本不读这个属性。
+
+**代价必须记住**：被标成非客户区的那几块像素，指针事件不再送到 Avalonia。
+Windows 自己处理点击（这正是我们要的），但按钮的 `Click` 在 Windows 上不会触发，
+所以按钮动作要留两条路：Windows 交给系统，其余平台走自己的 `Click`。
+悬停高亮同理，在 Windows 上可能弱于其他平台。
+
+**别把整条标题栏都标成 `Caption`**：放在上面的菜单、搜索框会全部失灵，
+而且失灵的方式是「点了没反应」，不报错、不留痕迹。放内容的地方一律标回 `Client`。
+
+窗口那一侧还要三条提示同时给齐（`TitleBar.ApplyTo` 就是干这个的）：
+`ExtendClientAreaToDecorationsHint` / `ExtendClientAreaChromeHints.NoChrome` /
+`ExtendClientAreaTitleBarHeightHint = -1`。漏掉任何一条的表现都不一样，
+所以合成一个方法，而不是让使用方自己记。
+
+**这一整套在无头测试里验证不完**：贴靠面板是 shell 弹的，只有真机上才看得到。
+测试能钉住的是我们这一侧的前置条件——命中角色有没有落到正确的部件上。
+少标一个 `MaxButton`，编译、运行、界面全都正常，只是那个功能悄悄没了。
 
 ## 写法约定
 

@@ -1,0 +1,105 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:g="using:Cobalt.Fluent.Gallery.Infrastructure"
+             xmlns:fc="using:Cobalt.Fluent.Controls"
+             x:Class="Cobalt.Fluent.Gallery.Pages.TitleBarPage">
+
+  <StackPanel HorizontalAlignment="Left">
+
+    <StackPanel Orientation="Horizontal" Spacing="12">
+      <TextBlock Classes="page-title" Text="TitleBar / 贴靠布局" />
+      <Border Classes="tag"><TextBlock Text="12 · 窗口外壳" /></Border>
+    </StackPanel>
+
+    <TextBlock Classes="lead" MaxWidth="820"
+               Text="自绘标题栏。它存在的主要理由是 Windows 11 的贴靠布局（Snap Layouts）——用系统装饰时那个功能本来就是好的，真正会把它弄坏的正是自绘标题栏。本控件把「告诉 Windows 哪块像素是最大化钮」这件事做完，让自绘标题栏和系统标题栏在贴靠这件事上行为一致。" />
+
+    <TextBlock Classes="sub" Text="外观规格" />
+    <Border Classes="panel">
+      <!-- 这一格是外观样品，不接窗口：展柜自己也是一个窗口，
+           样品里的关闭钮要是真能按，翻到这一页就有可能把展柜关掉。 -->
+      <Border Width="620" CornerRadius="8" ClipToBounds="True"
+              BorderThickness="1"
+              BorderBrush="{DynamicResource CardStrokeColorDefaultBrush}"
+              Background="{DynamicResource LayerFillColorDefaultBrush}">
+        <StackPanel>
+          <fc:TitleBar x:Name="Sample"
+                       Title="研磨工位 · 3 号线"
+                       Icon="Diagnostic"
+                       IsHitTestVisible="False"
+                       Background="{DynamicResource SolidBackgroundFillColorBaseBrush}" />
+          <Border Height="120" Padding="16">
+            <TextBlock Classes="note"
+                       Text="客户区。标题栏是窗口内容的一部分，不是系统画的那一条。" />
+          </Border>
+        </StackPanel>
+      </Border>
+    </Border>
+    <TextBlock Classes="note" MaxWidth="820"
+               Text="高 32、窗口按钮 46×32，都是照 Windows 11 的系统标题栏取的。不一致的话，同一台机器上本应用的按钮和别的应用高低差一截，摆在一起很显眼；而且这几块像素会被标成非客户区，尺寸对不上会让贴靠布局的面板弹在偏离按钮的位置。" />
+
+    <TextBlock Classes="note" MaxWidth="820"
+               Text=":maximized 与 :inactive 两个状态这里不摆样品——它们是按所在窗口算的，而上面那个样品就住在展柜窗口里：展柜正被你看着，它永远是活的、多半也不是最大化的。强设伪类摆出来的格子会和真实行为脱节，那正是规格册最不该做的事。把展柜窗口最大化，上面那个样品的钮会当场换成还原字形；点下面那个按钮开一个真窗口，失活态一并可见。" />
+
+    <TextBlock Classes="sub" Text="窗口按钮状态" />
+    <g:SpecMatrix States="rest,pointerover,pressed">
+      <g:SpecMatrix.Sample>
+        <DataTemplate>
+          <Button Theme="{StaticResource TitleBarButton}">
+            <fc:SymbolIcon Symbol="Maximize" FontSize="16" />
+          </Button>
+        </DataTemplate>
+      </g:SpecMatrix.Sample>
+    </g:SpecMatrix>
+    <g:SpecMatrix States="rest,pointerover,pressed">
+      <g:SpecMatrix.Sample>
+        <DataTemplate>
+          <Button Theme="{StaticResource TitleBarCloseButton}">
+            <fc:SymbolIcon Symbol="Cancel" FontSize="16" />
+          </Button>
+        </DataTemplate>
+      </g:SpecMatrix.Sample>
+    </g:SpecMatrix>
+    <TextBlock Classes="note" MaxWidth="820"
+               Text="关闭钮是唯一一个悬停变红的，这是 Windows 沿用了三十年的约定，改掉它等于让操作员在最不该犹豫的地方犹豫。红底上的叉靠继承按钮前景色变白——字形自己钉死画刷的话，就是红底上一个几乎看不见的深色叉。三个字形都是矢量路径，不依赖 Segoe Fluent Icons。" />
+
+    <TextBlock Classes="sub" Text="贴靠布局：本机能力" />
+    <Border Classes="panel">
+      <StackPanel Spacing="12" Width="620">
+        <TextBlock x:Name="SnapStatus" Classes="note" TextWrapping="Wrap" />
+        <Button x:Name="OpenDemo" Content="打开一个自绘标题栏的窗口" HorizontalAlignment="Left" />
+        <TextBlock x:Name="OpenHint" Classes="note" TextWrapping="Wrap" />
+      </StackPanel>
+    </Border>
+    <TextBlock Classes="note" MaxWidth="820"
+               Text="贴靠面板是 Windows shell 弹的，本库无法在别的平台上模拟它——画一个像的出来也接不上真正的窗口贴靠。所以这里不画假面板，只如实报出前置条件是否成立：Windows 11（内部版本 22000 起）、最大化钮可见、窗口可缩放，三条缺一不可。贴靠布局不出来时先看 SupportsSnapLayouts。" />
+
+    <TextBlock Classes="sub" Text="接进自己的窗口" />
+    <TextBlock Classes="note" MaxWidth="820"
+               Text="把 fc:TitleBar 停靠在窗口顶部（DockPanel.Dock=Top），再在代码里调一次 TitleBar.ApplyTo(this)。完整写法见右上角「查看源码」——上面那个演示窗口就是这么搭的，code-behind 里那几行原样可抄。" />
+    <TextBlock Classes="note" MaxWidth="820"
+               Text="ApplyTo 把三条窗口提示一次设齐：不扩展客户区则标题栏被系统标题栏挤在下面；不设 NoChrome 则系统按钮和自绘按钮同时出现；不设高度提示则顶部留一条系统预留的空白。三种漏法的表现各不相同，所以合成一个方法而不是让使用方自己记。" />
+
+    <TextBlock Classes="sub" Text="代价" />
+    <Border Classes="panel">
+      <StackPanel Width="620" Spacing="8">
+        <TextBlock Classes="note" TextWrapping="Wrap"
+                   Text="① 被标成非客户区的像素，指针事件不再送到 Avalonia。Windows 自己处理点击（这正是我们要的），但按钮的 Click 在 Windows 上不会触发——所以三个按钮的动作分两条路走：Windows 交给系统，其余平台走控件自己的 Click。两条都得在，缺一条就是「某个平台上按钮点不动」。" />
+        <TextBlock Classes="note" TextWrapping="Wrap"
+                   Text="② 悬停高亮同样收不到指针事件。Windows 会发非客户区的移动消息，各版本 Avalonia 的转译程度不同，所以视觉反馈在 Windows 上可能弱于其他平台。" />
+        <TextBlock Classes="note" TextWrapping="Wrap"
+                   Text="③ 放在标题栏上的菜单、搜索框必须落在 LeftContent / RightContent 里——控件会把这两块标回客户区。放在别处会被整条的 Caption 命中结果吃掉，表现是「点了没反应」，不报错、不留痕迹。" />
+      </StackPanel>
+    </Border>
+
+    <g:MapBlock Note="命中角色是靠 Avalonia.Controls.Win32Properties.SetNonClientHitTestResult 附加属性设的，它在 Avalonia.Controls 里，不需要 P/Invoke、不需要按平台分支编译；非 Windows 后端根本不读它，天然是空操作。PART_Maximize 上的 MaxButton 就是贴靠布局本身——少这一行，Windows 只看到客户区里一块普通像素，面板不会弹，而编译、运行、界面全都正常。">
+      <g:MapRow Key="控件" Value="fc:TitleBar（本库自带）· 静态方法 TitleBar.ApplyTo(Window)" />
+      <g:MapRow Key="属性" Value="Title · EffectiveTitle(只读，Title 为空时退回 Window.Title) · Icon:Symbol · LeftContent / RightContent · IsMinimizeVisible / IsMaximizeVisible / IsCloseVisible · SupportsSnapLayouts(只读)" />
+      <g:MapRow Key="部件" Value="PART_Caption(整条的底，标 Caption) · PART_Minimize(标 MinButton) · PART_Maximize(标 MaxButton，贴靠布局的开关) · PART_Close(标 Close) · PART_LeftContent / PART_RightContent(标回 Client) · PART_Title · PART_MinimizeGlyph / PART_MaximizeGlyph / PART_CloseGlyph" />
+      <g:MapRow Key="选择器" Value="fc|TitleBar:maximized(钮换成还原字形) · fc|TitleBar:inactive(标题降到 tertiary)" />
+      <g:MapRow Key="资源键" Value="TitleBarHeight=32 · TitleBarButtonWidth=46 · ControlTheme：TitleBarButton / TitleBarCloseButton · SubtleFillColorSecondaryBrush / TertiaryBrush(悬停 / 按下底) · SafetyRedBrush → SafetyRedHighBrush(关闭钮悬停 / 按下) · TextOnSafetyFillColorPrimaryBrush(红底上的叉) · TextFillColorTertiaryBrush(失活标题)" />
+      <g:MapRow Key="字形" Value="Symbol.Minimize / Maximize / Restore 三个矢量路径，画在 16 格里只占中间 10 格——Windows 的标题栏字形就是 10×10，画满会比系统按钮明显大一圈。关闭钮复用 Symbol.Cancel（它的码位本来就是 ChromeClose）。" />
+    </g:MapBlock>
+
+  </StackPanel>
+</UserControl>

@@ -1,0 +1,145 @@
+<!-- 自绘标题栏。高 32，和 Windows 11 的系统标题栏一致——
+     不一致的话，同一台机器上本应用的按钮和别的应用高低差一截，很显眼。
+
+     窗口按钮 46×32 也是照 Windows 11 的尺寸：这几块像素被标成非客户区之后，
+     Windows 按自己的规则处理悬停与点击，尺寸对不上会让贴靠布局的面板
+     弹在偏离按钮的位置。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:fc="using:Cobalt.Fluent.Controls">
+
+  <x:Double x:Key="TitleBarHeight">32</x:Double>
+  <x:Double x:Key="TitleBarButtonWidth">46</x:Double>
+
+  <ControlTheme x:Key="TitleBarButton" TargetType="Button">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="0" />
+    <Setter Property="Width" Value="{DynamicResource TitleBarButtonWidth}" />
+    <Setter Property="Height" Value="{DynamicResource TitleBarHeight}" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <!-- 标题栏按钮不参与焦点导航：Tab 应该直接进到内容区。
+         系统标题栏的按钮也不在 Tab 序列里。 -->
+    <Setter Property="Focusable" Value="False" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="Button">
+        <Border x:Name="PART_Root"
+                Background="{TemplateBinding Background}"
+                CornerRadius="{TemplateBinding CornerRadius}">
+          <ContentPresenter Content="{TemplateBinding Content}"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center" />
+        </Border>
+      </ControlTemplate>
+    </Setter>
+
+    <Style Selector="^:pointerover /template/ Border#PART_Root">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorSecondaryBrush}" />
+    </Style>
+    <Style Selector="^:pressed /template/ Border#PART_Root">
+      <Setter Property="Background" Value="{DynamicResource SubtleFillColorTertiaryBrush}" />
+    </Style>
+  </ControlTheme>
+
+  <!-- 关闭钮是唯一一个悬停变红的：这是 Windows 沿用了三十年的约定，
+       改掉它等于让操作员在最不该犹豫的地方犹豫。 -->
+  <ControlTheme x:Key="TitleBarCloseButton" TargetType="Button" BasedOn="{StaticResource TitleBarButton}">
+    <Style Selector="^:pointerover /template/ Border#PART_Root">
+      <Setter Property="Background" Value="{DynamicResource SafetyRedBrush}" />
+    </Style>
+    <Style Selector="^:pointerover">
+      <Setter Property="Foreground" Value="{DynamicResource TextOnSafetyFillColorPrimaryBrush}" />
+    </Style>
+    <Style Selector="^:pressed /template/ Border#PART_Root">
+      <Setter Property="Background" Value="{DynamicResource SafetyRedHighBrush}" />
+    </Style>
+    <Style Selector="^:pressed">
+      <Setter Property="Foreground" Value="{DynamicResource TextOnSafetyFillColorPrimaryBrush}" />
+    </Style>
+  </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type fc:TitleBar}" TargetType="fc:TitleBar">
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="Foreground" Value="{DynamicResource TextFillColorPrimaryBrush}" />
+    <Setter Property="Height" Value="{DynamicResource TitleBarHeight}" />
+    <Setter Property="VerticalAlignment" Value="Top" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:TitleBar">
+        <!-- PART_Caption 是整条的底。空白处标成 Caption 之后，拖动移窗、
+             双击最大化、右键系统菜单全部由 shell 提供，行为和系统标题栏完全一致。 -->
+        <Panel x:Name="PART_Caption" Background="{TemplateBinding Background}">
+          <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto">
+
+            <fc:SymbolIcon Grid.Column="0"
+                           Symbol="{TemplateBinding Icon}"
+                           FontSize="16"
+                           Margin="12,0,0,0"
+                           VerticalAlignment="Center"
+                           IsVisible="{TemplateBinding Icon,
+                                       Converter={x:Static fc:SymbolConverters.IsNotNone}}" />
+
+            <TextBlock x:Name="PART_Title"
+                       Grid.Column="1"
+                       Text="{TemplateBinding EffectiveTitle}"
+                       Margin="12,0,0,0"
+                       VerticalAlignment="Center"
+                       TextTrimming="CharacterEllipsis"
+                       FontSize="{DynamicResource CaptionFontSize}"
+                       Foreground="{TemplateBinding Foreground}" />
+
+            <ContentPresenter x:Name="PART_LeftContent"
+                              Grid.Column="2"
+                              Content="{TemplateBinding LeftContent}"
+                              Margin="12,0,0,0"
+                              HorizontalAlignment="Left"
+                              VerticalAlignment="Center" />
+
+            <ContentPresenter x:Name="PART_RightContent"
+                              Grid.Column="3"
+                              Content="{TemplateBinding RightContent}"
+                              VerticalAlignment="Center" />
+
+            <!-- 三个字形都是矢量路径，不是 Segoe Fluent Icons 的码点：
+                 嵌入式 Linux 上没有那套字体，用码点会渲染成豆腐块。
+                 字形本身画在 16 格里只占中间 10 格，和系统标题栏并排时大小对得上。
+
+                 这里刻意不给字形写 Foreground——让它从按钮继承。
+                 关闭钮悬停时整个按钮的 Foreground 会换成白色，
+                 字形上要是钉了自己的画刷，红底上就是一个近乎看不见的深色叉。 -->
+            <StackPanel Grid.Column="4" Orientation="Horizontal">
+              <Button x:Name="PART_Minimize"
+                      Theme="{StaticResource TitleBarButton}"
+                      IsVisible="{TemplateBinding IsMinimizeVisible}">
+                <fc:SymbolIcon x:Name="PART_MinimizeGlyph" Symbol="Minimize" FontSize="16" />
+              </Button>
+              <Button x:Name="PART_Maximize"
+                      Theme="{StaticResource TitleBarButton}"
+                      IsVisible="{TemplateBinding IsMaximizeVisible}">
+                <fc:SymbolIcon x:Name="PART_MaximizeGlyph" Symbol="Maximize" FontSize="16" />
+              </Button>
+              <Button x:Name="PART_Close"
+                      Theme="{StaticResource TitleBarCloseButton}"
+                      IsVisible="{TemplateBinding IsCloseVisible}">
+                <fc:SymbolIcon x:Name="PART_CloseGlyph" Symbol="Cancel" FontSize="16" />
+              </Button>
+            </StackPanel>
+          </Grid>
+        </Panel>
+      </ControlTemplate>
+    </Setter>
+
+    <!-- 最大化之后钮换成「还原」的字形。不换的话操作员没法从视觉上判断
+         当前是不是最大化态——而最大化态下窗口没有边框可参照。 -->
+    <Style Selector="^:maximized /template/ fc|SymbolIcon#PART_MaximizeGlyph">
+      <Setter Property="Symbol" Value="Restore" />
+    </Style>
+
+    <!-- 失活时标题变灰。系统标题栏就是这个行为，一屏多窗口时靠它认哪个是当前窗口。 -->
+    <Style Selector="^:inactive /template/ TextBlock#PART_Title">
+      <Setter Property="Foreground" Value="{DynamicResource TextFillColorTertiaryBrush}" />
+    </Style>
+  </ControlTheme>
+
+</ResourceDictionary>

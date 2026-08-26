@@ -118,6 +118,14 @@ internal static class SymbolGeometry
         [Symbol.Backspace] = new(
             "M6,3.4 H13.4 V12.6 H6 L2.2,8 Z " +
             "M8.4,6.2 L11.6,9.8 M11.6,6.2 L8.4,9.8", true, "\uE750"),
+
+        // 窗口按钮三件套。Windows 的标题栏字形是 10×10 的，所以这三个只占中间
+        // 10 格，边上留 3 格 —— 和系统标题栏并排时大小才对得上。
+        // 关闭按钮直接用 Cancel（它的码位本来就是 ChromeClose \uE8BB）。
+        [Symbol.Minimize] = new("M3,8 H13", true, "\uE921"),
+        [Symbol.Maximize] = new("M3,3 H13 V13 H3 Z", true, "\uE922"),
+        // 还原：前面一个 8×8 的方块，后面错开 2 格露出一个「⌐」形。
+        [Symbol.Restore] = new("M3,5 H11 V13 H3 Z M5,5 V3 H13 V11 H11", true, "\uE923"),
     };
 
     internal static Geometry? Get(Symbol symbol)

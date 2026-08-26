@@ -6,6 +6,23 @@
 
 ### 新增
 
+- `TitleBar` —— 自绘标题栏，第 12 组「窗口外壳」。**它存在的主要理由是 Windows 11 的
+  贴靠布局（Snap Layouts）**：用系统装饰时那个功能本来就是好的，真正会把它弄坏的
+  正是自绘标题栏——自己画的按钮在 Windows 眼里只是客户区里一块像素，shell 不知道
+  那是最大化钮，悬停面板于是再也不弹。本控件在最大化钮上让 `WM_NCHITTEST` 返回
+  `HTMAXBUTTON` 把它接回去，空白处标 `Caption`（拖动移窗、双击最大化、右键系统菜单
+  全部由 shell 提供），左右内容区标回 `Client`（否则放上去的菜单点了没反应）。
+  走的是 `Avalonia.Controls.Win32Properties` 附加属性，不需要 P/Invoke、不按平台分支
+  编译，非 Windows 后端天然是空操作。
+- `TitleBar.SupportsSnapLayouts`（只读）报出三条前置条件是否齐备：Windows 11
+  （内部版本 22000 起）、最大化钮可见、窗口可缩放。贴靠布局不出来时先看这里，
+  不必去猜是不是 Avalonia 的锅。
+- `TitleBar.ApplyTo(Window)` 把三条窗口提示一次设齐。漏掉任何一条的表现都不一样：
+  不扩展客户区则被系统标题栏挤在下面；不设 `NoChrome` 则系统按钮和自绘按钮同时出现；
+  不设高度提示则顶部留一条系统预留的空白。
+- 字形新增 `Symbol.Minimize` / `Maximize` / `Restore`，共 41 个。和全库一致是矢量路径，
+  不是 Segoe Fluent Icons 的码点——嵌入式 Linux 上没有那套字体，用码点会渲染成豆腐块。
+  画在 16 格里只占中间 10 格，Windows 的标题栏字形就是 10×10，画满会比系统按钮大一圈。
 - `TabView` 支持拖拽重排、撕出成独立窗口、拖回并入。撕出是桌面专有能力，
   `CanTearOut` 报出当前进程能不能做到——单窗口平台（嵌入式 framebuffer、移动端、
   浏览器）上不出那个视觉暗示，而不是让操作员拖了才发现没反应。

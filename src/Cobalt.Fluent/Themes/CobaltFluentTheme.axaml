@@ -50,6 +50,7 @@
         <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/StepperTheme.axaml" />
         <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/TabControl.axaml" />
         <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/TabViewTheme.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/TitleBarTheme.axaml" />
         <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/ToggleButton.axaml" />
         <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/ToggleSwitch.axaml" />
         <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/TreeView.axaml" />

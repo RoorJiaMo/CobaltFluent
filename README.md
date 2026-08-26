@@ -6,7 +6,7 @@
 
 **A Windows 11 Fluent implementation for Avalonia**
 
-62 controls · 11 groups · light and dark themes · zero third-party dependencies · industrial HMI control set included
+63 controls · 12 groups · light and dark themes · zero third-party dependencies · industrial HMI control set included
 
 [![build](https://github.com/RoorJiaMo/CobaltFluent/actions/workflows/build.yml/badge.svg)](https://github.com/RoorJiaMo/CobaltFluent/actions/workflows/build.yml)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -40,7 +40,7 @@ References only Avalonia itself, `Avalonia.Themes.Fluent` and `Avalonia.Controls
 
 ### Verifiable specification
 
-Most controls ship a state matrix. CI renders all 49 gallery sections headlessly into 98 screenshots; a render failure fails the build.
+Most controls ship a state matrix. CI renders all 50 gallery sections headlessly into 100 screenshots; a render failure fails the build.
 
 </td>
 <td width="25%" valign="top">
@@ -99,7 +99,7 @@ xmlns:fc="using:Cobalt.Fluent.Controls"
 
 ## Gallery
 
-The gallery application contains 49 sections. A control section is laid out as the visual specification, an interactive demo, and a reference table of resource keys and pseudo-classes; 22 of them also freeze every pseudo-class side by side in a state matrix. Five further sections — the design baseline, typography, the icon list, and the introductions to groups 7 and 9 — carry prose and reference material rather than a control demo.
+The gallery application contains 50 sections. A control section is laid out as the visual specification, an interactive demo, and a reference table of resource keys and pseudo-classes; 23 of them also freeze every pseudo-class side by side in a state matrix. Five further sections — the design baseline, typography, the icon list, and the introductions to groups 7 and 9 — carry prose and reference material rather than a control demo.
 
 <table>
 <tr>
@@ -124,10 +124,10 @@ dotnet run --project samples/Cobalt.Fluent.Gallery
 
 ## Control coverage
 
-11 groups. Baseline desktop control height is 32px.
+12 groups. Baseline desktop control height is 32px.
 
 <details>
-<summary><b>Full list (62 controls)</b></summary>
+<summary><b>Full list (63 controls)</b></summary>
 
 <br>
 
@@ -143,8 +143,9 @@ dotnet run --project samples/Cobalt.Fluent.Gallery
 | **9** Charts | ChartFrame · TrendChart · Gauge · BarChart · Sparkline · ChartLegend | All drawn directly by this library |
 | **10** Data grid extras | DataGridToolbar · Pagination · EmptyState · Skeleton | All implemented here |
 | **11** Common additions | AutoSuggestBox · BreadcrumbBar · SegmentedControl · Chip · Stepper · GridSplitter · Toast · PersonPicture | All implemented here, except AutoSuggestBox (Avalonia's built-in `AutoCompleteBox`, re-themed) and GridSplitter |
+| **12** Window shell | TitleBar | Implemented here. Keeps Windows 11 Snap Layouts working under a custom title bar by returning `HTMAXBUTTON` from `WM_NCHITTEST` over the maximise button; a no-op on other platforms |
 
-Full API reference in [`docs/CONTROLS.md`](docs/CONTROLS.md) (77 types, extracted from source by script).
+Full API reference in [`docs/CONTROLS.md`](docs/CONTROLS.md) (78 types, extracted from source by script).
 
 </details>
 
@@ -399,7 +400,7 @@ matches the full-resolution curve and a three-sample overshoot still shows. Plai
 every-Nth downsampling would drop that overshoot, which is the thing the operator opened
 the trend to see.
 
-Icons do not depend on Segoe Fluent Icons: all 38 glyphs are vector paths, so rendering is identical across platforms and no font needs to ship with the application. Where the target environment does have the font, `SymbolIcon.UseGlyphFont="True"` switches back to font rendering.
+Icons do not depend on Segoe Fluent Icons: all 41 glyphs are vector paths, so rendering is identical across platforms and no font needs to ship with the application. Where the target environment does have the font, `SymbolIcon.UseGlyphFont="True"` switches back to font rendering.
 
 ---
 
@@ -413,7 +414,7 @@ tools/check.sh --only Button.axaml    # merge only the named control-layer file 
 python3 tools/audit.py                             # control-layer silent-failure audit (14 checks)
 tools/aot-gate.sh                                  # NativeAOT publish, then run the native binary
 tools/pack-gate.sh                                 # pack, then consume the installed package
-dotnet test tests/Cobalt.Fluent.Tests               # 372 regression tests
+dotnet test tests/Cobalt.Fluent.Tests               # 399 regression tests
 dotnet run  --project samples/Cobalt.Fluent.Gallery # run the gallery
 ```
 
@@ -440,8 +441,8 @@ dotnet run --project tools/Cobalt.Fluent.Shots -- artifacts/shots "shell:Readout
 | Document | Contents |
 |---|---|
 | [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md) | Development conventions — layering, resource-key reference, pseudo-class list, invariants, and a set of pitfalls the compiler cannot catch |
-| [`docs/CONTROLS.md`](docs/CONTROLS.md) | Control API reference (77 types, extracted from source by `tools/gen_api_docs.py`) |
-| Gallery | 49 sections: visual specification + interactive demo + resource-key reference + source viewer, with a state matrix in 22 of them |
+| [`docs/CONTROLS.md`](docs/CONTROLS.md) | Control API reference (78 types, extracted from source by `tools/gen_api_docs.py`) |
+| Gallery | 50 sections: visual specification + interactive demo + resource-key reference + source viewer, with a state matrix in 23 of them |
 
 Read `CONVENTIONS.md` before changing a control. Before opening a PR, run the build, the tests and the generators locally — CI runs the same checks, plus a headless render of every section.
 

@@ -1016,13 +1016,37 @@ Toast 的承载层。挂在窗口的 OverlayLayer 上，右下角堆叠，不进
 |---|---|
 | `Show(Visual owner, Toast toast, TimeSpan? duration = null)` | 在 所在窗口弹一条 Toast。 |
 
+## 第 12 组 · 窗口外壳
+
+自绘标题栏。存在的主要理由是 Windows 11 的贴靠布局——自绘标题栏会把那个功能弄坏，这里把「告诉 Windows 哪块像素是最大化钮」补回去。
+
+### `TitleBar` : `TemplatedControl`
+
+**伪类**：`:maximized` · `:inactive`
+
+| 属性 | 类型 | 说明 |
+|---|---|---|
+| `Title` | `string?` | 标题文字。留空则用所在窗口的 `Title`。 |
+| `Icon` | `Symbol` | — |
+| `LeftContent` | `object?` | — |
+| `RightContent` | `object?` | — |
+| `IsMinimizeVisible` | `bool` | — |
+| `IsMaximizeVisible` | `bool` | — |
+| `IsCloseVisible` | `bool` | — |
+| `EffectiveTitle` | `string?` | 实际显示的标题：`Title` 为空时退回所在窗口的 `Title`。 单开一个只读属性而不是直接往 `Title` 里回填，是因为回填之后 那个属性就有了值，窗口标题后续再变就跟不上了——退化成「只取第一次」。 |
+| `SupportsSnapLayouts` | `bool` | 这个窗口的最大化钮会不会触发 Windows 11 的贴靠布局。 三个条件缺一不可：跑在 Windows 11（内部版本 22000 起）、最大化钮可见、 窗口可缩放——**不可缩放的窗口 shell 不弹面板**，因为那些布局都要改窗口尺寸。 报出来是为了让使用方能查：贴靠布局不出来的时候，先看这里是不是 false， 而不是去猜是不是 Avalonia 的锅。 |
+
+| 成员 | 说明 |
+|---|---|
+| `ApplyTo(Window window)` | 把窗口切成「自绘标题栏」模式。三条提示缺一不可，漏掉的表现各不相同： 不扩展客户区则标题栏被系统标题栏挤在下面；不设 NoChrome 则系统按钮和 自绘按钮同时出现；不设高度提示则顶部留一条系统预留的空白。 |
+
 ## 基础
 
 图标系统等。
 
 ### `Symbol`
 
-图标名。全库用到的 38 个字形，全部画成矢量路径。 为什么不直接用字体：目标平台里有嵌入式 Linux（RK3568 那类）， 上面没有 Segoe Fluent Icons，用字体会渲染成豆腐块。 所以本库的图标全部是矢量路径，跨平台像素一致，也不用往安装包里塞字体。 手上确实有那套字体的话，用 `Glyph` 直接给码位。
+图标名。全库用到的 41 个字形，全部画成矢量路径。 为什么不直接用字体：目标平台里有嵌入式 Linux（RK3568 那类）， 上面没有 Segoe Fluent Icons，用字体会渲染成豆腐块。 所以本库的图标全部是矢量路径，跨平台像素一致，也不用往安装包里塞字体。 手上确实有那套字体的话，用 `Glyph` 直接给码位。
 
 | 取值 | 说明 |
 |---|---|
@@ -1065,6 +1089,9 @@ Toast 的承载层。挂在窗口的 OverlayLayer 上，右下角堆叠，不进
 | `GlobalNav` | — |
 | `Brightness` | — |
 | `Backspace` | 退格。数字键盘用；线型轮廓内嵌一个叉，和 Fluent 的画法一致。 |
+| `Minimize` | 最小化。窗口按钮用，画法对齐 Segoe Fluent 的 ChromeMinimize。 |
+| `Maximize` | 最大化。窗口按钮用，画法对齐 Segoe Fluent 的 ChromeMaximize。 |
+| `Restore` | 还原。窗口按钮用，画法对齐 Segoe Fluent 的 ChromeRestore。 |
 
 ### `SymbolIcon` : `Control`
 

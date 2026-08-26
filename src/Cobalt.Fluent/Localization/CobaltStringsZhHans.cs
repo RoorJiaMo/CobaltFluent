@@ -178,4 +178,16 @@ public class CobaltStringsZhHans : CobaltStrings
     public override string Engaged => "已锁定";
 
     public override string Ready => "就绪";
+
+    public override string Minimize => "最小化";
+
+    public override string Maximize => "最大化";
+
+    public override string Restore => "还原";
+
+    public override string Close => "关闭";
+
+    public override string SnapLayoutsAvailable => "贴靠布局可用";
+
+    public override string SnapLayoutsUnavailable => "贴靠布局不可用";
 }

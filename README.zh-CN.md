@@ -6,7 +6,7 @@
 
 **Windows 11 Fluent 设计语言的 Avalonia 实现**
 
-62 个控件 · 11 个分组 · 明暗双主题 · 零第三方依赖 · 内置工业 HMI 控件组
+63 个控件 · 12 个分组 · 明暗双主题 · 零第三方依赖 · 内置工业 HMI 控件组
 
 [![build](https://github.com/RoorJiaMo/CobaltFluent/actions/workflows/build.yml/badge.svg)](https://github.com/RoorJiaMo/CobaltFluent/actions/workflows/build.yml)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -40,7 +40,7 @@ Cobalt.Fluent 在 Avalonia 11.3 上完整实现 Windows 11 Fluent 的视觉规�
 
 ### 规格可验收
 
-多数控件提供状态矩阵；CI 对 49 个章节逐页无头渲染共 98 张截图，渲染失败即构建失败。
+多数控件提供状态矩阵；CI 对 50 个章节逐页无头渲染共 100 张截图，渲染失败即构建失败。
 
 </td>
 <td width="25%" valign="top">
@@ -99,7 +99,7 @@ xmlns:fc="using:Cobalt.Fluent.Controls"
 
 ## 展柜
 
-展柜应用包含 49 个章节。控件章节由视觉规格说明、交互演示、资源键与伪类对照三部分组成，其中 22 个另附状态矩阵，将各伪类并排定格；另有 5 个总则性章节——设计基线、排版、图标清单，以及第 7、9 组的组内总则——为说明与参考材料，不含控件演示。
+展柜应用包含 50 个章节。控件章节由视觉规格说明、交互演示、资源键与伪类对照三部分组成，其中 23 个另附状态矩阵，将各伪类并排定格；另有 5 个总则性章节——设计基线、排版、图标清单，以及第 7、9 组的组内总则——为说明与参考材料，不含控件演示。
 
 <table>
 <tr>
@@ -124,10 +124,10 @@ dotnet run --project samples/Cobalt.Fluent.Gallery
 
 ## 控件覆盖
 
-11 个分组，桌面基准控件高度 32px。
+12 个分组，桌面基准控件高度 32px。
 
 <details>
-<summary><b>完整清单（62 个控件）</b></summary>
+<summary><b>完整清单（63 个控件）</b></summary>
 
 <br>
 
@@ -143,8 +143,9 @@ dotnet run --project samples/Cobalt.Fluent.Gallery
 | **9** 图表 | ChartFrame · TrendChart · Gauge · BarChart · Sparkline · ChartLegend | 全部为本库自绘实现 |
 | **10** 表格增强 | DataGridToolbar · Pagination · EmptyState · Skeleton | 全部为本库实现 |
 | **11** 常用补充 | AutoSuggestBox · BreadcrumbBar · SegmentedControl · Chip · Stepper · GridSplitter · Toast · PersonPicture | 除 AutoSuggestBox（即 Avalonia 内置 `AutoCompleteBox` 重做主题）与 GridSplitter 外，均为本库实现 |
+| **12** 窗口外壳 | TitleBar | 本库实现。自绘标题栏会弄坏 Windows 11 的贴靠布局，本控件在最大化钮上让 `WM_NCHITTEST` 返回 `HTMAXBUTTON` 把它补回去；其余平台为空操作 |
 
-完整 API 参见 [`docs/CONTROLS.md`](docs/CONTROLS.md)（77 个类型，由脚本从源码抽取）。
+完整 API 参见 [`docs/CONTROLS.md`](docs/CONTROLS.md)（78 个类型，由脚本从源码抽取）。
 
 </details>
 
@@ -370,7 +371,7 @@ tools/pack-gate.sh     # 打包，然后从装上的包里用一遍
 包络与全量一致，持续三个采样点的超调照样看得见。换成「每 N 个取一个」就会把
 那次超调抹掉，而操作员调出趋势图正是为了看它。
 
-图标不依赖 Segoe Fluent Icons：38 个字形全部实现为矢量路径，跨平台渲染一致，亦无需随应用分发字体。若目标环境已具备该字体，可通过 `SymbolIcon.UseGlyphFont="True"` 切换回字体渲染。
+图标不依赖 Segoe Fluent Icons：41 个字形全部实现为矢量路径，跨平台渲染一致，亦无需随应用分发字体。若目标环境已具备该字体，可通过 `SymbolIcon.UseGlyphFont="True"` 切换回字体渲染。
 
 ---
 
@@ -384,7 +385,7 @@ tools/check.sh --only Button.axaml    # 仅合并指定控件层文件（并行�
 python3 tools/audit.py                             # 控件层静默失效审计（14 项检查）
 tools/aot-gate.sh                                  # NativeAOT 发布，然后真跑一遍原生二进制
 tools/pack-gate.sh                                 # 打包，然后从装上的包里用一遍
-dotnet test tests/Cobalt.Fluent.Tests               # 372 项回归测试
+dotnet test tests/Cobalt.Fluent.Tests               # 399 项回归测试
 dotnet run  --project samples/Cobalt.Fluent.Gallery # 运行展柜
 ```
 
@@ -411,8 +412,8 @@ dotnet run --project tools/Cobalt.Fluent.Shots -- artifacts/shots "shell:Readout
 | 文档 | 内容 |
 |---|---|
 | [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md) | 开发约定——分层结构、资源键速查、伪类清单、不变量，以及若干编译期无法发现的问题 |
-| [`docs/CONTROLS.md`](docs/CONTROLS.md) | 控件 API 参考（77 个类型，由 `tools/gen_api_docs.py` 从源码抽取） |
-| 展柜 | 49 个章节：视觉规格 + 交互演示 + 资源键对照 + 源码查看，其中 22 个另附状态矩阵 |
+| [`docs/CONTROLS.md`](docs/CONTROLS.md) | 控件 API 参考（78 个类型，由 `tools/gen_api_docs.py` 从源码抽取） |
+| 展柜 | 50 个章节：视觉规格 + 交互演示 + 资源键对照 + 源码查看，其中 23 个另附状态矩阵 |
 
 修改控件前请先阅读 `CONVENTIONS.md`。提交 PR 前请在本地完成编译、测试与生成脚本——CI 执行相同的检查，并额外对全部章节进行无头渲染。
 

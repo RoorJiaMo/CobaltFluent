@@ -268,4 +268,20 @@ public class CobaltStrings
     public virtual string Engaged => "Engaged";
 
     public virtual string Ready => "Ready";
+
+    // ---- 标题栏 -------------------------------------------------------------
+
+    public virtual string Minimize => "Minimize";
+
+    public virtual string Maximize => "Maximize";
+
+    public virtual string Restore => "Restore";
+
+    public virtual string Close => "Close";
+
+    /// <summary>贴靠布局可用。悬停最大化钮会弹出 Windows 11 的布局面板。</summary>
+    public virtual string SnapLayoutsAvailable => "Snap Layouts available";
+
+    /// <summary>贴靠布局不可用：不是 Windows 11、窗口不可缩放、或最大化钮被藏起来了。</summary>
+    public virtual string SnapLayoutsUnavailable => "Snap Layouts unavailable";
 }

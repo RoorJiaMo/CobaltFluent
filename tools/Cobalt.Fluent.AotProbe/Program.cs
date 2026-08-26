@@ -45,6 +45,9 @@ internal static class Program
         Console.WriteLine("编译绑定");
         Bindings();
 
+        Console.WriteLine("自绘标题栏");
+        Chrome();
+
         Console.WriteLine(_failed == 0 ? "AOT 探针全部通过" : $"AOT 探针 {_failed} 项失败");
         return _failed == 0 ? 0 : 1;
     }
@@ -146,5 +149,49 @@ internal static class Program
         text.Text = "85";
         Dispatcher.UIThread.RunJobs();
         Check(watermark is { IsVisible: false }, "有内容后水印消失");
+    }
+
+    /// <summary>
+    /// 标题栏的非客户区命中角色。
+    ///
+    /// 这一节在 AOT 闸口里而不是只在单测里，是因为它依赖两条裁剪敏感的路径：
+    /// 模板里用 StaticResource 取 TitleBarButton / TitleBarCloseButton 这两个
+    /// ControlTheme，以及把 fc:SymbolIcon 当作 Button.Content 放进去。
+    /// 这两条要是被裁掉，编译期没有任何信号，界面上表现为「按钮没有样式」
+    /// 或者「贴靠布局不弹了」——而后者在非 Windows 上根本复现不出来。
+    /// </summary>
+    private static void Chrome()
+    {
+        var bar = new TitleBar { Title = "研磨工位", Icon = Symbol.Diagnostic };
+        var window = new Window { Width = 900, Height = 400, Content = bar };
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+
+        Button? Btn(string name) => bar.GetVisualDescendants()
+            .OfType<Button>().FirstOrDefault(b => b.Name == name);
+
+        var maximize = Btn("PART_Maximize");
+        Check(maximize is not null && Win32Properties.GetNonClientHitTestResult(maximize)
+              == Win32Properties.Win32HitTestValue.MaxButton,
+            "最大化钮标成 MaxButton（贴靠布局本身）");
+        Check(Btn("PART_Close") is { } close
+              && Win32Properties.GetNonClientHitTestResult(close)
+              == Win32Properties.Win32HitTestValue.Close,
+            "关闭钮标成 Close");
+
+        var caption = bar.GetVisualDescendants().OfType<Panel>()
+            .FirstOrDefault(v => v.Name == "PART_Caption");
+        Check(caption is not null && Win32Properties.GetNonClientHitTestResult(caption)
+              == Win32Properties.Win32HitTestValue.Caption,
+            "空白处标成 Caption");
+
+        // 字形是矢量路径，不是字体码点——裁剪之后这张表还得在。
+        var glyph = bar.GetVisualDescendants().OfType<SymbolIcon>()
+            .FirstOrDefault(v => v.Name == "PART_MaximizeGlyph");
+        Check(glyph is { Symbol: Symbol.Maximize }, "窗口按钮字形还在", $"{glyph?.Symbol}");
+
+        window.WindowState = WindowState.Maximized;
+        Dispatcher.UIThread.RunJobs();
+        Check(glyph is { Symbol: Symbol.Restore }, "最大化后换成还原字形", $"{glyph?.Symbol}");
     }
 }

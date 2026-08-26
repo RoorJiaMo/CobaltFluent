@@ -1,7 +1,7 @@
 namespace Cobalt.Fluent.Controls;
 
 /// <summary>
-/// 图标名。全库用到的 38 个字形，全部画成矢量路径。
+/// 图标名。全库用到的 41 个字形，全部画成矢量路径。
 ///
 /// 为什么不直接用字体：目标平台里有嵌入式 Linux（RK3568 那类），
 /// 上面没有 Segoe Fluent Icons，用字体会渲染成豆腐块。
@@ -51,4 +51,13 @@ public enum Symbol
 
     /// <summary>退格。数字键盘用；线型轮廓内嵌一个叉，和 Fluent 的画法一致。</summary>
     Backspace,
+
+    /// <summary>最小化。窗口按钮用，画法对齐 Segoe Fluent 的 ChromeMinimize。</summary>
+    Minimize,
+
+    /// <summary>最大化。窗口按钮用，画法对齐 Segoe Fluent 的 ChromeMaximize。</summary>
+    Maximize,
+
+    /// <summary>还原。窗口按钮用，画法对齐 Segoe Fluent 的 ChromeRestore。</summary>
+    Restore,
 }

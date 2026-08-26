@@ -48,6 +48,8 @@ SECTIONS = [
     ("11 · 常用补充", [
         ("Suggest / Breadcrumb / Segmented", "SuggestPage"),
         ("Stepper / Chip / Toast", "StepperPage")]),
+    ("12 · 窗口外壳", [
+        ("TitleBar / 贴靠布局", "TitleBarPage")]),
 ]
 
 AXAML = '''<UserControl xmlns="https://github.com/avaloniaui"

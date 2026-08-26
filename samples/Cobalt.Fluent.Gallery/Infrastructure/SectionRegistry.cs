@@ -60,6 +60,7 @@ public static class SectionRegistry
         new SectionInfo("10 · 表格增强", "EmptyState / Skeleton", static () => new EmptyStatePage()),
         new SectionInfo("11 · 常用补充", "Suggest / Breadcrumb / Segmented", static () => new SuggestPage()),
         new SectionInfo("11 · 常用补充", "Stepper / Chip / Toast", static () => new StepperPage()),
+        new SectionInfo("12 · 窗口外壳", "TitleBar / 贴靠布局", static () => new TitleBarPage()),
     ];
 
     /// <summary>组标题（string）和章节（SectionInfo）混排，供左侧目录直接绑定。</summary>
