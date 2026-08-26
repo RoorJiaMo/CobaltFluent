@@ -274,6 +274,10 @@ public override void OnFrameworkInitializationCompleted()
 预览窗设 `ShowActivated = false`。这一行是整个方案的支点：预览窗一旦抢走激活，
 源窗口的指针捕获就丢了，拖拽当场断在半路。
 
+源和目标在不同窗口时，搬家分成两个调度轮次完成。同一轮里先摘后插会抛
+`Attempt to call InvalidateArrange on wrong LayoutManager`——摘除产生的失效还排在
+旧窗口的队列里，而控件已经挂到新窗口的布局管理器上了。同窗口内重排仍然同步完成。
+
 键盘路径：`Ctrl+Shift+PageUp` / `PageDown` 把获得焦点的标签左右挪一格，
 沿用浏览器与 VS Code 的既有约定。拖拽是纯指针手势，而工业面板上不一定有鼠标。
 
@@ -380,7 +384,7 @@ tools/check.sh --only Button.axaml    # 仅合并指定控件层文件（并行�
 python3 tools/audit.py                             # 控件层静默失效审计（14 项检查）
 tools/aot-gate.sh                                  # NativeAOT 发布，然后真跑一遍原生二进制
 tools/pack-gate.sh                                 # 打包，然后从装上的包里用一遍
-dotnet test tests/Cobalt.Fluent.Tests               # 368 项回归测试
+dotnet test tests/Cobalt.Fluent.Tests               # 372 项回归测试
 dotnet run  --project samples/Cobalt.Fluent.Gallery # 运行展柜
 ```
 

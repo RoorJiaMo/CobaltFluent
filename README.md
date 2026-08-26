@@ -290,6 +290,12 @@ survives trimming and NativeAOT.
 The preview window sets `ShowActivated = false`. That one line is the pivot: if the preview
 takes activation, the source window loses pointer capture and the drag dies mid-gesture.
 
+The move is split across two dispatcher turns when the source and target live in different
+windows. Removing and re-inserting in one turn throws
+`Attempt to call InvalidateArrange on wrong LayoutManager` — the invalidation from the removal
+is still queued against the old window while the control is already attached to the new
+window's layout manager. Reordering inside one window stays synchronous.
+
 Keyboard path: `Ctrl+Shift+PageUp` / `PageDown` moves the focused tab, following the convention
 browsers and VS Code already use. Dragging is a pointer-only gesture, and an industrial panel
 does not necessarily have a mouse.
@@ -407,7 +413,7 @@ tools/check.sh --only Button.axaml    # merge only the named control-layer file 
 python3 tools/audit.py                             # control-layer silent-failure audit (14 checks)
 tools/aot-gate.sh                                  # NativeAOT publish, then run the native binary
 tools/pack-gate.sh                                 # pack, then consume the installed package
-dotnet test tests/Cobalt.Fluent.Tests               # 368 regression tests
+dotnet test tests/Cobalt.Fluent.Tests               # 372 regression tests
 dotnet run  --project samples/Cobalt.Fluent.Gallery # run the gallery
 ```
 

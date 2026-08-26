@@ -16,6 +16,14 @@
 - `TabView.TabTearOutRequested` / `TabMoved` 事件。绑了 `ItemsSource` 时控件不改集合，
   事件没人处理就拒绝搬，不留下一个既不在这边也不在那边的标签。
 
+### 修复
+
+- 在两个**都已显示**的窗口之间搬标签会抛
+  `ArgumentException: Attempt to call InvalidateArrange on wrong LayoutManager`。
+  摘除产生的布局失效还排在源窗口队列里，控件却已经挂到目标窗口的布局管理器上。
+  和标签有没有内容无关，空标签一样抛。改为跨视觉根时把插入推迟一个调度轮次；
+  同窗口内重排仍然同步完成。
+
 ## 1.0.0
 
 首个稳定版本。

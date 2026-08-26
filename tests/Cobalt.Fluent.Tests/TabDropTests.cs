@@ -323,6 +323,105 @@ public class TabDropTests
         Assert.Empty(view.Items);
     }
 
+    // ---- 跨窗口搬家：内容要跟着走 --------------------------------------------
+
+    [AvaloniaFact]
+    public void 跨活窗口搬标签不抛异常()
+    {
+        // 两个视觉根都活着时，同一轮里先摘后插会抛
+        // 「Attempt to call InvalidateArrange on wrong LayoutManager」——
+        // 摘除产生的布局失效还排在源窗口队列里，控件却已经挂到目标的布局管理器上。
+        // 和标签有没有内容无关，空标签一样抛。
+        var (a, b, w1, w2, tab) = TwoWindows(withContent: false);
+
+        b.AcceptTab(a, tab, 0);
+        Pump(w1);
+        Pump(w2);
+
+        Assert.Contains(tab, b.Items);
+        Assert.DoesNotContain(tab, a.Items);
+    }
+
+    [AvaloniaFact]
+    public void 标签的内容跟着搬过去并且状态保住()
+    {
+        // 操作员在标签里输了一半的设定值，把标签拖到另一个窗口，那半个值不能没了。
+        var (a, b, w1, w2, tab) = TwoWindows(withContent: true);
+        var box = (TextBox)tab.Content!;
+        box.Text = "85.4";
+        Pump(w1);
+
+        b.AcceptTab(a, tab, 0);
+        Pump(w1);
+        Pump(w2);
+
+        Assert.Contains(box, w2.GetVisualDescendants());
+        Assert.DoesNotContain(box, w1.GetVisualDescendants());
+        Assert.Equal("85.4", box.Text);
+        Assert.True(box.Bounds.Width > 0, "搬过去之后没有参与布局，等于看不见");
+    }
+
+    [AvaloniaFact]
+    public void 搬过去再搬回来内容仍然在()
+    {
+        // 往返才是真实用法：撕出去看一眼，再拖回来。
+        var (a, b, w1, w2, tab) = TwoWindows(withContent: true);
+        var box = (TextBox)tab.Content!;
+        box.Text = "85.4";
+        Pump(w1);
+
+        b.AcceptTab(a, tab, 0);
+        Pump(w1); Pump(w2);
+
+        a.AcceptTab(b, tab, 0);
+        Pump(w2); Pump(w1);
+
+        Assert.Contains(tab, a.Items);
+        Assert.Contains(box, w1.GetVisualDescendants());
+        Assert.Equal("85.4", box.Text);
+        Assert.True(box.Bounds.Width > 0);
+    }
+
+    [AvaloniaFact]
+    public void 同一个窗口内重排仍然是同步的()
+    {
+        // 跨窗口要分两轮，同窗口不必——同步完成，调用方当场就能看到结果。
+        var view = Mount(Three());
+        var second = (TabViewItem)view.Items[1]!;
+
+        view.AcceptTab(view, second, 0);
+
+        Assert.Equal(0, view.Items.IndexOf(second));
+    }
+
+    private static (TabView A, TabView B, Window W1, Window W2, TabViewItem Tab) TwoWindows(bool withContent)
+    {
+        var tab = new TabViewItem { Header = "读数" };
+        if (withContent) tab.Content = new TextBox();
+
+        var a = new TabView { Items = { tab, new TabViewItem { Header = "另一个" } } };
+        var b = new TabView { Items = { new TabViewItem { Header = "对面" } } };
+        var w1 = new Window { Width = 600, Height = 400, Content = a };
+        var w2 = new Window { Width = 600, Height = 400, Content = b };
+
+        w1.Show();
+        w2.Show();
+        Pump(w1);
+        Pump(w2);
+        a.SelectedItem = tab;
+        Pump(w1);
+
+        return (a, b, w1, w2, tab);
+    }
+
+    private static void Pump(Window w)
+    {
+        Dispatcher.UIThread.RunJobs();
+        w.Measure(new Size(600, 400));
+        w.Arrange(new Rect(0, 0, 600, 400));
+        Dispatcher.UIThread.RunJobs();
+    }
+
     private static TabView Three() => new()
     {
         Items =

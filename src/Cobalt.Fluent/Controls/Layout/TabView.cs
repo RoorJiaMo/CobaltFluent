@@ -7,6 +7,7 @@ using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.LogicalTree;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
 
 namespace Cobalt.Fluent.Controls;
@@ -289,9 +290,53 @@ public class TabView : TabControl
 
         if (!from.CanMutateItems || !CanMutateItems) return;
 
+        MoveInto(from, tab, this, insertAt);
+    }
+
+    /// <summary>
+    /// 把标签从一个 TabView 搬到另一个。
+    ///
+    /// <b>跨窗口时必须把摘除和插入分成两个调度轮次。</b>两个视觉根都活着的时候，
+    /// 同一轮里先摘后插会抛
+    /// <c>ArgumentException: Attempt to call InvalidateArrange on wrong LayoutManager</c>——
+    /// 摘除产生的布局失效还排在源窗口的队列里，控件却已经挂到了目标窗口的布局管理器上。
+    ///
+    /// 这和标签有没有内容无关，空标签一样抛；先把选中项挪开也没用。
+    /// 唯一有效的是让摘除先走完。（撕出那条路径碰不到：新窗口在插入时还没 Show，
+    /// 压根没有布局管理器。）
+    /// </summary>
+    private static void MoveInto(TabView from, TabViewItem tab, TabView to, int insertAt)
+    {
+        var sameRoot = ReferenceEquals(from.GetVisualRoot(), to.GetVisualRoot());
+
         from.Items.Remove(tab);
-        Items.Insert(Math.Clamp(insertAt, 0, Items.Count), tab);
-        SelectedItem = tab;
+
+        if (sameRoot)
+        {
+            Insert();
+            return;
+        }
+
+        // 这一轮到下一轮之间，标签哪个集合里都不在。所以插入这一步不能失败：
+        // 目标要是同期没了（窗口被关掉），把标签放回源里，
+        // 而不是让它消失——那是操作员的文档。
+        Dispatcher.UIThread.Post(() =>
+        {
+            if (to.GetVisualRoot() is null && from.GetVisualRoot() is not null)
+            {
+                from.Items.Insert(Math.Clamp(insertAt, 0, from.Items.Count), tab);
+                from.SelectedItem = tab;
+                return;
+            }
+
+            Insert();
+        }, DispatcherPriority.Loaded);
+
+        void Insert()
+        {
+            to.Items.Insert(Math.Clamp(insertAt, 0, to.Items.Count), tab);
+            to.SelectedItem = tab;
+        }
     }
 
     internal void TearOut(TabViewItem tab, PixelPoint at)
@@ -311,11 +356,22 @@ public class TabView : TabControl
             host.Content = view;
         }
 
+        // 先摆位置再 Show：Show 之后再挪，操作员会看见窗口在屏幕上跳一下。
+        host.Position = at;
+
+        // 宿主给的窗口可能已经是活的（比如把标签扔进一个已经开着的工具窗），
+        // 那就走和并回同一条路——跨活窗口搬必须分两轮。
+        if (host.IsVisible)
+        {
+            MoveInto(this, tab, view, view.Items.Count);
+            host.Activate();
+            return;
+        }
+
         Items.Remove(tab);
         view.Items.Add(tab);
         view.SelectedItem = tab;
 
-        host.Position = at;
         host.Show();
     }
 
