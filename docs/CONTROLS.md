@@ -1020,6 +1020,91 @@ Toast 的承载层。挂在窗口的 OverlayLayer 上，右下角堆叠，不进
 
 自绘标题栏。存在的主要理由是 Windows 11 的贴靠布局——自绘标题栏会把那个功能弄坏，这里把「告诉 Windows 哪块像素是最大化钮」补回去。
 
+### `SnapLayoutKind`
+
+布局种类。名字要本地化，用枚举而不是字符串，拼错在编译期就露出来。
+
+| 取值 | 说明 |
+|---|---|
+| `Halves` | 左右等分。 |
+| `WideLeft` | 左 2/3 + 右 1/3。主视图配一条侧栏，是上位机最常用的一种。 |
+| `Thirds` | 三栏等分。工作区够宽才给。 |
+| `Quadrants` | 四宫格。 |
+| `LeftAndStack` | 左半屏 + 右侧上下两块。 |
+| `WideCenter` | 窄-宽-窄三栏（25/50/25）。带鱼屏才给。 |
+| `StackedHalves` | 上下等分。竖屏用。 |
+| `TopAndSplit` | 上半屏 + 下方左右两块。竖屏用。 |
+
+### `SnapLayout`
+
+一套贴靠布局：几块分区拼满整个工作区。 布局表是本库自己的，不问系统要——这正是「框架内部自己做贴靠」的意思： Windows 10、Linux、macOS、嵌入式面板上拿到的是同一套布局、同一个几何。
+
+### `SnapZoneButton` : `Button`
+
+贴靠面板里的一格。单开一个类型只为拿到一份自己的 ControlTheme—— 这些格子是代码建的，代码建的子元素接不到 `/template/` 选择器。
+
+### `SnapZoneSelectedEventArgs`
+
+选中了某一块分区。
+
+### `SnapLayoutPicker` : `TemplatedControl`
+
+| 属性 | 类型 | 说明 |
+|---|---|---|
+| `TargetWindow` | `Window?` | — |
+| `PreviewWidth` | `double` | — |
+| `PreviewHeight` | `double` | — |
+| `Layouts` | `IReadOnlyList<SnapLayout>` | 当前这块屏幕上提供的布局。竖屏、窄屏、带鱼屏拿到的不是同一套， 见 `LayoutsFor`。拿不到屏幕信息时是空表。 |
+| `SnapSelectedWindow` | `bool` | — |
+
+### `SnapZoneKind`
+
+分区的语义分类。给朗读名用——读屏软件念「区域 2/4」没有意义， 念「右上四分之一」操作员才知道按下去窗口会去哪。
+
+| 取值 | 说明 |
+|---|---|
+| `Custom` | 不在下面这些常见形状里。朗读名退回百分比描述。 |
+| `LeftHalf` | — |
+| `RightHalf` | — |
+| `TopHalf` | — |
+| `BottomHalf` | — |
+| `LeftThird` | — |
+| `CenterThird` | — |
+| `RightThird` | — |
+| `LeftTwoThirds` | — |
+| `RightTwoThirds` | — |
+| `CenterHalf` | 宽屏三栏里中间那块，占一半宽、通栏高。 |
+| `LeftQuarter` | — |
+| `RightQuarter` | — |
+| `TopLeftQuarter` | — |
+| `TopRightQuarter` | — |
+| `BottomLeftQuarter` | — |
+| `BottomRightQuarter` | — |
+
+### `SnapZonePanel` : `Panel`
+
+按分区比例摆放子元素的面板。贴靠面板里那一格格的示意图就是它铺的。 用比例而不是 Grid 的行列：分区不都是规整的网格（「左半屏 + 右侧上下两块」 就不是），用 Grid 得为每套布局单独写一份行列定义，加一套布局改一处 XAML—— 而布局表是数据，不该逼着模板跟着改。
+
+| 属性 | 类型 | 说明 |
+|---|---|---|
+| `Gap` | `double` | — |
+
+| 成员 | 说明 |
+|---|---|
+| `GetZone(Control control)` | — |
+| `SetZone(Control control, SnapZone value)` | — |
+
+### `SnapLayoutMode`
+
+贴靠布局面板由谁来出。
+
+| 取值 | 说明 |
+|---|---|
+| `Auto` | 按平台挑（默认）。Windows 11 上用系统的，其余平台用本库自己的。 这样挑是因为两者各有一处对方做不到：系统那个能把别的应用的窗口 安排进剩下的分区（贴靠助手），需要系统级权限，本库做不到； 而本库这个在 Windows 10、Linux、macOS、嵌入式面板上都有，系统那个只有 Windows 11。 要四个平台行为完全一致（比如同一套培训材料、同一份验收用例）， 显式选 `Builtin`。 |
+| `System` | 用 Windows 11 的贴靠布局：最大化钮标成非客户区的 `HTMAXBUTTON`， 面板由 shell 弹出。非 Windows 平台上等同于 `None`。 |
+| `Builtin` | 用本库自己画的面板。悬停最大化钮弹出 `SnapLayoutPicker`， 分区几何和窗口摆放都由本库执行，四个平台一致。 这个模式下最大化钮不能标成非客户区——标了之后指针事件不再送到 Avalonia，我们自己的悬停就永远触发不了。两套机制只能二选一。 |
+| `None` | 都不要。最大化钮只是一个普通的最大化钮。 |
+
 ### `TitleBar` : `TemplatedControl`
 
 **伪类**：`:maximized` · `:inactive`
@@ -1034,11 +1119,15 @@ Toast 的承载层。挂在窗口的 OverlayLayer 上，右下角堆叠，不进
 | `IsMaximizeVisible` | `bool` | — |
 | `IsCloseVisible` | `bool` | — |
 | `EffectiveTitle` | `string?` | 实际显示的标题：`Title` 为空时退回所在窗口的 `Title`。 单开一个只读属性而不是直接往 `Title` 里回填，是因为回填之后 那个属性就有了值，窗口标题后续再变就跟不上了——退化成「只取第一次」。 |
-| `SupportsSnapLayouts` | `bool` | 这个窗口的最大化钮会不会触发 Windows 11 的贴靠布局。 三个条件缺一不可：跑在 Windows 11（内部版本 22000 起）、最大化钮可见、 窗口可缩放——**不可缩放的窗口 shell 不弹面板**，因为那些布局都要改窗口尺寸。 报出来是为了让使用方能查：贴靠布局不出来的时候，先看这里是不是 false， 而不是去猜是不是 Avalonia 的锅。 |
+| `SnapLayoutMode` | `SnapLayoutMode` | 贴靠布局面板由谁来出。见 `SnapLayoutMode`。 |
+| `EffectiveSnapLayoutMode` | `SnapLayoutMode` | 解析 `Auto`、并核对过能力之后，实际生效的模式。 贴靠面板不出来时先看这里：是 `None` 就说明 前置条件没满足（窗口不可缩放、最大化钮被藏起来、拿不到屏幕信息、 或者选了 System 但跑在非 Windows 11 上），不是控件坏了。 |
+| `SupportsSnapLayouts` | `bool` | 悬停最大化钮会不会出现贴靠布局面板——不论那个面板是谁画的。 等价于 `EffectiveSnapLayoutMode` 不是 `None`。想知道是系统那个 还是本库自己画的那个，看 `EffectiveSnapLayoutMode`。 报出来是为了让使用方能查：面板不出来的时候，先看这里是不是 false， 而不是去猜是不是 Avalonia 的锅。 |
 
 | 成员 | 说明 |
 |---|---|
 | `ApplyTo(Window window)` | 把窗口切成「自绘标题栏」模式。三条提示缺一不可，漏掉的表现各不相同： 不扩展客户区则标题栏被系统标题栏挤在下面；不设 NoChrome 则系统按钮和 自绘按钮同时出现；不设高度提示则顶部留一条系统预留的空白。 |
+| `ShowSnapLayouts()` | 弹出自绘的贴靠布局面板。 公开出来是为了让使用方能绑快捷键：悬停是纯指针手势，而工业面板上 不一定有鼠标。只在 `Builtin` 生效时有效—— 系统那个面板是 shell 弹的，我们叫不动它。 |
+| `CloseSnapLayouts()` | 收起自绘的贴靠布局面板。没弹出来时是空操作。 |
 
 ## 基础
 

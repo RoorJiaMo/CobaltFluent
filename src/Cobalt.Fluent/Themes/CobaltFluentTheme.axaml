@@ -46,6 +46,7 @@
         <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/NavigationTheme.axaml" />
         <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/ProgressBar.axaml" />
         <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/Slider.axaml" />
+        <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/SnapLayoutPickerTheme.axaml" />
         <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/SplitButton.axaml" />
         <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/StepperTheme.axaml" />
         <ResourceInclude Source="avares://Cobalt.Fluent/Themes/Controls/TabControl.axaml" />

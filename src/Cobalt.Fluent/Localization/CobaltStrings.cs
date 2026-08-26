@@ -1,5 +1,5 @@
 using System.Globalization;
-
+using Cobalt.Fluent.Controls;
 namespace Cobalt.Fluent;
 
 /// <summary>
@@ -284,4 +284,64 @@ public class CobaltStrings
 
     /// <summary>贴靠布局不可用：不是 Windows 11、窗口不可缩放、或最大化钮被藏起来了。</summary>
     public virtual string SnapLayoutsUnavailable => "Snap Layouts unavailable";
+
+    /// <summary>贴靠面板本身的朗读名。</summary>
+    public virtual string SnapLayouts => "Snap layouts";
+
+    public virtual string SnapLayoutName(SnapLayoutKind kind) => kind switch
+    {
+        SnapLayoutKind.Halves => "Two columns",
+        SnapLayoutKind.WideLeft => "Two columns, wide left",
+        SnapLayoutKind.Thirds => "Three columns",
+        SnapLayoutKind.Quadrants => "Four quadrants",
+        SnapLayoutKind.LeftAndStack => "Left half, two stacked right",
+        SnapLayoutKind.WideCenter => "Three columns, wide centre",
+        SnapLayoutKind.StackedHalves => "Two rows",
+        SnapLayoutKind.TopAndSplit => "Top half, two side by side below",
+        _ => "Layout",
+    };
+
+    /// <summary>
+    /// 分区的朗读名。读屏念「区域 2/4」没有意义，念「右上四分之一」
+    /// 操作员才知道按下去窗口会去哪。
+    ///
+    /// 归不了类的形状退回百分比描述，而不是硬套一个方位词——那是在骗读屏用户。
+    /// </summary>
+    public virtual string SnapZoneName(SnapZoneKind kind, SnapZone zone) => kind switch
+    {
+        SnapZoneKind.LeftHalf => "Left half",
+        SnapZoneKind.RightHalf => "Right half",
+        SnapZoneKind.TopHalf => "Top half",
+        SnapZoneKind.BottomHalf => "Bottom half",
+        SnapZoneKind.LeftThird => "Left third",
+        SnapZoneKind.CenterThird => "Centre third",
+        SnapZoneKind.RightThird => "Right third",
+        SnapZoneKind.LeftTwoThirds => "Left two thirds",
+        SnapZoneKind.RightTwoThirds => "Right two thirds",
+        SnapZoneKind.CenterHalf => "Centre half",
+        SnapZoneKind.LeftQuarter => "Left quarter",
+        SnapZoneKind.RightQuarter => "Right quarter",
+        SnapZoneKind.TopLeftQuarter => "Top-left quarter",
+        SnapZoneKind.TopRightQuarter => "Top-right quarter",
+        SnapZoneKind.BottomLeftQuarter => "Bottom-left quarter",
+        SnapZoneKind.BottomRightQuarter => "Bottom-right quarter",
+        _ => $"Zone at {Pct(zone.X)}, {Pct(zone.Y)}, {Pct(zone.Width)} by {Pct(zone.Height)}",
+    };
+
+    /// <summary>取消贴靠，把窗口放回贴靠之前的位置和尺寸。</summary>
+    public virtual string Unsnap => "Restore position";
+
+    public virtual string SnapLayoutCount(int count) => count switch
+    {
+        0 => "No snap layouts on this display",
+        1 => "1 snap layout",
+        _ => $"{count} snap layouts",
+    };
+
+    /// <summary>
+    /// 百分比。手算而不是用 <c>P0</c> 格式：<c>P0</c> 跟的是 CurrentCulture，
+    /// 而本库的语言是 <see cref="Current"/> 单独钉的，两者可以不一致——
+    /// 那会得到「英文句子里夹一个中文格式的百分数」。
+    /// </summary>
+    protected static string Pct(double fraction) => $"{(int)Math.Round(fraction * 100)}%";
 }

@@ -290,6 +290,30 @@ public class TitleBarAutomationPeer(TitleBar owner) : ControlAutomationPeer(owne
 }
 
 /// <summary>
+/// 贴靠布局面板。
+///
+/// Name 是「贴靠布局」，ItemStatus 报出当前这块屏幕给了几套布局——
+/// 竖屏、窄屏、带鱼屏拿到的套数不一样，排查「我这台机器上怎么少一个布局」
+/// 时先看这里。
+///
+/// 面板本身是分组容器，真正可操作的是里面那些格子，各自带方位朗读名。
+/// </summary>
+public class SnapLayoutPickerAutomationPeer(SnapLayoutPicker owner) : ControlAutomationPeer(owner)
+{
+    private SnapLayoutPicker Control => (SnapLayoutPicker)Owner;
+
+    protected override AutomationControlType GetAutomationControlTypeCore() =>
+        AutomationControlType.Group;
+
+    protected override string GetClassNameCore() => nameof(SnapLayoutPicker);
+
+    protected override string? GetNameCore() => CobaltStrings.Current.SnapLayouts;
+
+    protected override string? GetItemStatusCore() =>
+        CobaltStrings.Current.SnapLayoutCount(Control.Layouts.Count);
+}
+
+/// <summary>
 /// 装饰性元素的对等体。
 ///
 /// 用在：占位骨架（内容还没来）、分隔线（纯视觉分组）、图标（含义由它所在的

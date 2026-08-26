@@ -3,7 +3,9 @@ using Avalonia.Controls;
 using Avalonia.Controls.Metadata;
 using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
+using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Threading;
 using Avalonia.Platform;
 using Avalonia.VisualTree;
 using Cobalt.Fluent.Automation;
@@ -11,6 +13,40 @@ using Avalonia.Automation;
 using Avalonia.Automation.Peers;
 
 namespace Cobalt.Fluent.Controls;
+
+/// <summary>贴靠布局面板由谁来出。</summary>
+public enum SnapLayoutMode
+{
+    /// <summary>
+    /// 按平台挑（默认）。Windows 11 上用系统的，其余平台用本库自己的。
+    ///
+    /// 这样挑是因为两者各有一处对方做不到：系统那个能把<b>别的应用</b>的窗口
+    /// 安排进剩下的分区（贴靠助手），需要系统级权限，本库做不到；
+    /// 而本库这个在 Windows 10、Linux、macOS、嵌入式面板上都有，系统那个只有 Windows 11。
+    ///
+    /// 要四个平台行为完全一致（比如同一套培训材料、同一份验收用例），
+    /// 显式选 <see cref="Builtin"/>。
+    /// </summary>
+    Auto,
+
+    /// <summary>
+    /// 用 Windows 11 的贴靠布局：最大化钮标成非客户区的 <c>HTMAXBUTTON</c>，
+    /// 面板由 shell 弹出。非 Windows 平台上等同于 <see cref="None"/>。
+    /// </summary>
+    System,
+
+    /// <summary>
+    /// 用本库自己画的面板。悬停最大化钮弹出 <see cref="SnapLayoutPicker"/>，
+    /// 分区几何和窗口摆放都由本库执行，四个平台一致。
+    ///
+    /// 这个模式下最大化钮<b>不能</b>标成非客户区——标了之后指针事件不再送到
+    /// Avalonia，我们自己的悬停就永远触发不了。两套机制只能二选一。
+    /// </summary>
+    Builtin,
+
+    /// <summary>都不要。最大化钮只是一个普通的最大化钮。</summary>
+    None,
+}
 
 /// <summary>
 /// 自绘标题栏。
@@ -136,6 +172,36 @@ public class TitleBar : TemplatedControl
         private set => SetAndRaise(EffectiveTitleProperty, ref _effectiveTitle, value);
     }
 
+    public static readonly StyledProperty<SnapLayoutMode> SnapLayoutModeProperty =
+        AvaloniaProperty.Register<TitleBar, SnapLayoutMode>(
+            nameof(SnapLayoutMode), SnapLayoutMode.Auto);
+
+    /// <summary>贴靠布局面板由谁来出。见 <see cref="Cobalt.Fluent.Controls.SnapLayoutMode"/>。</summary>
+    public SnapLayoutMode SnapLayoutMode
+    {
+        get => GetValue(SnapLayoutModeProperty);
+        set => SetValue(SnapLayoutModeProperty, value);
+    }
+
+    private SnapLayoutMode _effectiveMode;
+
+    public static readonly DirectProperty<TitleBar, SnapLayoutMode> EffectiveSnapLayoutModeProperty =
+        AvaloniaProperty.RegisterDirect<TitleBar, SnapLayoutMode>(
+            nameof(EffectiveSnapLayoutMode), o => o._effectiveMode);
+
+    /// <summary>
+    /// 解析 <see cref="SnapLayoutMode.Auto"/>、并核对过能力之后，实际生效的模式。
+    ///
+    /// 贴靠面板不出来时先看这里：是 <see cref="SnapLayoutMode.None"/> 就说明
+    /// 前置条件没满足（窗口不可缩放、最大化钮被藏起来、拿不到屏幕信息、
+    /// 或者选了 System 但跑在非 Windows 11 上），不是控件坏了。
+    /// </summary>
+    public SnapLayoutMode EffectiveSnapLayoutMode
+    {
+        get => _effectiveMode;
+        private set => SetAndRaise(EffectiveSnapLayoutModeProperty, ref _effectiveMode, value);
+    }
+
     private bool _snapLayouts;
 
     public static readonly DirectProperty<TitleBar, bool> SupportsSnapLayoutsProperty =
@@ -143,12 +209,13 @@ public class TitleBar : TemplatedControl
             nameof(SupportsSnapLayouts), o => o._snapLayouts);
 
     /// <summary>
-    /// 这个窗口的最大化钮会不会触发 Windows 11 的贴靠布局。
+    /// 悬停最大化钮会不会出现贴靠布局面板——<b>不论那个面板是谁画的</b>。
     ///
-    /// 三个条件缺一不可：跑在 Windows 11（内部版本 22000 起）、最大化钮可见、
-    /// 窗口可缩放——**不可缩放的窗口 shell 不弹面板**，因为那些布局都要改窗口尺寸。
+    /// 等价于 <see cref="EffectiveSnapLayoutMode"/> 不是
+    /// <see cref="Cobalt.Fluent.Controls.SnapLayoutMode.None"/>。想知道是系统那个
+    /// 还是本库自己画的那个，看 <see cref="EffectiveSnapLayoutMode"/>。
     ///
-    /// 报出来是为了让使用方能查：贴靠布局不出来的时候，先看这里是不是 false，
+    /// 报出来是为了让使用方能查：面板不出来的时候，先看这里是不是 false，
     /// 而不是去猜是不是 Avalonia 的锅。
     /// </summary>
     public bool SupportsSnapLayouts
@@ -171,6 +238,7 @@ public class TitleBar : TemplatedControl
         window.ExtendClientAreaTitleBarHeightHint = -1;
     }
 
+    private INameScope? _scope;
     private Window? _window;
     private Button? _minimize;
     private Button? _maximize;
@@ -199,7 +267,9 @@ public class TitleBar : TemplatedControl
         if (_maximize is not null) _maximize.Click += OnMaximize;
         if (_close is not null) _close.Click += OnClose;
 
+        _scope = e.NameScope;
         ApplyHitTestRoles(e.NameScope);
+        WireSnapHover();
         Refresh();
     }
 
@@ -217,8 +287,10 @@ public class TitleBar : TemplatedControl
     {
         Set(scope.Find<Panel>("PART_Caption"), Win32Properties.Win32HitTestValue.Caption);
         Set(_minimize, Win32Properties.Win32HitTestValue.MinButton);
-        Set(_maximize, Win32Properties.Win32HitTestValue.MaxButton);
         Set(_close, Win32Properties.Win32HitTestValue.Close);
+
+        // 最大化钮的角色取决于面板由谁来出，见 MaximizeHitTestRole。
+        Set(_maximize, MaximizeHitTestRole(EffectiveSnapLayoutMode));
 
         // 左右两侧的内容要标回客户区。不标的话它们落在 PART_Caption 的
         // 命中结果里，菜单、搜索框点了没反应——而且是「静默没反应」，
@@ -254,6 +326,7 @@ public class TitleBar : TemplatedControl
     {
         DetachWindow();
         _strings.Detach();
+        CloseSnapLayouts();
         Refresh();
         base.OnDetachedFromVisualTree(e);
     }
@@ -271,6 +344,7 @@ public class TitleBar : TemplatedControl
     /// <summary>重新套模板时用。旧模板里的按钮要先退订，否则旧实例被处理器钉住。</summary>
     private void DetachButtons()
     {
+        UnwireSnapHover();
         if (_minimize is not null) _minimize.Click -= OnMinimize;
         if (_maximize is not null) _maximize.Click -= OnMaximize;
         if (_close is not null) _close.Click -= OnClose;
@@ -307,12 +381,187 @@ public class TitleBar : TemplatedControl
 
         PseudoClasses.Set(":inactive", _window is { IsActive: false });
 
-        // Windows 11 起才有贴靠布局；Windows 10 会忽略 HTMAXBUTTON 的悬停，
-        // 点击行为仍然正常，所以这里只影响「报出来的能力」，不影响功能。
-        SupportsSnapLayouts =
-            OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000)
-            && IsMaximizeVisible
-            && _window is { CanResize: true };
+        var mode = ResolveSnapMode();
+        var changed = mode != EffectiveSnapLayoutMode;
+        EffectiveSnapLayoutMode = mode;
+        SupportsSnapLayouts = mode != SnapLayoutMode.None;
+
+        // 模式变了就得重标最大化钮：System 与其余模式对那块像素的要求正好相反。
+        if (changed && _scope is not null) ApplyHitTestRoles(_scope);
+        if (mode != SnapLayoutMode.Builtin) CloseSnapLayouts();
+    }
+
+    /// <summary>
+    /// 解析出实际生效的模式。判定本身抽成静态纯函数——
+    /// 里面有一条分支（拿不到屏幕信息）在桌面测试环境里造不出来，
+    /// 留在实例方法里就只能靠读代码判断对不对。
+    /// </summary>
+    private SnapLayoutMode ResolveSnapMode() => ResolveSnapMode(
+        requested: SnapLayoutMode,
+        maximizeVisible: IsMaximizeVisible,
+        hasWindow: _window is not null,
+        canResize: _window is { CanResize: true },
+        hasScreen: _window is not null && WindowSnap.CanSnap(_window),
+        systemAvailable: OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000));
+
+    /// <summary>
+    /// 模式判定。
+    ///
+    /// 三条共同前提，缺一条就是 <see cref="SnapLayoutMode.None"/>：最大化钮可见
+    /// （面板是靠悬停它触发的）、窗口可缩放（所有布局都要改窗口尺寸）、
+    /// 确实挂在一个窗口上。
+    ///
+    /// <paramref name="systemAvailable"/> 是 Windows 11（内部版本 22000）起才有的
+    /// 系统贴靠布局；Windows 10 会忽略 <c>HTMAXBUTTON</c> 的悬停——点击行为仍然正常，
+    /// 但面板不弹，所以那里不能报成有。
+    ///
+    /// <paramref name="hasScreen"/> 为假是单窗口平台（嵌入式 framebuffer、移动端、
+    /// 浏览器）：自绘的那个面板要摆窗口，摆不了就别弹——
+    /// 弹一个按下去没反应的面板比不弹更糟。
+    /// </summary>
+    internal static SnapLayoutMode ResolveSnapMode(
+        SnapLayoutMode requested,
+        bool maximizeVisible,
+        bool hasWindow,
+        bool canResize,
+        bool hasScreen,
+        bool systemAvailable)
+    {
+        if (requested == SnapLayoutMode.None) return SnapLayoutMode.None;
+        if (!maximizeVisible || !hasWindow || !canResize) return SnapLayoutMode.None;
+
+        return requested switch
+        {
+            SnapLayoutMode.System => systemAvailable ? SnapLayoutMode.System : SnapLayoutMode.None,
+            SnapLayoutMode.Builtin => hasScreen ? SnapLayoutMode.Builtin : SnapLayoutMode.None,
+            _ => systemAvailable ? SnapLayoutMode.System
+               : hasScreen ? SnapLayoutMode.Builtin
+               : SnapLayoutMode.None,
+        };
+    }
+
+    /// <summary>
+    /// 最大化钮该标成什么。两套机制对这块像素的要求正好相反，所以只能二选一：
+    ///
+    /// <list type="bullet">
+    /// <item>System —— <c>MaxButton</c>，shell 接管悬停，弹它自己的面板。</item>
+    /// <item>其余 —— <c>Client</c>。标成 <c>MaxButton</c> 的话指针事件不再送到
+    /// Avalonia，我们自己的悬停就永远触发不了，界面上表现为「面板不弹」。</item>
+    /// </list>
+    /// </summary>
+    internal static Win32Properties.Win32HitTestValue MaximizeHitTestRole(SnapLayoutMode effective) =>
+        effective == SnapLayoutMode.System
+            ? Win32Properties.Win32HitTestValue.MaxButton
+            : Win32Properties.Win32HitTestValue.Client;
+
+    // ---- 自绘的贴靠布局面板 --------------------------------------------------
+    //
+    // 只有 Builtin 模式走这条路。System 模式下最大化钮是非客户区，
+    // 下面这些指针事件根本到不了 Avalonia。
+
+    /// <summary>悬停多久弹面板。和 Windows 的手感对齐——太短会在指针掠过时误弹。</summary>
+    private static readonly TimeSpan OpenDelay = TimeSpan.FromMilliseconds(400);
+
+    /// <summary>指针离开后多久收起。留这一段是为了让指针能从钮上移进面板里。</summary>
+    private static readonly TimeSpan CloseDelay = TimeSpan.FromMilliseconds(250);
+
+    private Popup? _snapPopup;
+    private SnapLayoutPicker? _picker;
+    private DispatcherTimer? _openTimer;
+    private DispatcherTimer? _closeTimer;
+
+    private void WireSnapHover()
+    {
+        if (_maximize is null) return;
+
+        _maximize.PointerEntered += OnMaximizeEntered;
+        _maximize.PointerExited += OnMaximizePointerExited;
+    }
+
+    private void UnwireSnapHover()
+    {
+        if (_maximize is null) return;
+
+        _maximize.PointerEntered -= OnMaximizeEntered;
+        _maximize.PointerExited -= OnMaximizePointerExited;
+    }
+
+    private void OnMaximizeEntered(object? sender, PointerEventArgs e)
+    {
+        if (EffectiveSnapLayoutMode != SnapLayoutMode.Builtin) return;
+
+        _closeTimer?.Stop();
+        _openTimer ??= NewTimer(OpenDelay, ShowSnapLayouts);
+        _openTimer.Stop();
+        _openTimer.Start();
+    }
+
+    private void OnMaximizePointerExited(object? sender, PointerEventArgs e)
+    {
+        _openTimer?.Stop();
+        ScheduleClose();
+    }
+
+    private void ScheduleClose()
+    {
+        _closeTimer ??= NewTimer(CloseDelay, CloseSnapLayouts);
+        _closeTimer.Stop();
+        _closeTimer.Start();
+    }
+
+    private static DispatcherTimer NewTimer(TimeSpan interval, Action tick)
+    {
+        var timer = new DispatcherTimer { Interval = interval };
+        timer.Tick += (_, _) =>
+        {
+            timer.Stop();
+            tick();
+        };
+        return timer;
+    }
+
+    /// <summary>
+    /// 弹出自绘的贴靠布局面板。
+    ///
+    /// 公开出来是为了让使用方能绑快捷键：悬停是纯指针手势，而工业面板上
+    /// 不一定有鼠标。只在 <see cref="SnapLayoutMode.Builtin"/> 生效时有效——
+    /// 系统那个面板是 shell 弹的，我们叫不动它。
+    /// </summary>
+    public void ShowSnapLayouts()
+    {
+        if (EffectiveSnapLayoutMode != SnapLayoutMode.Builtin || _maximize is null) return;
+
+        if (_snapPopup is null)
+        {
+            _picker = new SnapLayoutPicker();
+            _picker.ZoneSelected += (_, _) => CloseSnapLayouts();
+            _picker.PointerEntered += (_, _) => _closeTimer?.Stop();
+            _picker.PointerExited += (_, _) => ScheduleClose();
+
+            _snapPopup = new Popup
+            {
+                Child = _picker,
+                PlacementTarget = _maximize,
+                Placement = PlacementMode.BottomEdgeAlignedRight,
+                IsLightDismissEnabled = true,
+                // 面板要跟着钮走：窗口被拖动时不跟的话，面板会留在原地，
+                // 指着一块和最大化钮已经没有关系的屏幕位置。
+                InheritsTransform = true,
+            };
+
+            ((ISetLogicalParent)_snapPopup).SetParent(this);
+        }
+
+        _picker!.TargetWindow = _window;
+        _snapPopup.IsOpen = true;
+    }
+
+    /// <summary>收起自绘的贴靠布局面板。没弹出来时是空操作。</summary>
+    public void CloseSnapLayouts()
+    {
+        _openTimer?.Stop();
+        _closeTimer?.Stop();
+        if (_snapPopup is not null) _snapPopup.IsOpen = false;
     }
 
     // ---- 非 Windows 平台的按钮动作 -------------------------------------------
@@ -341,6 +590,7 @@ public class TitleBar : TemplatedControl
     {
         IsMaximizeVisibleProperty.Changed.AddClassHandler<TitleBar>((x, _) => x.Refresh());
         TitleProperty.Changed.AddClassHandler<TitleBar>((x, _) => x.Refresh());
+        SnapLayoutModeProperty.Changed.AddClassHandler<TitleBar>((x, _) => x.Refresh());
     }
 
     /// <summary>见 <see cref="Cobalt.Fluent.Automation.TitleBarAutomationPeer"/>。</summary>

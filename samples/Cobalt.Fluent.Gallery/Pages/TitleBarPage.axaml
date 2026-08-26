@@ -63,7 +63,23 @@
     <TextBlock Classes="note" MaxWidth="820"
                Text="关闭钮是唯一一个悬停变红的，这是 Windows 沿用了三十年的约定，改掉它等于让操作员在最不该犹豫的地方犹豫。红底上的叉靠继承按钮前景色变白——字形自己钉死画刷的话，就是红底上一个几乎看不见的深色叉。三个字形都是矢量路径，不依赖 Segoe Fluent Icons。" />
 
-    <TextBlock Classes="sub" Text="贴靠布局：本机能力" />
+    <TextBlock Classes="sub" Text="贴靠布局：本库自己画的那一个" />
+    <Border Classes="panel">
+      <StackPanel Spacing="12">
+        <fc:SnapLayoutPicker x:Name="Picker" SnapSelectedWindow="False" HorizontalAlignment="Left" />
+        <TextBlock x:Name="PickerStatus" Classes="note" TextWrapping="Wrap" MaxWidth="560" />
+      </StackPanel>
+    </Border>
+    <TextBlock Classes="note" MaxWidth="820"
+               Text="这个面板不是 Windows shell 的，是本库画的：布局表、分区几何、命中判定、窗口摆放全部是本库的代码，所以 Windows 10、Linux、macOS、嵌入式面板上拿到的是同一套。展柜里把「按下去就摆窗口」关掉了，只报出选中的分区——不然翻到这一页随手一点，整个展柜窗口就跑到屏幕角落去了。" />
+    <TextBlock Classes="note" MaxWidth="820"
+               Text="给几套布局是按当前屏幕算的：窄屏不给三栏（1366 宽三等分每栏 455，摆不下一个正常表单）；带鱼屏才给「窄-宽-窄」；竖屏换成上下切分。门槛按逻辑像素判，所以 4K 屏 200% 缩放算的是 1920 而不是 3840。" />
+    <TextBlock Classes="note" MaxWidth="820"
+               Text="面板上画的每一格就是窗口真正会占的那块像素——预览和执行走的是同一个 SnapGeometry.ZoneRect，不存在「画的是一回事、贴过去是另一回事」。取整取的是分区边界而不是尺寸：1919 像素三等分，各自把 639.67 取整会多出一像素，并排三个窗口最右边那个溢出屏幕。" />
+    <TextBlock Classes="note" MaxWidth="820"
+               Text="键盘：Tab 在布局之间跳，方向键在布局内部走，回车/空格选中。悬停是纯指针手势，而工业面板上不一定有鼠标。" />
+
+    <TextBlock Classes="sub" Text="两套机制的取舍" />
     <Border Classes="panel">
       <StackPanel Spacing="12" Width="620">
         <TextBlock x:Name="SnapStatus" Classes="note" TextWrapping="Wrap" />
@@ -72,7 +88,9 @@
       </StackPanel>
     </Border>
     <TextBlock Classes="note" MaxWidth="820"
-               Text="贴靠面板是 Windows shell 弹的，本库无法在别的平台上模拟它——画一个像的出来也接不上真正的窗口贴靠。所以这里不画假面板，只如实报出前置条件是否成立：Windows 11（内部版本 22000 起）、最大化钮可见、窗口可缩放，三条缺一不可。贴靠布局不出来时先看 SupportsSnapLayouts。" />
+               Text="SnapLayoutMode 决定面板由谁来出。Auto（默认）在 Windows 11 上用系统的、其余平台用本库自己的；显式选 Builtin 则四个平台完全一致。两者各有一处对方做不到：系统那个能把别的应用的窗口安排进剩下的分区（贴靠助手），需要系统级权限，本库做不到也不假装做得到；本库这个在 Windows 10、Linux、macOS、嵌入式面板上都有，系统那个只有 Windows 11。" />
+    <TextBlock Classes="note" MaxWidth="820"
+               Text="两套机制只能二选一，原因在命中测试：System 模式要把最大化钮标成非客户区的 HTMAXBUTTON，而标了之后指针事件就不再送到 Avalonia——我们自己的悬停永远触发不了。所以 Builtin 模式下那块像素必须标回 Client。运行时改模式会重标一遍，否则切过去之后新面板弹不出来。" />
 
     <TextBlock Classes="sub" Text="接进自己的窗口" />
     <TextBlock Classes="note" MaxWidth="820"
@@ -98,6 +116,8 @@
       <g:MapRow Key="部件" Value="PART_Caption(整条的底，标 Caption) · PART_Minimize(标 MinButton) · PART_Maximize(标 MaxButton，贴靠布局的开关) · PART_Close(标 Close) · PART_LeftContent / PART_RightContent(标回 Client) · PART_Title · PART_MinimizeGlyph / PART_MaximizeGlyph / PART_CloseGlyph" />
       <g:MapRow Key="选择器" Value="fc|TitleBar:maximized(钮换成还原字形) · fc|TitleBar:inactive(标题降到 tertiary)" />
       <g:MapRow Key="资源键" Value="TitleBarHeight=32 · TitleBarButtonWidth=46 · ControlTheme：TitleBarButton / TitleBarCloseButton · SubtleFillColorSecondaryBrush / TertiaryBrush(悬停 / 按下底) · SafetyRedBrush → SafetyRedHighBrush(关闭钮悬停 / 按下) · TextOnSafetyFillColorPrimaryBrush(红底上的叉) · TextFillColorTertiaryBrush(失活标题)" />
+      <g:MapRow Key="贴靠" Value="SnapLayoutMode（Auto/System/Builtin/None）· EffectiveSnapLayoutMode(只读) · TitleBar.ShowSnapLayouts() / CloseSnapLayouts()（悬停之外的入口，绑快捷键用）· fc:SnapLayoutPicker（TargetWindow / Layouts(只读) / SnapSelectedWindow / ZoneSelected）· fc:SnapZonePanel（附加属性 Zone、Gap）· fc:SnapZoneButton" />
+      <g:MapRow Key="贴靠 API" Value="SnapLayout（Halves / WideLeft / Thirds / Quadrants / LeftAndStack / WideCenter / StackedHalves / TopAndSplit）· SnapZone(比例) · SnapGeometry.ZoneRect / LayoutsFor / Classify（纯函数）· WindowSnap.Snap / Unsnap / IsSnapped / CanSnap / ZoneRectFor / LayoutsFor" />
       <g:MapRow Key="字形" Value="Symbol.Minimize / Maximize / Restore 三个矢量路径，画在 16 格里只占中间 10 格——Windows 的标题栏字形就是 10×10，画满会比系统按钮明显大一圈。关闭钮复用 Symbol.Cancel（它的码位本来就是 ChromeClose）。" />
     </g:MapBlock>
 

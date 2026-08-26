@@ -44,28 +44,105 @@ public class TitleBarTests
     // ---- 命中测试角色：贴靠布局的全部前提 ------------------------------------
 
     [AvaloniaFact]
-    public void 最大化钮标成_MaxButton()
+    public void System_模式下最大化钮标成_MaxButton()
     {
-        // 这一条就是 Snap Layouts 本身。没有它，Windows 眼里那块像素只是
-        // 客户区，shell 不知道那是最大化钮，悬停面板不再弹出。
-        var (_, bar) = Show();
+        // 这一条就是「把贴靠交给 shell」那条路。没有它，Windows 眼里那块像素
+        // 只是客户区，悬停面板不会弹。
+        var (_, bar) = Show(b => b.SnapLayoutMode = SnapLayoutMode.System);
 
-        Assert.Equal(
-            Win32Properties.Win32HitTestValue.MaxButton,
+        var expected = bar.EffectiveSnapLayoutMode == SnapLayoutMode.System
+            ? Win32Properties.Win32HitTestValue.MaxButton
+            : Win32Properties.Win32HitTestValue.Client;
+
+        Assert.Equal(expected,
             Win32Properties.GetNonClientHitTestResult(Part<Button>(bar, "PART_Maximize")));
     }
 
     [AvaloniaFact]
-    public void 最小化与关闭钮各自标对角色()
+    public void Builtin_模式下最大化钮必须标回_Client()
     {
-        var (_, bar) = Show();
+        // 两套机制只能二选一：标成 MaxButton 之后指针事件不再送到 Avalonia，
+        // 我们自己那个面板的悬停就永远触发不了——界面上表现为「面板不弹」，
+        // 不报错、不留痕迹。
+        var (_, bar) = Show(b => b.SnapLayoutMode = SnapLayoutMode.Builtin);
 
-        Assert.Equal(
-            Win32Properties.Win32HitTestValue.MinButton,
-            Win32Properties.GetNonClientHitTestResult(Part<Button>(bar, "PART_Minimize")));
-        Assert.Equal(
-            Win32Properties.Win32HitTestValue.Close,
-            Win32Properties.GetNonClientHitTestResult(Part<Button>(bar, "PART_Close")));
+        Assert.Equal(Win32Properties.Win32HitTestValue.Client,
+            Win32Properties.GetNonClientHitTestResult(Part<Button>(bar, "PART_Maximize")));
+    }
+
+    [AvaloniaFact]
+    public void 换模式会重标最大化钮()
+    {
+        // 模式是可以运行时改的（设置页里的一个开关）。不重标的话，
+        // 从 System 切到 Builtin 之后那块像素还是非客户区，新面板永远弹不出来。
+        //
+        // 判定本身在下面穷举；这里要证的是「换模式之后确实重标了一遍」。
+        // 直接把命中角色改脏，再换模式看它有没有被改回来——
+        // 只比较模式前后的值的话，在非 Windows 平台上两边都是 Client，证明不了任何事。
+        var (_, bar) = Show(b => b.SnapLayoutMode = SnapLayoutMode.System);
+        var maximize = Part<Button>(bar, "PART_Maximize");
+
+        Win32Properties.SetNonClientHitTestResult(maximize, Win32Properties.Win32HitTestValue.Nowhere);
+        bar.SnapLayoutMode = SnapLayoutMode.Builtin;
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Equal(TitleBar.MaximizeHitTestRole(bar.EffectiveSnapLayoutMode),
+            Win32Properties.GetNonClientHitTestResult(maximize));
+        Assert.NotEqual(Win32Properties.Win32HitTestValue.Nowhere,
+            Win32Properties.GetNonClientHitTestResult(maximize));
+    }
+
+    // ---- 模式判定本身。穷举，因为里面有两条分支在桌面测试环境里造不出来 ----
+    //
+    // 「拿不到屏幕信息」是单窗口平台（嵌入式 framebuffer、移动端、浏览器），
+    // 「跑在 Windows 11 上」是另一个操作系统。留在实例方法里就只能靠读代码判断。
+
+    [Theory]
+    // requested,               maximize, window, resize, screen, win11  → expected
+    [InlineData(SnapLayoutMode.Auto, true, true, true, true, true, SnapLayoutMode.System)]
+    [InlineData(SnapLayoutMode.Auto, true, true, true, true, false, SnapLayoutMode.Builtin)]
+    [InlineData(SnapLayoutMode.Auto, true, true, true, false, false, SnapLayoutMode.None)]
+    [InlineData(SnapLayoutMode.Auto, true, true, true, false, true, SnapLayoutMode.System)]
+    [InlineData(SnapLayoutMode.System, true, true, true, true, true, SnapLayoutMode.System)]
+    [InlineData(SnapLayoutMode.System, true, true, true, true, false, SnapLayoutMode.None)]
+    [InlineData(SnapLayoutMode.Builtin, true, true, true, true, true, SnapLayoutMode.Builtin)]
+    [InlineData(SnapLayoutMode.Builtin, true, true, true, true, false, SnapLayoutMode.Builtin)]
+    [InlineData(SnapLayoutMode.Builtin, true, true, true, false, false, SnapLayoutMode.None)]
+    [InlineData(SnapLayoutMode.None, true, true, true, true, true, SnapLayoutMode.None)]
+    // 三条共同前提，缺一条谁都别想有面板
+    [InlineData(SnapLayoutMode.Auto, false, true, true, true, true, SnapLayoutMode.None)]
+    [InlineData(SnapLayoutMode.Auto, true, false, true, true, true, SnapLayoutMode.None)]
+    [InlineData(SnapLayoutMode.Auto, true, true, false, true, true, SnapLayoutMode.None)]
+    [InlineData(SnapLayoutMode.Builtin, true, true, false, true, false, SnapLayoutMode.None)]
+    public void 模式判定穷举(
+        SnapLayoutMode requested, bool maximizeVisible, bool hasWindow,
+        bool canResize, bool hasScreen, bool systemAvailable, SnapLayoutMode expected)
+    {
+        Assert.Equal(expected, TitleBar.ResolveSnapMode(
+            requested, maximizeVisible, hasWindow, canResize, hasScreen, systemAvailable));
+    }
+
+    [Fact]
+    public void 单窗口平台上_Builtin_退成没有面板()
+    {
+        // 自绘的那个面板要摆窗口，摆不了就别弹——
+        // 弹一个按下去没反应的面板比不弹更糟。
+        // 这条分支在桌面上造不出来：无头平台也有屏幕信息。
+        Assert.Equal(SnapLayoutMode.None, TitleBar.ResolveSnapMode(
+            SnapLayoutMode.Builtin, true, true, true, hasScreen: false, systemAvailable: false));
+    }
+
+    [Fact]
+    public void 只有_System_模式才标_MaxButton()
+    {
+        Assert.Equal(Win32Properties.Win32HitTestValue.MaxButton,
+            TitleBar.MaximizeHitTestRole(SnapLayoutMode.System));
+
+        foreach (var mode in new[] { SnapLayoutMode.Builtin, SnapLayoutMode.None, SnapLayoutMode.Auto })
+        {
+            Assert.Equal(Win32Properties.Win32HitTestValue.Client,
+                TitleBar.MaximizeHitTestRole(mode));
+        }
     }
 
     [AvaloniaFact]
@@ -96,33 +173,66 @@ public class TitleBarTests
     // ---- 能力上报 ------------------------------------------------------------
 
     [AvaloniaFact]
-    public void 非_Windows_11_上报不支持贴靠布局()
+    public void Auto_在非_Windows_11_上退到自绘面板()
     {
-        // 测试跑在哪个平台是已知的，所以这条在两边都有意义：
-        // Linux/macOS 上必须是 false，Windows 11 上必须是 true。
+        // 这正是「框架内部自己做贴靠」要解决的事：Windows 10、Linux、macOS、
+        // 嵌入式面板上系统都不给贴靠面板，退到自绘的那个之后照样有。
         var (_, bar) = Show();
 
-        Assert.Equal(OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000), bar.SupportsSnapLayouts);
+        var expected = OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000)
+            ? SnapLayoutMode.System
+            : SnapLayoutMode.Builtin;
+
+        Assert.Equal(expected, bar.EffectiveSnapLayoutMode);
+        Assert.True(bar.SupportsSnapLayouts);
+    }
+
+    [AvaloniaFact]
+    public void System_模式在非_Windows_11_上没有面板()
+    {
+        // 显式选了系统那个，而系统没有——不能假装有。
+        var (_, bar) = Show(b => b.SnapLayoutMode = SnapLayoutMode.System);
+
+        if (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000)) return;
+
+        Assert.Equal(SnapLayoutMode.None, bar.EffectiveSnapLayoutMode);
+        Assert.False(bar.SupportsSnapLayouts);
+    }
+
+    [AvaloniaFact]
+    public void 明确关掉就没有面板()
+    {
+        var (_, bar) = Show(b => b.SnapLayoutMode = SnapLayoutMode.None);
+
+        Assert.Equal(SnapLayoutMode.None, bar.EffectiveSnapLayoutMode);
+        Assert.False(bar.SupportsSnapLayouts);
     }
 
     [AvaloniaFact]
     public void 藏掉最大化钮就等于关掉贴靠布局()
     {
+        // 面板是靠悬停最大化钮触发的。钮没了，两种模式都无从触发。
         var (_, bar) = Show(b => b.IsMaximizeVisible = false);
 
         Assert.False(bar.SupportsSnapLayouts);
+        Assert.Equal(SnapLayoutMode.None, bar.EffectiveSnapLayoutMode);
     }
 
     [AvaloniaFact]
     public void 不可缩放的窗口不上报贴靠布局()
     {
-        // shell 的那些布局全都要改窗口尺寸，窗口锁死尺寸时面板本来就不弹。
-        var bar = new TitleBar();
-        var window = new Window { Width = 800, Height = 600, CanResize = false, Content = bar };
-        window.Show();
-        Dispatcher.UIThread.RunJobs();
+        // 所有布局都要改窗口尺寸。锁死尺寸时弹一个按下去没反应的面板，
+        // 比不弹更糟。两种模式都不该给。
+        foreach (var mode in new[] { SnapLayoutMode.Auto, SnapLayoutMode.Builtin, SnapLayoutMode.System })
+        {
+            var bar = new TitleBar { SnapLayoutMode = mode };
+            var window = new Window { Width = 800, Height = 600, CanResize = false, Content = bar };
+            window.Show();
+            Dispatcher.UIThread.RunJobs();
 
-        Assert.False(bar.SupportsSnapLayouts);
+            Assert.Equal(SnapLayoutMode.None, bar.EffectiveSnapLayoutMode);
+            Assert.False(bar.SupportsSnapLayouts);
+        }
     }
 
     [AvaloniaFact]

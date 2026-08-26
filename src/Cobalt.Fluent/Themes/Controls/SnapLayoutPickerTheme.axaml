@@ -1,0 +1,63 @@
+<!-- 贴靠布局面板。这是本库自己画的那一个，不是 Windows shell 的。
+
+     示意图的尺寸 108×68 接近 16:10，和常见面板的比例一致——
+     示意图的形状要能让人一眼认出「这是我的屏幕」，比例差太多就认不出来了。 -->
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:fc="using:Cobalt.Fluent.Controls">
+
+  <!-- 一格就是一个窗口的示意。静止态用强填充画成实心块：
+       线框在 108×68 这个尺寸上太细，一眼看不出被切成了几块。 -->
+  <ControlTheme x:Key="{x:Type fc:SnapZoneButton}" TargetType="fc:SnapZoneButton">
+    <Setter Property="Background" Value="{DynamicResource ControlStrongFillColorDefaultBrush}" />
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="CornerRadius" Value="2" />
+    <Setter Property="Padding" Value="0" />
+    <Setter Property="MinWidth" Value="0" />
+    <Setter Property="MinHeight" Value="0" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:SnapZoneButton">
+        <Border x:Name="PART_Fill"
+                Background="{TemplateBinding Background}"
+                CornerRadius="{TemplateBinding CornerRadius}" />
+      </ControlTemplate>
+    </Setter>
+
+    <!-- 悬停用强调色：这一格就是窗口要去的地方，得让人确信按下去去的是这块 -->
+    <Style Selector="^:pointerover /template/ Border#PART_Fill">
+      <Setter Property="Background" Value="{DynamicResource AccentFillColorDefaultBrush}" />
+    </Style>
+    <Style Selector="^:pressed /template/ Border#PART_Fill">
+      <Setter Property="Background" Value="{DynamicResource AccentFillColorTertiaryBrush}" />
+    </Style>
+
+    <!-- 键盘焦点必须看得见：这几格没有文字，光靠底色深浅分不出焦点在哪。 -->
+    <Style Selector="^:focus-visible /template/ Border#PART_Fill">
+      <Setter Property="BorderBrush" Value="{DynamicResource FocusStrokeColorOuterBrush}" />
+      <Setter Property="BorderThickness" Value="2" />
+    </Style>
+  </ControlTheme>
+
+  <ControlTheme x:Key="{x:Type fc:SnapLayoutPicker}" TargetType="fc:SnapLayoutPicker">
+    <Setter Property="Background" Value="{DynamicResource AcrylicBackgroundFillColorDefaultBrush}" />
+    <Setter Property="BorderBrush" Value="{DynamicResource SurfaceStrokeColorFlyoutBrush}" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="CornerRadius" Value="{DynamicResource OverlayCornerRadius}" />
+    <Setter Property="Padding" Value="8" />
+    <Setter Property="Template">
+      <ControlTemplate TargetType="fc:SnapLayoutPicker">
+        <Border Background="{TemplateBinding Background}"
+                BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}"
+                CornerRadius="{TemplateBinding CornerRadius}"
+                Padding="{TemplateBinding Padding}"
+                BoxShadow="0 8 16 0 #24000000, 0 0 2 0 #1F000000">
+          <!-- 两列。四套布局排成 2×2，和 Windows 的面板一样——
+               排成一行的话面板宽得超出标题栏按钮那一带，弹出来会跑到屏幕外。 -->
+          <UniformGrid x:Name="PART_Layouts" Columns="2" />
+        </Border>
+      </ControlTemplate>
+    </Setter>
+  </ControlTheme>
+
+</ResourceDictionary>

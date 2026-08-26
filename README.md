@@ -6,7 +6,7 @@
 
 **A Windows 11 Fluent implementation for Avalonia**
 
-63 controls · 12 groups · light and dark themes · zero third-party dependencies · industrial HMI control set included
+64 controls · 12 groups · light and dark themes · zero third-party dependencies · industrial HMI control set included
 
 [![build](https://github.com/RoorJiaMo/CobaltFluent/actions/workflows/build.yml/badge.svg)](https://github.com/RoorJiaMo/CobaltFluent/actions/workflows/build.yml)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -127,7 +127,7 @@ dotnet run --project samples/Cobalt.Fluent.Gallery
 12 groups. Baseline desktop control height is 32px.
 
 <details>
-<summary><b>Full list (63 controls)</b></summary>
+<summary><b>Full list (64 controls)</b></summary>
 
 <br>
 
@@ -143,9 +143,9 @@ dotnet run --project samples/Cobalt.Fluent.Gallery
 | **9** Charts | ChartFrame · TrendChart · Gauge · BarChart · Sparkline · ChartLegend | All drawn directly by this library |
 | **10** Data grid extras | DataGridToolbar · Pagination · EmptyState · Skeleton | All implemented here |
 | **11** Common additions | AutoSuggestBox · BreadcrumbBar · SegmentedControl · Chip · Stepper · GridSplitter · Toast · PersonPicture | All implemented here, except AutoSuggestBox (Avalonia's built-in `AutoCompleteBox`, re-themed) and GridSplitter |
-| **12** Window shell | TitleBar | Implemented here. Keeps Windows 11 Snap Layouts working under a custom title bar by returning `HTMAXBUTTON` from `WM_NCHITTEST` over the maximise button; a no-op on other platforms |
+| **12** Window shell | TitleBar · SnapLayoutPicker | All implemented here. `TitleBar` keeps Windows 11's own Snap Layouts working under a custom title bar (`WM_NCHITTEST` returns `HTMAXBUTTON` over the maximise button); `SnapLayoutPicker` is this library's **own** snap layouts — zone geometry, hit testing and window placement are all implemented here, so Windows 10, Linux, macOS and embedded panels behave identically |
 
-Full API reference in [`docs/CONTROLS.md`](docs/CONTROLS.md) (78 types, extracted from source by script).
+Full API reference in [`docs/CONTROLS.md`](docs/CONTROLS.md) (86 types, extracted from source by script).
 
 </details>
 
@@ -414,7 +414,7 @@ tools/check.sh --only Button.axaml    # merge only the named control-layer file 
 python3 tools/audit.py                             # control-layer silent-failure audit (14 checks)
 tools/aot-gate.sh                                  # NativeAOT publish, then run the native binary
 tools/pack-gate.sh                                 # pack, then consume the installed package
-dotnet test tests/Cobalt.Fluent.Tests               # 399 regression tests
+dotnet test tests/Cobalt.Fluent.Tests               # 479 regression tests
 dotnet run  --project samples/Cobalt.Fluent.Gallery # run the gallery
 ```
 
@@ -441,7 +441,7 @@ dotnet run --project tools/Cobalt.Fluent.Shots -- artifacts/shots "shell:Readout
 | Document | Contents |
 |---|---|
 | [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md) | Development conventions — layering, resource-key reference, pseudo-class list, invariants, and a set of pitfalls the compiler cannot catch |
-| [`docs/CONTROLS.md`](docs/CONTROLS.md) | Control API reference (78 types, extracted from source by `tools/gen_api_docs.py`) |
+| [`docs/CONTROLS.md`](docs/CONTROLS.md) | Control API reference (86 types, extracted from source by `tools/gen_api_docs.py`) |
 | Gallery | 50 sections: visual specification + interactive demo + resource-key reference + source viewer, with a state matrix in 23 of them |
 
 Read `CONVENTIONS.md` before changing a control. Before opening a PR, run the build, the tests and the generators locally — CI runs the same checks, plus a headless render of every section.

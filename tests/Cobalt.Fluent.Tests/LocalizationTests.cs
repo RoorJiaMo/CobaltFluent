@@ -265,6 +265,13 @@ public class LocalizationTests
         var t when t == typeof(int) => 7,
         var t when t == typeof(double) => 1.5,
         var t when t == typeof(TimeSpan) => TimeSpan.FromSeconds(30),
+
+        // 贴靠布局的两个枚举取「归不了类」那一档：Custom / 未定义值走的是
+        // 兜底分支，而兜底分支正是最容易混进英文或中文硬编码的地方。
+        var t when t == typeof(SnapLayoutKind) => (SnapLayoutKind)(-1),
+        var t when t == typeof(SnapZoneKind) => SnapZoneKind.Custom,
+        var t when t == typeof(SnapZone) => new SnapZone(0.25, 0, 0.5, 1),
+
         _ => throw new NotSupportedException($"{p.ParameterType.Name} 还没给样本"),
     };
 

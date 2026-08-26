@@ -3,6 +3,7 @@ using Avalonia.Automation.Peers;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless;
+using Avalonia.Interactivity;
 using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Styling;
@@ -47,6 +48,9 @@ internal static class Program
 
         Console.WriteLine("自绘标题栏");
         Chrome();
+
+        Console.WriteLine("自绘贴靠布局");
+        Snap();
 
         Console.WriteLine(_failed == 0 ? "AOT 探针全部通过" : $"AOT 探针 {_failed} 项失败");
         return _failed == 0 ? 0 : 1;
@@ -170,10 +174,20 @@ internal static class Program
         Button? Btn(string name) => bar.GetVisualDescendants()
             .OfType<Button>().FirstOrDefault(b => b.Name == name);
 
+        // 最大化钮的角色取决于面板由谁来出，两套机制只能二选一：
+        // System 要 MaxButton（交给 shell），其余模式要 Client（我们自己收悬停）。
         var maximize = Btn("PART_Maximize");
         Check(maximize is not null && Win32Properties.GetNonClientHitTestResult(maximize)
-              == Win32Properties.Win32HitTestValue.MaxButton,
-            "最大化钮标成 MaxButton（贴靠布局本身）");
+              == (bar.EffectiveSnapLayoutMode == SnapLayoutMode.System
+                  ? Win32Properties.Win32HitTestValue.MaxButton
+                  : Win32Properties.Win32HitTestValue.Client),
+            $"最大化钮的命中角色对得上生效模式（{bar.EffectiveSnapLayoutMode}）");
+
+        // 非 Windows 上 Auto 该退到自绘面板——这正是「框架内部自己做贴靠」的意义。
+        Check(bar.EffectiveSnapLayoutMode == (OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000)
+                  ? SnapLayoutMode.System
+                  : SnapLayoutMode.Builtin),
+            "Auto 按平台挑对了", $"{bar.EffectiveSnapLayoutMode}");
         Check(Btn("PART_Close") is { } close
               && Win32Properties.GetNonClientHitTestResult(close)
               == Win32Properties.Win32HitTestValue.Close,
@@ -193,5 +207,45 @@ internal static class Program
         window.WindowState = WindowState.Maximized;
         Dispatcher.UIThread.RunJobs();
         Check(glyph is { Symbol: Symbol.Restore }, "最大化后换成还原字形", $"{glyph?.Symbol}");
+    }
+
+    /// <summary>
+    /// 自绘的贴靠布局。
+    ///
+    /// 这一节在 AOT 闸口里，是因为面板里那些格子是<b>代码建的</b>：
+    /// 隐式 ControlTheme（<c>{x:Type fc:SnapZoneButton}</c>）、附加属性
+    /// <c>SnapZonePanel.Zone</c>、以及 <c>GetResourceObservable</c> 取的画刷，
+    /// 三条都是裁剪敏感路径。被裁掉的话编译期没有任何信号，
+    /// 界面上表现为「面板里的格子没有样式」或者「格子全叠在左上角」。
+    /// </summary>
+    private static void Snap()
+    {
+        var picker = new SnapLayoutPicker();
+        var window = new Window { Width = 900, Height = 600, Content = picker };
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+        window.Measure(new Size(900, 600));
+        window.Arrange(new Rect(0, 0, 900, 600));
+        Dispatcher.UIThread.RunJobs();
+
+        Check(picker.Layouts.Count > 0, "布局表还在", $"{picker.Layouts.Count} 套");
+
+        var cells = picker.GetVisualDescendants().OfType<SnapZoneButton>().ToArray();
+        Check(cells.Length == picker.Layouts.Sum(l => l.Zones.Count),
+            "每一块分区都造出了格子", $"{cells.Length} 格");
+
+        // 格子有非零尺寸 = 隐式 ControlTheme 和附加属性都活着。
+        Check(cells.All(c => c.Bounds is { Width: > 0, Height: > 0 }), "格子按分区摆开了");
+
+        // 按下去要真的把窗口摆过去——这是整套东西的意义所在。
+        var zone = SnapZonePanel.GetZone(cells[0]);
+        var expected = WindowSnap.ZoneRectFor(window, zone);
+        cells[0].RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+        Dispatcher.UIThread.RunJobs();
+
+        Check(expected is not null && window.Position == expected.Value.Position,
+            "按下去窗口真的贴过去了", $"{window.Position} vs {expected?.Position}");
+
+        Check(WindowSnap.Unsnap(window), "取消贴靠回得去");
     }
 }

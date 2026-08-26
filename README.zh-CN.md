@@ -6,7 +6,7 @@
 
 **Windows 11 Fluent 设计语言的 Avalonia 实现**
 
-63 个控件 · 12 个分组 · 明暗双主题 · 零第三方依赖 · 内置工业 HMI 控件组
+64 个控件 · 12 个分组 · 明暗双主题 · 零第三方依赖 · 内置工业 HMI 控件组
 
 [![build](https://github.com/RoorJiaMo/CobaltFluent/actions/workflows/build.yml/badge.svg)](https://github.com/RoorJiaMo/CobaltFluent/actions/workflows/build.yml)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -127,7 +127,7 @@ dotnet run --project samples/Cobalt.Fluent.Gallery
 12 个分组，桌面基准控件高度 32px。
 
 <details>
-<summary><b>完整清单（63 个控件）</b></summary>
+<summary><b>完整清单（64 个控件）</b></summary>
 
 <br>
 
@@ -143,9 +143,9 @@ dotnet run --project samples/Cobalt.Fluent.Gallery
 | **9** 图表 | ChartFrame · TrendChart · Gauge · BarChart · Sparkline · ChartLegend | 全部为本库自绘实现 |
 | **10** 表格增强 | DataGridToolbar · Pagination · EmptyState · Skeleton | 全部为本库实现 |
 | **11** 常用补充 | AutoSuggestBox · BreadcrumbBar · SegmentedControl · Chip · Stepper · GridSplitter · Toast · PersonPicture | 除 AutoSuggestBox（即 Avalonia 内置 `AutoCompleteBox` 重做主题）与 GridSplitter 外，均为本库实现 |
-| **12** 窗口外壳 | TitleBar | 本库实现。自绘标题栏会弄坏 Windows 11 的贴靠布局，本控件在最大化钮上让 `WM_NCHITTEST` 返回 `HTMAXBUTTON` 把它补回去；其余平台为空操作 |
+| **12** 窗口外壳 | TitleBar · SnapLayoutPicker | 全部为本库实现。`TitleBar` 让 Windows 11 自带的贴靠布局在自绘标题栏下仍然可用（最大化钮上让 `WM_NCHITTEST` 返回 `HTMAXBUTTON`）；`SnapLayoutPicker` 是**本库自己的**贴靠布局——分区几何、命中判定、窗口摆放全部由本库执行，Windows 10、Linux、macOS、嵌入式面板上行为一致 |
 
-完整 API 参见 [`docs/CONTROLS.md`](docs/CONTROLS.md)（78 个类型，由脚本从源码抽取）。
+完整 API 参见 [`docs/CONTROLS.md`](docs/CONTROLS.md)（86 个类型，由脚本从源码抽取）。
 
 </details>
 
@@ -385,7 +385,7 @@ tools/check.sh --only Button.axaml    # 仅合并指定控件层文件（并行�
 python3 tools/audit.py                             # 控件层静默失效审计（14 项检查）
 tools/aot-gate.sh                                  # NativeAOT 发布，然后真跑一遍原生二进制
 tools/pack-gate.sh                                 # 打包，然后从装上的包里用一遍
-dotnet test tests/Cobalt.Fluent.Tests               # 399 项回归测试
+dotnet test tests/Cobalt.Fluent.Tests               # 479 项回归测试
 dotnet run  --project samples/Cobalt.Fluent.Gallery # 运行展柜
 ```
 
@@ -412,7 +412,7 @@ dotnet run --project tools/Cobalt.Fluent.Shots -- artifacts/shots "shell:Readout
 | 文档 | 内容 |
 |---|---|
 | [`docs/CONVENTIONS.md`](docs/CONVENTIONS.md) | 开发约定——分层结构、资源键速查、伪类清单、不变量，以及若干编译期无法发现的问题 |
-| [`docs/CONTROLS.md`](docs/CONTROLS.md) | 控件 API 参考（78 个类型，由 `tools/gen_api_docs.py` 从源码抽取） |
+| [`docs/CONTROLS.md`](docs/CONTROLS.md) | 控件 API 参考（86 个类型，由 `tools/gen_api_docs.py` 从源码抽取） |
 | 展柜 | 50 个章节：视觉规格 + 交互演示 + 资源键对照 + 源码查看，其中 23 个另附状态矩阵 |
 
 修改控件前请先阅读 `CONVENTIONS.md`。提交 PR 前请在本地完成编译、测试与生成脚本——CI 执行相同的检查，并额外对全部章节进行无头渲染。

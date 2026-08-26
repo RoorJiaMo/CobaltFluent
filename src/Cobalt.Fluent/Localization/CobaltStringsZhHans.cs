@@ -1,5 +1,5 @@
 using System.Globalization;
-
+using Cobalt.Fluent.Controls;
 namespace Cobalt.Fluent;
 
 /// <summary>
@@ -190,4 +190,47 @@ public class CobaltStringsZhHans : CobaltStrings
     public override string SnapLayoutsAvailable => "贴靠布局可用";
 
     public override string SnapLayoutsUnavailable => "贴靠布局不可用";
+
+    public override string SnapLayouts => "贴靠布局";
+
+    public override string SnapLayoutName(SnapLayoutKind kind) => kind switch
+    {
+        SnapLayoutKind.Halves => "两栏等分",
+        SnapLayoutKind.WideLeft => "两栏，左宽",
+        SnapLayoutKind.Thirds => "三栏等分",
+        SnapLayoutKind.Quadrants => "四宫格",
+        SnapLayoutKind.LeftAndStack => "左半屏 + 右侧上下两块",
+        SnapLayoutKind.WideCenter => "三栏，中间宽",
+        SnapLayoutKind.StackedHalves => "上下等分",
+        SnapLayoutKind.TopAndSplit => "上半屏 + 下方左右两块",
+        _ => "布局",
+    };
+
+    // 整句重写而不是拼词：中英文的方位词和量词语序不一样，
+    // 「Top-left quarter」拆成「上」「左」「四分之一」再拼回中文只会拼出病句。
+    public override string SnapZoneName(SnapZoneKind kind, SnapZone zone) => kind switch
+    {
+        SnapZoneKind.LeftHalf => "左半屏",
+        SnapZoneKind.RightHalf => "右半屏",
+        SnapZoneKind.TopHalf => "上半屏",
+        SnapZoneKind.BottomHalf => "下半屏",
+        SnapZoneKind.LeftThird => "左三分之一",
+        SnapZoneKind.CenterThird => "中间三分之一",
+        SnapZoneKind.RightThird => "右三分之一",
+        SnapZoneKind.LeftTwoThirds => "左三分之二",
+        SnapZoneKind.RightTwoThirds => "右三分之二",
+        SnapZoneKind.CenterHalf => "中间半屏",
+        SnapZoneKind.LeftQuarter => "左四分之一",
+        SnapZoneKind.RightQuarter => "右四分之一",
+        SnapZoneKind.TopLeftQuarter => "左上四分之一",
+        SnapZoneKind.TopRightQuarter => "右上四分之一",
+        SnapZoneKind.BottomLeftQuarter => "左下四分之一",
+        SnapZoneKind.BottomRightQuarter => "右下四分之一",
+        _ => $"分区：左 {Pct(zone.X)}、上 {Pct(zone.Y)}，宽 {Pct(zone.Width)}、高 {Pct(zone.Height)}",
+    };
+
+    public override string Unsnap => "取消贴靠";
+
+    public override string SnapLayoutCount(int count) =>
+        count == 0 ? "这块屏幕上没有可用的贴靠布局" : $"{count} 套贴靠布局";
 }
