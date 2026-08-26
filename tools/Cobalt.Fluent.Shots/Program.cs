@@ -1,9 +1,11 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Headless;
+using Avalonia.Media;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using Cobalt.Fluent;
+using Cobalt.Fluent.Controls;
 using Cobalt.Fluent.Gallery;
 using Cobalt.Fluent.Gallery.Infrastructure;
 
@@ -47,6 +49,77 @@ internal static class Program
             "both" => new[] { ThemeVariant.Light, ThemeVariant.Dark },
             _ => new[] { ThemeVariant.Light },
         };
+
+        // 自绘标题栏 + 弹开的贴靠面板。这一张是「应该看到什么」的基准图：
+        // 面板不出来的时候，先和它对一下，就知道是模式没选对还是真坏了。
+        if (filter == "snap")
+        {
+            foreach (var variant in variants)
+            {
+                Application.Current!.RequestedThemeVariant = variant;
+                var suffix = variant == ThemeVariant.Dark ? "dark" : "light";
+
+                var bar = new TitleBar
+                {
+                    Icon = Symbol.Diagnostic,
+                    Title = "研磨工位 · 3 号线",
+                    // 必须显式 Builtin：Auto 在 Windows 11 上会走系统面板，
+                    // 而系统面板是 shell 画的，截不进我们的帧。
+                    SnapLayoutMode = SnapLayoutMode.Builtin,
+                };
+
+                var body = new TextBlock
+                {
+                    Margin = new Thickness(24),
+                    TextWrapping = TextWrapping.Wrap,
+                    Text = "客户区。把指针停在最大化钮上约 0.4 秒，上面那个面板就会弹出来。",
+                };
+
+                var dock = new DockPanel();
+                DockPanel.SetDock(bar, Dock.Top);
+                dock.Children.Add(bar);
+                dock.Children.Add(body);
+
+                var window = new Window { Width = 900, Height = 420, Content = dock };
+                TitleBar.ApplyTo(window);
+                window.Show();
+                Dispatcher.UIThread.RunJobs();
+
+                bar.ShowSnapLayouts();
+                Dispatcher.UIThread.RunJobs();
+
+                window.Measure(new Size(900, 420));
+                window.Arrange(new Rect(0, 0, 900, 420));
+                Dispatcher.UIThread.RunJobs();
+
+                if (!bar.IsSnapLayoutsOpen)
+                {
+                    Console.Error.WriteLine($"面板没弹出来（生效模式 {bar.EffectiveSnapLayoutMode}）。");
+                    return 1;
+                }
+
+                // 面板住在窗口的覆盖层里，而覆盖层是后合成的。
+                // 同一个进程里连开两个窗口时，不推一下渲染循环，
+                // 第二张截出来的帧里面板是空的——控件本身是好的（布局尺寸都对），
+                // 空的只是那一帧。
+                AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+                Dispatcher.UIThread.RunJobs();
+
+                var frame = window.CaptureRenderedFrame();
+                if (frame is null)
+                {
+                    Console.Error.WriteLine("[空帧] snap");
+                    return 1;
+                }
+
+                var path = Path.Combine(outDir, $"_snap.{suffix}.png");
+                frame.Save(path);
+                Console.WriteLine($"  {path}（生效模式 {bar.EffectiveSnapLayoutMode}）");
+                window.Close();
+            }
+
+            return 0;
+        }
 
         // 单独渲染整个展柜窗口（目录 + 顶栏 + 内容区），用来验收外壳本身。
         // 写成 shell:章节名 可以指定停在哪一页，例如 shell:Readout —— 截封面图用。
