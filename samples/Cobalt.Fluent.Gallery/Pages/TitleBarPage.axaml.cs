@@ -27,7 +27,25 @@ public partial class TitleBarPage : UserControl
             return;
         }
 
-        open.Click += (_, _) => OpenDemoWindow();
+        var modes = this.FindControl<ComboBox>("ModeBox")!;
+
+        // 显式映射，不用 (SnapLayoutMode)SelectedIndex：下拉框里 Builtin 排第二
+        // （那是这一页最想让人试的一项），而枚举里第二个是 System——
+        // 靠序号强转的话，选「Builtin」会开出一个 System 窗口，而且看不出哪里错了。
+        var order = new[]
+        {
+            SnapLayoutMode.Auto,
+            SnapLayoutMode.Builtin,
+            SnapLayoutMode.System,
+            SnapLayoutMode.None,
+        };
+
+        open.Click += (_, _) => OpenDemoWindow(
+            order[Math.Clamp(modes.SelectedIndex, 0, order.Length - 1)]);
+
+        hint.Text = OperatingSystem.IsWindowsVersionAtLeast(10, 0, 22000)
+            ? "本机是 Windows 11：Auto 会用系统那个面板。想看本库自绘的那个，选 Builtin。"
+            : "本机不是 Windows 11：Auto 已经退到本库自绘的面板了，直接开就能看到。";
     }
 
     protected override void OnAttachedToVisualTree(Avalonia.VisualTreeAttachmentEventArgs e)
@@ -78,19 +96,25 @@ public partial class TitleBarPage : UserControl
         };
     }
 
-    private static void OpenDemoWindow()
+    private static void OpenDemoWindow(SnapLayoutMode mode)
     {
-        var bar = new TitleBar { Icon = Symbol.Diagnostic, Title = "贴靠布局演示" };
+        var bar = new TitleBar
+        {
+            Icon = Symbol.Diagnostic,
+            Title = "贴靠布局演示",
+            SnapLayoutMode = mode,
+        };
         var body = new TextBlock
         {
             Classes = { "note" },
             Margin = new Avalonia.Thickness(24),
             TextWrapping = Avalonia.Media.TextWrapping.Wrap,
             Text = "这一整个窗口都没有系统标题栏，上面那一条是 fc:TitleBar。\n\n"
-                   + "Windows 11 上：把指针停在最大化钮上不动，shell 会弹出贴靠布局面板；"
-                   + "拖住空白处可以移窗，双击最大化，右键出系统菜单——"
-                   + "这些全部由 shell 提供，控件一行代码都没写。\n\n"
-                   + "其余平台上：三个按钮走控件自己的 Click，行为一致，只是没有贴靠面板。",
+                   + "把指针停在最大化钮上不动约 0.4 秒，贴靠布局面板会弹出来。"
+                   + "点其中一格，这个窗口就会摆到屏幕上对应的位置。"
+                   + "再开一个演示窗口摆到另一格，就能看出两个窗口是不是严丝合缝。\n\n"
+                   + "拖住标题栏空白处可以移窗，双击最大化，Windows 上右键还有系统菜单——"
+                   + "这些由 shell 提供，控件一行代码都没写。",
         };
 
         var dock = new DockPanel();
@@ -109,5 +133,9 @@ public partial class TitleBarPage : UserControl
         // 三条窗口提示一次设齐。漏掉任何一条的表现都不一样，见页面上的说明。
         TitleBar.ApplyTo(window);
         window.Show();
+
+        // 开完把实际生效的模式写进标题：选了 System 却跑在 Linux 上会退成 None，
+        // 不写出来的话使用者只会看到「怎么没反应」。
+        window.Title = $"贴靠布局演示 —— {bar.EffectiveSnapLayoutMode}";
     }
 }

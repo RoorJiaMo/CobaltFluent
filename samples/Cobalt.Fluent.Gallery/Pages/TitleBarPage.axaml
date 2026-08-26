@@ -83,7 +83,18 @@
     <Border Classes="panel">
       <StackPanel Spacing="12" Width="620">
         <TextBlock x:Name="SnapStatus" Classes="note" TextWrapping="Wrap" />
-        <Button x:Name="OpenDemo" Content="打开一个自绘标题栏的窗口" HorizontalAlignment="Left" />
+
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <TextBlock Text="面板由谁来出" VerticalAlignment="Center" />
+          <ComboBox x:Name="ModeBox" SelectedIndex="0" MinWidth="240">
+            <ComboBoxItem Content="Auto —— 按平台挑（默认）" />
+            <ComboBoxItem Content="Builtin —— 强制用本库自绘的" />
+            <ComboBoxItem Content="System —— 强制交给 Windows shell" />
+            <ComboBoxItem Content="None —— 不要贴靠面板" />
+          </ComboBox>
+          <Button x:Name="OpenDemo" Content="打开演示窗口" />
+        </StackPanel>
+
         <TextBlock x:Name="OpenHint" Classes="note" TextWrapping="Wrap" />
       </StackPanel>
     </Border>

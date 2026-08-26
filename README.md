@@ -414,7 +414,7 @@ tools/check.sh --only Button.axaml    # merge only the named control-layer file 
 python3 tools/audit.py                             # control-layer silent-failure audit (14 checks)
 tools/aot-gate.sh                                  # NativeAOT publish, then run the native binary
 tools/pack-gate.sh                                 # pack, then consume the installed package
-dotnet test tests/Cobalt.Fluent.Tests               # 479 regression tests
+dotnet test tests/Cobalt.Fluent.Tests               # 485 regression tests
 dotnet run  --project samples/Cobalt.Fluent.Gallery # run the gallery
 ```
 

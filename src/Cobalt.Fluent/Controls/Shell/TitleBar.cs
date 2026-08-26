@@ -326,6 +326,11 @@ public class TitleBar : TemplatedControl
     {
         DetachWindow();
         _strings.Detach();
+
+        // 收面板这一半是保险：Avalonia 的 Popup 在放置目标脱离可视树时会自己关，
+        // 试过三种拆法都分辨不出有没有这一行。真正必要的是它顺带停掉的两个定时器——
+        // 指针正停在最大化钮上时把标题栏拆掉，那个 400ms 的定时器还在跑，
+        // 而它闭包持有 this，控件在这段时间里回收不掉。
         CloseSnapLayouts();
         Refresh();
         base.OnDetachedFromVisualTree(e);
@@ -459,11 +464,38 @@ public class TitleBar : TemplatedControl
     // 只有 Builtin 模式走这条路。System 模式下最大化钮是非客户区，
     // 下面这些指针事件根本到不了 Avalonia。
 
-    /// <summary>悬停多久弹面板。和 Windows 的手感对齐——太短会在指针掠过时误弹。</summary>
-    private static readonly TimeSpan OpenDelay = TimeSpan.FromMilliseconds(400);
+    public static readonly StyledProperty<TimeSpan> SnapLayoutHoverDelayProperty =
+        AvaloniaProperty.Register<TitleBar, TimeSpan>(
+            nameof(SnapLayoutHoverDelay), TimeSpan.FromMilliseconds(400));
 
-    /// <summary>指针离开后多久收起。留这一段是为了让指针能从钮上移进面板里。</summary>
-    private static readonly TimeSpan CloseDelay = TimeSpan.FromMilliseconds(250);
+    /// <summary>
+    /// 指针停在最大化钮上多久才弹面板。默认 400ms，和 Windows 的手感对齐。
+    ///
+    /// 太短会在指针掠过标题栏时误弹。触摸屏上没有「悬停」这回事，
+    /// 那种机器该设成 <see cref="TimeSpan.Zero"/>（下一轮调度就弹）
+    /// 并另外给一个显式入口（<see cref="ShowSnapLayouts"/>）。
+    /// </summary>
+    public TimeSpan SnapLayoutHoverDelay
+    {
+        get => GetValue(SnapLayoutHoverDelayProperty);
+        set => SetValue(SnapLayoutHoverDelayProperty, value);
+    }
+
+    public static readonly StyledProperty<TimeSpan> SnapLayoutCloseDelayProperty =
+        AvaloniaProperty.Register<TitleBar, TimeSpan>(
+            nameof(SnapLayoutCloseDelay), TimeSpan.FromMilliseconds(250));
+
+    /// <summary>
+    /// 指针离开后多久收起面板。默认 250ms。
+    ///
+    /// 这一段不能是 0：面板弹在钮的下方，指针从钮移进面板的路上会短暂地
+    /// 既不在钮上也不在面板上，立刻收起的话面板根本点不到。
+    /// </summary>
+    public TimeSpan SnapLayoutCloseDelay
+    {
+        get => GetValue(SnapLayoutCloseDelayProperty);
+        set => SetValue(SnapLayoutCloseDelayProperty, value);
+    }
 
     private Popup? _snapPopup;
     private SnapLayoutPicker? _picker;
@@ -491,8 +523,12 @@ public class TitleBar : TemplatedControl
         if (EffectiveSnapLayoutMode != SnapLayoutMode.Builtin) return;
 
         _closeTimer?.Stop();
-        _openTimer ??= NewTimer(OpenDelay, ShowSnapLayouts);
+
+        // 间隔为 0 时定时器下一轮就触发，等价于当场弹——触摸屏那种没有悬停的机器
+        // 就该配成 0，不必为它单开一条分支。
+        _openTimer ??= NewTimer(ShowSnapLayouts);
         _openTimer.Stop();
+        _openTimer.Interval = SnapLayoutHoverDelay;
         _openTimer.Start();
     }
 
@@ -504,14 +540,15 @@ public class TitleBar : TemplatedControl
 
     private void ScheduleClose()
     {
-        _closeTimer ??= NewTimer(CloseDelay, CloseSnapLayouts);
+        _closeTimer ??= NewTimer(CloseSnapLayouts);
         _closeTimer.Stop();
+        _closeTimer.Interval = SnapLayoutCloseDelay;
         _closeTimer.Start();
     }
 
-    private static DispatcherTimer NewTimer(TimeSpan interval, Action tick)
+    private static DispatcherTimer NewTimer(Action tick)
     {
-        var timer = new DispatcherTimer { Interval = interval };
+        var timer = new DispatcherTimer();
         timer.Tick += (_, _) =>
         {
             timer.Stop();
@@ -555,6 +592,14 @@ public class TitleBar : TemplatedControl
         _picker!.TargetWindow = _window;
         _snapPopup.IsOpen = true;
     }
+
+    /// <summary>
+    /// 自绘的贴靠布局面板现在是不是开着。
+    ///
+    /// 使用方需要它来避让：面板开着的时候不该再弹自己的菜单，
+    /// 两个悬浮层叠在标题栏同一块地方，操作员分不清点的是哪个。
+    /// </summary>
+    public bool IsSnapLayoutsOpen => _snapPopup is { IsOpen: true };
 
     /// <summary>收起自绘的贴靠布局面板。没弹出来时是空操作。</summary>
     public void CloseSnapLayouts()

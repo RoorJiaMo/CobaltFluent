@@ -40,7 +40,13 @@
 - `TitleBar.EffectiveSnapLayoutMode`（只读）报出解析 `Auto`、核对过能力之后
   实际生效的模式。面板不出来时先看这里。
   `SupportsSnapLayouts` 的含义相应改成「悬停最大化钮会不会出现面板，不论谁画的」。
-- `TitleBar.ShowSnapLayouts()` / `CloseSnapLayouts()` —— 悬停之外的入口，供绑快捷键。
+- `TitleBar.ShowSnapLayouts()` / `CloseSnapLayouts()` / `IsSnapLayoutsOpen` ——
+  悬停之外的入口，供绑快捷键；开着的时候使用方该避让自己的菜单，
+  两个悬浮层叠在标题栏同一块地方，操作员分不清点的是哪个。
+- `TitleBar.SnapLayoutHoverDelay` / `SnapLayoutCloseDelay`。悬停 400ms 才弹，
+  太短会在指针掠过标题栏时误弹；收起留 250ms，是因为面板弹在钮的下方，
+  指针从钮移进面板的路上会短暂地两边都不在，立刻收起的话面板根本点不到。
+  触摸屏没有悬停可言，那种机器把前者设成 0 并另外给一个显式入口。
 
   **做不到的要说清楚**：能摆的只有本进程自己的窗口。Windows 的贴靠助手会在剩下的
   分区里列出**别的应用**的窗口，那需要系统级权限，本库做不到，也不假装做得到。

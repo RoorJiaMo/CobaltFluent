@@ -1122,6 +1122,8 @@ Toast 的承载层。挂在窗口的 OverlayLayer 上，右下角堆叠，不进
 | `SnapLayoutMode` | `SnapLayoutMode` | 贴靠布局面板由谁来出。见 `SnapLayoutMode`。 |
 | `EffectiveSnapLayoutMode` | `SnapLayoutMode` | 解析 `Auto`、并核对过能力之后，实际生效的模式。 贴靠面板不出来时先看这里：是 `None` 就说明 前置条件没满足（窗口不可缩放、最大化钮被藏起来、拿不到屏幕信息、 或者选了 System 但跑在非 Windows 11 上），不是控件坏了。 |
 | `SupportsSnapLayouts` | `bool` | 悬停最大化钮会不会出现贴靠布局面板——不论那个面板是谁画的。 等价于 `EffectiveSnapLayoutMode` 不是 `None`。想知道是系统那个 还是本库自己画的那个，看 `EffectiveSnapLayoutMode`。 报出来是为了让使用方能查：面板不出来的时候，先看这里是不是 false， 而不是去猜是不是 Avalonia 的锅。 |
+| `SnapLayoutHoverDelay` | `TimeSpan` | 指针停在最大化钮上多久才弹面板。默认 400ms，和 Windows 的手感对齐。 太短会在指针掠过标题栏时误弹。触摸屏上没有「悬停」这回事， 那种机器该设成 `Zero`（下一轮调度就弹） 并另外给一个显式入口（`ShowSnapLayouts`）。 |
+| `SnapLayoutCloseDelay` | `TimeSpan` | 指针离开后多久收起面板。默认 250ms。 这一段不能是 0：面板弹在钮的下方，指针从钮移进面板的路上会短暂地 既不在钮上也不在面板上，立刻收起的话面板根本点不到。 |
 
 | 成员 | 说明 |
 |---|---|

@@ -5,6 +5,8 @@ using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Headless.XUnit;
+using Avalonia.Headless;
+using Avalonia.Input;
 using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Threading;
@@ -520,6 +522,142 @@ public class TitleBarTests
         Assert.Equal(
             bar.SupportsSnapLayouts ? "贴靠布局可用" : "贴靠布局不可用",
             peer.GetItemStatus());
+    }
+
+    // ---- 悬停弹出自绘面板 ----------------------------------------------------
+    //
+    // 这是「本库自己做贴靠」在界面上的入口。没有这一段的话，
+    // SnapLayoutPicker 造得再对也没人能弹出来它。
+
+    private static SnapLayoutPicker? OpenPicker(Window window) =>
+        window.GetVisualDescendants().OfType<SnapLayoutPicker>()
+              .FirstOrDefault(p => p.GetVisualRoot() is not null);
+
+    [AvaloniaFact]
+    public void 悬停最大化钮会弹出自绘面板()
+    {
+        // 走的是无头平台的真鼠标事件，经过真正的命中测试——
+        // 伪造一个 PointerEntered 只能证明处理器接上了，证明不了指针真能落到那个钮上。
+        //
+        // 延时设成 0 走「当场弹」那条：触摸屏就是这么配的，
+        // 顺带让这条测试不依赖真实时钟。
+        var (window, bar) = Show(b =>
+        {
+            b.SnapLayoutMode = SnapLayoutMode.Builtin;
+            b.SnapLayoutHoverDelay = TimeSpan.Zero;
+        });
+
+        Assert.Null(OpenPicker(window));
+
+        var maximize = Part<Button>(bar, "PART_Maximize");
+        Assert.True(maximize.Bounds.Width > 0, "前提不成立：按钮没有跑过布局，坐标无从谈起");
+
+        var center = maximize.TranslatePoint(new Point(maximize.Bounds.Width / 2, maximize.Bounds.Height / 2), window);
+        Assert.NotNull(center);
+
+        window.MouseMove(center!.Value);
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.NotNull(OpenPicker(window));
+    }
+
+    [AvaloniaFact]
+    public void 面板里的格子按下去窗口就贴过去且面板收起()
+    {
+        var (window, bar) = Show(b =>
+        {
+            b.SnapLayoutMode = SnapLayoutMode.Builtin;
+            b.SnapLayoutCloseDelay = TimeSpan.Zero;
+        });
+
+        bar.ShowSnapLayouts();
+        Dispatcher.UIThread.RunJobs();
+
+        var picker = OpenPicker(window);
+        Assert.NotNull(picker);
+
+        var cell = picker!.GetVisualDescendants().OfType<SnapZoneButton>().First();
+        var zone = SnapZonePanel.GetZone(cell);
+        var expected = WindowSnap.ZoneRectFor(window, zone);
+
+        cell.RaiseEvent(new Avalonia.Interactivity.RoutedEventArgs(Button.ClickEvent));
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.NotNull(expected);
+        Assert.Equal(expected!.Value.Position, window.Position);
+        Assert.Null(OpenPicker(window));
+    }
+
+    [AvaloniaFact]
+    public void 面板摆的是标题栏所在的那个窗口()
+    {
+        // 面板挂在弹出层里，可视根不是 Window。不显式把目标窗口交给它，
+        // 界面上就是「面板弹出来了，按下去没反应」。
+        var (window, bar) = Show(b => b.SnapLayoutMode = SnapLayoutMode.Builtin);
+
+        bar.ShowSnapLayouts();
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.Same(window, OpenPicker(window)!.TargetWindow);
+    }
+
+    [AvaloniaFact]
+    public void System_与_None_模式下叫不出自绘面板()
+    {
+        // 系统那个面板是 shell 弹的，我们叫不动它；明确关掉的就更不该弹。
+        foreach (var mode in new[] { SnapLayoutMode.System, SnapLayoutMode.None })
+        {
+            var (window, bar) = Show(b => b.SnapLayoutMode = mode);
+
+            bar.ShowSnapLayouts();
+            Dispatcher.UIThread.RunJobs();
+
+            Assert.Null(OpenPicker(window));
+        }
+    }
+
+    [AvaloniaFact]
+    public void 收起之后面板不再留在树上()
+    {
+        var (window, bar) = Show(b => b.SnapLayoutMode = SnapLayoutMode.Builtin);
+
+        bar.ShowSnapLayouts();
+        Dispatcher.UIThread.RunJobs();
+        Assert.NotNull(OpenPicker(window));
+
+        bar.CloseSnapLayouts();
+        Dispatcher.UIThread.RunJobs();
+        Assert.Null(OpenPicker(window));
+    }
+
+    [AvaloniaFact]
+    public void 标题栏被拆掉时面板跟着收起()
+    {
+        // 定时器和弹出层都活在标题栏外面。不收的话，界面已经换页了，
+        // 一个贴靠面板还浮在上面——而且它指着一个已经不存在的按钮。
+        //
+        // 观察点是 Popup.IsOpen，不是「面板还在不在可视树上」：
+        // 无头平台的弹出层是同窗口覆盖层，拆树时它自己就没了，
+        // 按「在不在树上」判的话，收与不收看起来一模一样。
+        // 桌面上弹出层是独立窗口，不主动收就会留在屏幕上。
+        // 说清这条测试的份量：它钉的是「拆掉之后面板不能还开着」这个契约，
+        // 但钉不住是谁做到的——Avalonia 的 Popup 在放置目标脱离时会自己关，
+        // 把控件里那行显式收起删掉，这条测试照样绿。三种拆法都试过。
+        // 留着它是因为契约本身值得钉：真弄坏了（比如换成别的弹出方式）它会红。
+        var bar = new TitleBar { SnapLayoutMode = SnapLayoutMode.Builtin };
+        var host = new Panel { Children = { bar } };
+        var window = new Window { Width = 800, Height = 600, Content = host };
+        window.Show();
+        Dispatcher.UIThread.RunJobs();
+
+        bar.ShowSnapLayouts();
+        Dispatcher.UIThread.RunJobs();
+        Assert.True(bar.IsSnapLayoutsOpen, "前提不成立：面板压根没弹出来");
+
+        host.Children.Remove(bar);
+        Dispatcher.UIThread.RunJobs();
+
+        Assert.False(bar.IsSnapLayoutsOpen);
     }
 
     // ---- ApplyTo -------------------------------------------------------------

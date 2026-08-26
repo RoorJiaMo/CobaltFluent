@@ -385,7 +385,7 @@ tools/check.sh --only Button.axaml    # 仅合并指定控件层文件（并行�
 python3 tools/audit.py                             # 控件层静默失效审计（14 项检查）
 tools/aot-gate.sh                                  # NativeAOT 发布，然后真跑一遍原生二进制
 tools/pack-gate.sh                                 # 打包，然后从装上的包里用一遍
-dotnet test tests/Cobalt.Fluent.Tests               # 479 项回归测试
+dotnet test tests/Cobalt.Fluent.Tests               # 485 项回归测试
 dotnet run  --project samples/Cobalt.Fluent.Gallery # 运行展柜
 ```
 
